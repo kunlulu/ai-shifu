@@ -36,21 +36,15 @@ class PlaceholderWidget extends WidgetType {
     icon.innerHTML = '✕'
     icon.addEventListener('click', e => {
       e.stopPropagation()
-
-      let from = -1,
-        to = -1
-
-      // 获取所有装饰器
+      let from = -1
+      let to = -1
       const decorations = this.view.state.facet(EditorView.decorations)
-      // 遍历所有装饰器，找到当前widget的位置
       for (const deco of decorations) {
-        // 如果是函数，需要先执行它
         const decoSet = typeof deco === 'function' ? deco(this.view) : deco
-
         decoSet.between(
           0,
           this.view.state.doc.length,
-          (start:number, end:number, decoration:Decoration) => {
+          (start: number, end: number, decoration: Decoration) => {
             if (decoration.spec.widget === this) {
               from = start
               to = end
@@ -58,11 +52,8 @@ class PlaceholderWidget extends WidgetType {
             }
           }
         )
-
         if (from !== -1) break
       }
-
-      // 如果找到了位置，执行删除操作
       if (from !== -1 && to !== -1) {
         this.view.dispatch({
           changes: { from, to, insert: '' }
@@ -76,7 +67,7 @@ class PlaceholderWidget extends WidgetType {
       })
       window.dispatchEvent(event)
     })
-    return span
+    return container
   }
 
   ignoreEvent () {
