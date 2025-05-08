@@ -1,0 +1,19 @@
+.tag-profile,
+.tag-image,
+.tag-video {
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 0 6px;
+    &:hover {
+        background-color: #9333ea6b;
+        .tag-icon {
+            visibility: visible;
+        }
+
+    }
+}
+
+.tag-icon {
+    margin-left: 10px;
+    visibility: hidden;
+}
