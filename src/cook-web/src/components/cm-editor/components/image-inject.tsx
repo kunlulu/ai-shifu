@@ -14,7 +14,6 @@ const ImageInject: React.FC<ImageInjectProps> = ({ value, onSelect }) => {
   const [imageUrl, setImageUrl] = useState<string>(value || '')
   const handleSelect = () => {
     onSelect(imageUrl)
-    // onSelect?.("![image](" + imageUrl + ")")
   }
   return (
     <div>

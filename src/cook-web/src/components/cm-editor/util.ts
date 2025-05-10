@@ -12,13 +12,15 @@ import {
   WidgetType
 } from '@codemirror/view'
 import { SelectedOption } from './type'
-// import { useTranslation } from 'react-i18next'
-
 import './index.css'
+import { agiImgUrlRegexp } from '@/components/file-uploader/image-uploader'
+import { biliVideoUrlRegexp } from '@/components/cm-editor/components/video-inject'
+
+const profileRegexp = /(\{\w+\})/g
 
 class PlaceholderWidget extends WidgetType {
   constructor (
-    private name: string,
+    private text: string,
     private styleClass: string,
     private type: SelectedOption,
     private view: EditorView
@@ -26,47 +28,64 @@ class PlaceholderWidget extends WidgetType {
     super()
   }
 
+  getPosition () {
+    let from = -1
+    let to = -1
+    const decorations = this.view.state.facet(EditorView.decorations)
+    for (const deco of decorations) {
+      const decoSet = typeof deco === 'function' ? deco(this.view) : deco
+      decoSet.between(
+        0,
+        this.view.state.doc.length,
+        (start: number, end: number, decoration: Decoration) => {
+          if (decoration.spec.widget === this) {
+            from = start
+            to = end
+            return false
+          }
+        }
+      )
+      if (from !== -1) break
+    }
+    if (from !== -1 && to !== -1) {
+      return [from, to]
+    }
+  }
+
   toDOM () {
     const container = document.createElement('span')
+    container.className = this.styleClass
     const span = document.createElement('span')
-    span.className = this.styleClass
-    span.textContent = `${this.name}`
+    span.textContent = this.text
     const icon = document.createElement('span')
     icon.className = 'tag-icon'
     icon.innerHTML = '✕'
     icon.addEventListener('click', e => {
       e.stopPropagation()
-      let from = -1
-      let to = -1
-      const decorations = this.view.state.facet(EditorView.decorations)
-      for (const deco of decorations) {
-        const decoSet = typeof deco === 'function' ? deco(this.view) : deco
-        decoSet.between(
-          0,
-          this.view.state.doc.length,
-          (start: number, end: number, decoration: Decoration) => {
-            if (decoration.spec.widget === this) {
-              from = start
-              to = end
-              return false
-            }
-          }
-        )
-        if (from !== -1) break
-      }
+      const [from, to] = this.getPosition() ?? [-1, -1]
       if (from !== -1 && to !== -1) {
         this.view.dispatch({
           changes: { from, to, insert: '' }
         })
       }
     })
-    container.appendChild(span).appendChild(icon)
     span.addEventListener('click', () => {
+      const [from, to] = this.getPosition() ?? [-1, -1]
       const event = new CustomEvent('globalTagClick', {
-        detail: { type: this.type, content: span.textContent }
+        detail: {
+          type: this.type,
+          content:
+            this.type === SelectedOption.Profile
+              ? span.textContent?.replace(/[{}]/g, '')
+              : span.textContent,
+          from,
+          to
+        }
       })
       window.dispatchEvent(event)
     })
+    container.appendChild(span)
+    container.appendChild(icon)
     return container
   }
 
@@ -76,7 +95,7 @@ class PlaceholderWidget extends WidgetType {
 }
 
 const profileMatcher = new MatchDecorator({
-  regexp: /(\{\w+\})/g,
+  regexp: profileRegexp,
   decoration: (match, view) =>
     Decoration.replace({
       widget: new PlaceholderWidget(
@@ -89,8 +108,7 @@ const profileMatcher = new MatchDecorator({
 })
 
 const imageUrlMatcher = new MatchDecorator({
-  regexp:
-    /(https?:\/\/(?:avtar\.agiclass\.cn)\S+(?:\.(?:png|jpg|jpeg|gif|bmp))?)/g,
+  regexp: agiImgUrlRegexp,
   decoration: (match, view) =>
     Decoration.replace({
       widget: new PlaceholderWidget(
@@ -102,8 +120,8 @@ const imageUrlMatcher = new MatchDecorator({
     })
 })
 
-const bilibiliUrlMatcher = new MatchDecorator({
-  regexp: /(https?:\/\/(?:www\.|m\.)?bilibili\.com\/video\/\S+)/g,
+const biliUrlMatcher = new MatchDecorator({
+  regexp: biliVideoUrlRegexp,
   decoration: (match, view) =>
     Decoration.replace({
       widget: new PlaceholderWidget(
@@ -157,13 +175,10 @@ const videoPlaceholders = ViewPlugin.fromClass(
   class {
     placeholders: DecorationSet
     constructor (view: EditorView) {
-      this.placeholders = bilibiliUrlMatcher.createDeco(view)
+      this.placeholders = biliUrlMatcher.createDeco(view)
     }
     update (update: ViewUpdate) {
-      this.placeholders = bilibiliUrlMatcher.updateDeco(
-        update,
-        this.placeholders
-      )
+      this.placeholders = biliUrlMatcher.updateDeco(update, this.placeholders)
     }
   },
   {
@@ -179,7 +194,6 @@ function createSlashCommands (
   onSelectOption: (selectedOption: SelectedOption) => void
 ) {
   return (context: CompletionContext): CompletionResult | null => {
-    // const { t } = useTranslation();
     const word = context.matchBefore(/\/(\w*)$/)
     if (!word) return null
 
@@ -228,6 +242,9 @@ function createSlashCommands (
 }
 
 export {
+  biliVideoUrlRegexp,
+  agiImgUrlRegexp,
+  profileRegexp,
   profilePlaceholders,
   imgPlaceholders,
   videoPlaceholders,

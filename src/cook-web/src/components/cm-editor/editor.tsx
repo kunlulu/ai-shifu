@@ -41,7 +41,7 @@ const Editor: React.FC<EditorProps> = ({
     SelectedOption.Empty
   )
   const [profileList, setProfileList] = useState<string[]>(profiles)
-  const [currentSelectContent, setCurrentSelectContent] = useState<string>()
+  const [selectContentInfo, setSelectContentInfo] = useState<any>()
   const editorViewRef = useRef<EditorView | null>(null)
 
   const editorContextValue: IEditorContext = {
@@ -58,7 +58,7 @@ const Editor: React.FC<EditorProps> = ({
     setSelectedOption(selectedOption)
   }, [])
 
-  const insertTextAsTag = useCallback(
+  const insertText = useCallback(
     (text: string) => {
       if (!editorViewRef.current) return
 
@@ -73,22 +73,75 @@ const Editor: React.FC<EditorProps> = ({
     [editorViewRef]
   )
 
+  const deleteSelectedContent = useCallback(() => {
+    if (
+      !selectContentInfo ||
+      !editorViewRef.current ||
+      selectContentInfo.from === -1
+    )
+      return
+
+    const { from, to } = selectContentInfo
+    const { dispatch } = editorViewRef.current
+
+    dispatch({
+      changes: { from, to, insert: '' }
+    })
+  }, [selectContentInfo, editorViewRef])
+
   const handleSelectProfile = useCallback(
     (profile: Profile) => {
       const textToInsert = `{${profile.profile_key}}`
-      insertTextAsTag(textToInsert)
+      if (selectContentInfo?.type === SelectedOption.Profile) {
+        deleteSelectedContent()
+        if (!editorViewRef.current) return
+
+        const { dispatch } = editorViewRef.current
+        dispatch({
+          changes: { from: selectContentInfo.from, insert: textToInsert }
+        })
+      } else {
+        insertText(textToInsert)
+      }
       setDialogOpen(false)
     },
-    [insertTextAsTag, selectedOption]
+    [insertText, selectedOption]
   )
 
-  const handleSelectResource = useCallback(
+  const handleSelectImage = useCallback(
     (resourceUrl: string) => {
-      const textToInsert = ` ${resourceUrl}`
-      insertTextAsTag(textToInsert)
+      const textToInsert = resourceUrl
+      if (selectContentInfo?.type === SelectedOption.Image) {
+        deleteSelectedContent()
+        if (!editorViewRef.current) return
+        const { dispatch } = editorViewRef.current
+        dispatch({
+          changes: { from: selectContentInfo.from, insert: textToInsert }
+        })
+      } else {
+        insertText(textToInsert)
+      }
       setDialogOpen(false)
     },
-    [insertTextAsTag, selectedOption]
+    [insertText, selectedOption]
+  )
+
+  const handleSelectVideo = useCallback(
+    (resourceUrl: string) => {
+      const textToInsert = resourceUrl
+      if (selectContentInfo?.type === SelectedOption.Video) {
+        deleteSelectedContent()
+        if (!editorViewRef.current) return
+        const { dispatch } = editorViewRef.current
+        dispatch({
+          changes: { from: selectContentInfo.from, insert: textToInsert }
+        })
+      } else {
+        insertText(textToInsert)
+      }
+      setDialogOpen(false)
+    },
+    [insertText, selectedOption]
   )
 
   const slashCommandsExtension = useCallback(() => {
@@ -103,13 +156,25 @@ const Editor: React.FC<EditorProps> = ({
 
   const handleTagClick = useCallback(
     (event: any) => {
-      const { type, content } = event.detail
-      setCurrentSelectContent(content)
+      const { type, content, from, to } = event.detail
+      setSelectContentInfo({
+        type,
+        content,
+        from,
+        to
+      })
       setSelectedOption(type)
       setDialogOpen(true)
     },
     [setSelectedOption, setDialogOpen]
   )
+
+  useEffect(() => {
+    if (!dialogOpen) {
+      setSelectedOption(SelectedOption.Empty)
+      setSelectContentInfo(null)
+    }
+  }, [dialogOpen])
 
   useEffect(() => {
     window.addEventListener('globalTagClick', handleTagClick)
@@ -153,18 +218,27 @@ const Editor: React.FC<EditorProps> = ({
             />
             <CustomDialog>
               {selectedOption === SelectedOption.Profile && (
-                <ProfileInject onSelect={handleSelectProfile} />
+                <ProfileInject
+                  value={selectContentInfo?.content}
+                  onSelect={handleSelectProfile}
+                />
               )}
               {selectedOption === SelectedOption.Image && (
-                <ImageInject value={currentSelectContent} onSelect={handleSelectResource} />
+                <ImageInject
+                  value={selectContentInfo?.content}
+                  onSelect={handleSelectImage}
+                />
               )}
               {selectedOption === SelectedOption.Video && (
-                <VideoInject value={currentSelectContent} onSelect={handleSelectResource} />
+                <VideoInject
+                  value={selectContentInfo?.content}
+                  onSelect={handleSelectVideo}
+                />
               )}
             </CustomDialog>
           </>
         ) : (
-          <div className='w-full p-2 rounded cursor-pointer font-mono'>
+          <div className='w-full p-2 rounded cursor-pointer font-mono break-words'>
             {content}
           </div>
         )}

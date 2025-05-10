@@ -12,18 +12,20 @@ import useProfiles from './useProfiles'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 
 interface ProfileSelectProps {
+  value?: string
   parentId?: string
   onSelect?: (profile: Profile) => void
 }
 
 const ProfileSelect: React.FC<ProfileSelectProps> = ({
+  value,
   parentId,
   onSelect = () => {}
 }) => {
   const [saveOpen, setSaveOpen] = useState<boolean>(false)
   const [editingProfile, setEditingProfile] = useState<Profile | undefined>()
   const [hoveredId, setHoveredId] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState(value || '')
   const [refreshFlag, setRefreshFlag] = useState(0)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleteProfileId, setDeleteProfileId] = useState<string | null>(null)

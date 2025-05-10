@@ -8,24 +8,26 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { uploadFile } from '@/lib/file'
-import { getSiteHost } from "@/config/runtime-config";
+import { getSiteHost } from '@/config/runtime-config'
+import { useToast } from '@/hooks/use-toast'
 
 type ImageUploaderProps = {
   value?: string
   onChange?: (value: string) => void
 }
 
-const ImageUploader:React.FC<ImageUploaderProps> = ({
-  value,
-  onChange,
-}) => {
-  const [imageUrl, setImageUrl] = useState<string>(value ||'')
+const agiImgUrlRegexp =
+  /(https?:\/\/(?:avtar\.agiclass\.cn)\S+(?:\.(?:png|jpg|jpeg|gif|bmp))?)/g
+
+const ImageUploader: React.FC<ImageUploaderProps> = ({ value, onChange }) => {
+  const [imageUrl, setImageUrl] = useState<string>(value || '')
   const [inputUrl, setInputUrl] = useState<string>('')
   const [isUploading, setIsUploading] = useState<boolean>(false)
   const [fileName, setFileName] = useState<string>('')
   const [uploadProgress, setUploadProgress] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const siteHost = getSiteHost()
+  const { toast } = useToast()
 
   const resetState = () => {
     setImageUrl('')
@@ -76,6 +78,21 @@ const ImageUploader:React.FC<ImageUploaderProps> = ({
 
   const handleUrlUpload = async () => {
     if (!inputUrl) return
+    if (!agiImgUrlRegexp.test(inputUrl)) {
+      try {
+        const response = await fetch(inputUrl)
+        const blob = await response.blob()
+        const file = new File([blob], 'image.jpg', { type: blob.type })
+        await uploadImage(file)
+      } catch (error) {
+        console.error('Error uploading image:', error)
+        toast({
+          title: '运行失败',
+          description: '请检查图片链接是否正确'
+        })
+      }
+      return
+    }
     const urlParts = inputUrl.split('/')
     setFileName(urlParts[urlParts.length - 1])
     setImageUrl(inputUrl)
@@ -103,7 +120,7 @@ const ImageUploader:React.FC<ImageUploaderProps> = ({
 
   useEffect(() => {
     onChange?.(imageUrl)
-  },[imageUrl])
+  }, [imageUrl])
 
   return (
     <div className='space-y-6'>
@@ -183,16 +200,16 @@ const ImageUploader:React.FC<ImageUploaderProps> = ({
           />
           <div className=' mb-6'>{fileName}</div>
           <Button
-              variant='outline'
-              className='w-full py-6 text-lg'
-              onClick={resetState}
-            >
-              替换图片
-            </Button>
+            variant='outline'
+            className='w-full py-6 text-lg'
+            onClick={resetState}
+          >
+            替换图片
+          </Button>
         </div>
       )}
     </div>
   )
 }
-
+export { agiImgUrlRegexp }
 export default ImageUploader
