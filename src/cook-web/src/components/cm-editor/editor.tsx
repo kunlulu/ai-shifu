@@ -11,7 +11,6 @@ import ImageInject from './components/image-inject'
 import VideoInject from './components/video-inject'
 import ProfileInject from './components/profile-inject'
 import { SelectedOption, IEditorContext } from './type'
-import { useTranslation } from 'react-i18next'
 
 import './index.css'
 
@@ -35,7 +34,6 @@ const Editor: React.FC<EditorProps> = ({
   profiles = [],
   onChange
 }) => {
-  const { t } = useTranslation()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedOption, setSelectedOption] = useState<SelectedOption>(
     SelectedOption.Empty
@@ -208,7 +206,7 @@ const Editor: React.FC<EditorProps> = ({
                 foldGutter: false
               }}
               className='border rounded-md'
-              placeholder={t('cm-editor.input-slash-to-insert-content')}
+              placeholder='输入“/”快速插入内容'
               value={content}
               theme='light'
               height='10em'
