@@ -93,8 +93,7 @@ const ImageUploader:React.FC<ImageUploaderProps> = ({
       } catch (error) {
         console.error('Error uploading image:', error)
         toast({
-          title: '运行失败',
-          description: '请检查图片链接是否正确'
+          title: t('file-uploader.failed-to-upload-image')
         })
       }
       return
