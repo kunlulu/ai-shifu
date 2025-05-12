@@ -2,7 +2,7 @@
 import Button from '@/components/button'
 import { Input } from '@/components/ui/input'
 import React, { useState, useRef, useEffect } from 'react'
-
+import { useTranslation } from 'react-i18next'
 type VideoInjectProps = {
   value?: string
   onSelect: (resourceUrl: string) => void
@@ -12,6 +12,7 @@ const biliVideoUrlRegexp =
   /(https?:\/\/(?:www\.|m\.)?bilibili\.com\/video\/\S+)/g
 
 const VideoInject: React.FC<VideoInjectProps> = ({ value, onSelect }) => {
+  const { t } = useTranslation();
   const [inputUrl, setInputUrl] = useState<string>(value || '')
   const [embedUrl, setEmbedUrl] = useState('')
   const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -29,7 +30,7 @@ const VideoInject: React.FC<VideoInjectProps> = ({ value, onSelect }) => {
 
   const handleRun = () => {
     if (!isValidBilibiliUrl(inputUrl)) {
-      setErrorTips('请输入正确的B站视频地址')
+      setErrorTips(t('common.please-input-valid-bilibili-url'))
       return
     }
 
@@ -73,17 +74,13 @@ const VideoInject: React.FC<VideoInjectProps> = ({ value, onSelect }) => {
           type='text'
           value={inputUrl}
           onChange={e => setInputUrl(e.target.value?.trim())}
-          placeholder='请输入B站视频地址'
+          placeholder={t('common.please-input-bilibili-url')}
           autoComplete='off'
         />
         <Button className='h-8' onClick={handleRun}>
-          运行
+          {t('common.run')}
         </Button>
-        {embedUrl && (
-          <Button className='h-8' onClick={handleSelect}>
-            使用视频
-          </Button>
-        )}
+        {embedUrl && <Button className='h-8' onClick={handleSelect}>{t('common.use-resource')}</Button>}
       </div>
       {!!errorTips && <div>{errorTips}</div>}
 

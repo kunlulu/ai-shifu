@@ -20,6 +20,7 @@ import {
   videoPlaceholders,
   createSlashCommands
 } from './util'
+import { useTranslation } from 'react-i18next'
 
 type EditorProps = {
   content?: string
@@ -34,6 +35,8 @@ const Editor: React.FC<EditorProps> = ({
   profiles = [],
   onChange
 }) => {
+  console.log('content', content)
+  const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedOption, setSelectedOption] = useState<SelectedOption>(
     SelectedOption.Empty
@@ -86,6 +89,7 @@ const Editor: React.FC<EditorProps> = ({
       changes: { from, to, insert: '' }
     })
   }, [selectContentInfo, editorViewRef])
+
 
   const handleSelectProfile = useCallback(
     (profile: Profile) => {
@@ -206,7 +210,7 @@ const Editor: React.FC<EditorProps> = ({
                 foldGutter: false
               }}
               className='border rounded-md'
-              placeholder='输入“/”快速插入内容'
+              placeholder={t('cm-editor.input-slash-to-insert-content')}
               value={content}
               theme='light'
               height='10em'

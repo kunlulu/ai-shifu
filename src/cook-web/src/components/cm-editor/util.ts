@@ -15,6 +15,8 @@ import { SelectedOption } from './type'
 import './index.css'
 import { agiImgUrlRegexp } from '@/components/file-uploader/image-uploader'
 import { biliVideoUrlRegexp } from '@/components/cm-editor/components/video-inject'
+import { getI18n } from 'react-i18next'
+
 
 const profileRegexp = /(\{\w+\})/g
 
@@ -193,6 +195,7 @@ const videoPlaceholders = ViewPlugin.fromClass(
 function createSlashCommands (
   onSelectOption: (selectedOption: SelectedOption) => void
 ) {
+  const t = getI18n()?.t
   return (context: CompletionContext): CompletionResult | null => {
     const word = context.matchBefore(/\/(\w*)$/)
     if (!word) return null
@@ -215,22 +218,19 @@ function createSlashCommands (
       to: word.to,
       options: [
         {
-          // label: t('cm-editor.variable'),
-          label: '变量',
+          label: t('cm-editor.variable'),
           apply: (view, _, from, to) => {
             handleSelect(view, _, from, to, SelectedOption.Profile)
           }
         },
         {
-          // label: t('cm-editor.image'),
-          label: '图片',
+          label: t('cm-editor.image'),
           apply: (view, _, from, to) => {
             handleSelect(view, _, from, to, SelectedOption.Image)
           }
         },
         {
-          // label: t('cm-editor.video'),
-          label: '视频',
+          label: t('cm-editor.video'),
           apply: (view, _, from, to) => {
             handleSelect(view, _, from, to, SelectedOption.Video)
           }
