@@ -15,6 +15,7 @@ interface SolideContnet {
     isEdit: boolean;
     properties: SolideContnetProps;
     onChange: (properties: SolideContnetProps) => void;
+    onBlur?: () => void;
     onEditChange?: (isEdit: boolean) => void;
 }
 
@@ -32,6 +33,7 @@ export default function SolidContent(props: SolideContnet) {
             content={props.properties.content}
             profiles={props.properties.profiles}
             isEdit={props.isEdit}
+            onBlur={props.onBlur}
             onChange={(value, isEdit) => {
                 props.onChange({ ...props.properties, content: value })
                 if (props.onEditChange) {

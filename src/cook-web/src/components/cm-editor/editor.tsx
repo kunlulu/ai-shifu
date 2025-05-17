@@ -27,13 +27,15 @@ type EditorProps = {
   isEdit?: boolean
   profiles?: string[]
   onChange?: (value: string, isEdit: boolean) => void
+  onBlur?: () => void
 }
 
 const Editor: React.FC<EditorProps> = ({
   content = '',
   isEdit,
   profiles = [],
-  onChange
+  onChange,
+  onBlur
 }) => {
   console.log('content', content)
   const { t } = useTranslation();
@@ -213,10 +215,11 @@ const Editor: React.FC<EditorProps> = ({
               placeholder={t('cm-editor.input-slash-to-insert-content')}
               value={content}
               theme='light'
-              height='10em'
+              minHeight='10em'
               onChange={(value: string) => {
                 onChange?.(value, isEdit || false)
               }}
+              onBlur={onBlur}
             />
             <CustomDialog>
               {selectedOption === SelectedOption.Profile && (
