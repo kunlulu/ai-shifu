@@ -9,7 +9,7 @@ type VideoInjectProps = {
 }
 
 const biliVideoUrlRegexp =
-  /(https?:\/\/(?:www\.|m\.)?bilibili\.com\/video\/\S+)/i
+  /(https?:\/\/(?:www\.|m\.)?bilibili\.com\/video\/\S+)/ig
 
 const VideoInject: React.FC<VideoInjectProps> = ({ value, onSelect }) => {
   const { t } = useTranslation();
@@ -50,8 +50,7 @@ const VideoInject: React.FC<VideoInjectProps> = ({ value, onSelect }) => {
       try {
         const returnUrlObj = new URL(inputUrl)
         onSelect(returnUrlObj.origin + returnUrlObj.pathname)
-      } catch (error) {
-        console.log('error', error)
+      } catch {
         onSelect(inputUrl)
       }
     }
