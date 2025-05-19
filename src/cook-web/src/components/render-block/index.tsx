@@ -2,19 +2,7 @@
 import { useScenario } from '@/store'
 import AI from './ai'
 import SolidContent from './solid-content'
-// import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-// import { Check, Trash2 } from 'lucide-react';
 import { useState } from 'react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '../ui/alert-dialog'
 import { useTranslation } from 'react-i18next'
 
 const BlockMap = {
@@ -46,7 +34,6 @@ export const RenderBlockContent = ({
     currentScenario
   } = useScenario()
   const [error, setError] = useState('')
-//   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const ContentTypes = useContentTypes()
 
   const onPropertiesChange = async properties => {
@@ -88,12 +75,9 @@ export const RenderBlockContent = ({
       true
     )
   }
-//   const setIsEdit = (isEdit: boolean) => {
-//     actions.setBlockContentStateById(id, isEdit ? 'edit' : 'preview')
-//   }
+
   const onSave = async () => {
     setError('')
-    // check if the block is empty
     const block = blocks.find(item => item.properties.block_id == id)
     if (type == 'ai' && block && properties.prompt == '') {
       setError(t('render-block.ai-content-empty'))
@@ -102,24 +86,13 @@ export const RenderBlockContent = ({
       setError(t('render-block.solid-content-empty'))
       return
     }
-    // setIsEdit(false)
     await actions.saveBlocks(currentScenario?.id || '')
   }
-//   const onRemove = async () => {
-//     setShowDeleteDialog(true)
-//   }
 
-//   const handleConfirmDelete = async () => {
-//     if (!currentNode?.id) return
-//     await actions.removeBlock(id, currentScenario?.id || '')
-//     setShowDeleteDialog(false)
-//   }
-
-  // const isEdit = blockContentState[id] == 'edit';
   const isEdit = true
   const Ele = BlockMap[type]
   return (
-    <div className='bg-[#F5F5F4] rounded-md'>
+    <div className='bg-[#F5F5F4]'>
       {/* {
                 isEdit && (
                     <div className='rounded-t-md p-2 flex flex-row items-center py-1 justify-between'>
@@ -161,25 +134,6 @@ export const RenderBlockContent = ({
         />
       </div>
       {error && <div className='text-red-500 text-sm px-2 pb-2'>{error}</div>}
-
-      {/* <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('render-block.confirm-delete')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('render-block.confirm-delete-description')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('render-block.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>
-              {t('render-block.confirm')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog> */}
     </div>
   )
 }

@@ -5,7 +5,7 @@ import type { DropTargetMonitor } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { Button } from '@/components/ui/button'
 import {
-  ChevronsRight,
+  //   ChevronsRight,
   Plus,
   Variable,
   GripVertical,
@@ -48,6 +48,8 @@ interface DraggableBlockProps {
   id: string
   index: number
   moveBlock: (dragIndex: number, hoverIndex: number) => void
+  onMouseEnter?: () => void
+  onMouseLeave?: () => void
   children: React.ReactNode
 }
 
@@ -55,6 +57,8 @@ const DraggableBlock = ({
   id,
   index,
   moveBlock,
+  onMouseEnter,
+  onMouseLeave,
   children
 }: DraggableBlockProps) => {
   const ref = React.useRef<HTMLDivElement>(null)
@@ -124,13 +128,16 @@ const DraggableBlock = ({
       data-handler-id={handlerId}
       className='relative group pl-7'
     >
-      <div
-        ref={dragRef}
-        className='absolute top-0 -left-0 w-6 h-6 border rounded cursor-move flex items-center justify-center  group-hover:opacity-100 opacity-0'
-      >
-        <GripVertical height={16} width={16} className=' text-gray-500' />
+      <div ref={dragRef}>
+        <div
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          className='absolute top-0 left-0 h-10 cursor-move group-hover:opacity-100 opacity-0'
+        >
+          <GripVertical className='h-4 w-4 shrink-0' />
+        </div>
+        {children}
       </div>
-      {children}
     </div>
   )
 }
@@ -197,10 +204,9 @@ const ScriptEditor = ({ id }: { id: string }) => {
       return
     }
     const target = e.currentTarget as HTMLElement
-    // 计算相对于div的坐标，页面滚动时，保持相对位置
     const rect = target.getBoundingClientRect()
-    const width = target.offsetWidth
-    const x = width + rect.left + 40
+    // const width = target.offsetWidth
+    const x = rect.left - 40
     const y = rect.top
     if (menuPosition.x == x && menuPosition.y == y) {
       return
@@ -209,7 +215,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
   }
 
   const onHideMenu: MouseEventHandler<HTMLDivElement> = () => {
-    // setMenuPosition({ visible: false });
+    setMenuPosition({ visible: false })
   }
 
   const onDebugBlock = (id: string) => {
@@ -228,7 +234,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
   const handleConfirmDelete = async (id: string | undefined) => {
     if (!currentNode?.id) return
     if (!id) return
-    await  actions.removeBlock(id, currentScenario?.id || '')
+    await actions.removeBlock(id, currentScenario?.id || '')
     setShowDeleteDialog(false)
   }
 
@@ -275,12 +281,11 @@ const ScriptEditor = ({ id }: { id: string }) => {
             setMenuPosition({ visible: false })
           }}
         >
-          {isLoading && (
+          {isLoading ? (
             <div className='h-40 flex items-center justify-center'>
               <Loading />
             </div>
-          )}
-          {!isLoading && (
+          ) : (
             <>
               <DndProvider backend={HTML5Backend}>
                 {blocks.map((block, index) => (
@@ -304,6 +309,8 @@ const ScriptEditor = ({ id }: { id: string }) => {
                         currentScenario?.id || ''
                       )
                     }}
+                    onMouseEnter={onHideMenu}
+                    onMouseLeave={onHideMenu}
                   >
                     <div
                       id={block.properties.block_id}
@@ -355,43 +362,28 @@ const ScriptEditor = ({ id }: { id: string }) => {
         />
       )}
 
-      {menuPosition.visible && (
-        <div
-          className=' fixed bg-white hover:bg-gray-100 cursor-pointer rounded-sm h-6 w-6 flex items-center justify-center top-0 -right-16 p-2'
-          style={{
-            top: menuPosition.y + 'px',
-            left: menuPosition.x + 'px',
-            zIndex: 50
-          }}
-        >
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger>
-              <ChevronsRight className='h-4 w-4 shrink-0' />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align='start' side='bottom' alignOffset={-5}>
-              <div>AI模块</div>
-              <DropdownMenuItem
-                onClick={onDebugBlock.bind(null, menuPosition.blockId || '')}
-              >
-                <Variable />
-                设置成固定模块
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={onDebugBlock.bind(null, menuPosition.blockId || '')}
-              >
-                <Variable />
-                {t('scenario.debug')}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={onRemove}
-              >
-                <Trash2 className='h-5 w-5 cursor-pointer' />
-                删除
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+      <div
+        className='fixed bg-white hover:bg-gray-100 cursor-pointer rounded-sm w-100'
+        style={{
+          top: menuPosition.y + 'px',
+          left: menuPosition.x + 'px',
+          zIndex: 50
+        }}
+      >
+        <div className='flex h-50'>AI模块</div>
+        <div className='flex h-50' onClick={onDebugBlock.bind(null, menuPosition.blockId || '')}>
+          <Variable />
+          设置成固定模块
         </div>
-      )}
+        <div className='flex h-50' onClick={onDebugBlock.bind(null, menuPosition.blockId || '')}>
+          <Variable />
+          {t('scenario.debug')}
+        </div>
+        <div className='flex h-50' onClick={onRemove}>
+          <Trash2 className='h-5 w-5 cursor-pointer' />
+          删除
+        </div>
+      </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
