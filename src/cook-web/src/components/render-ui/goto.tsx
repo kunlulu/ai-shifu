@@ -33,10 +33,12 @@ interface GotoProps {
         "button_key": string
     }
     onChange: (properties: any) => void
+    onChanged?: (changed: boolean) => void
 }
 
 export default function Goto(props: GotoProps) {
-    const { properties } = props
+    const { properties, onChanged } = props
+    const [changed, setChanged] = useState(false);
     const { t } = useTranslation();
     const { chapters, currentShifu } = useShifu();
 
@@ -48,6 +50,7 @@ export default function Goto(props: GotoProps) {
     });
 
     const onNodeSelect = (index: number, node: Outline) => {
+
         setTempGotoSettings({
             ...tempGotoSettings,
             items: tempGotoSettings.items.map((item, i) => {
@@ -106,6 +109,11 @@ export default function Goto(props: GotoProps) {
     }, [])
 
     const handleValueChange = async (value: string) => {
+        console.log("in");
+        if (!changed) {
+            setChanged(true);
+            onChanged?.(true);
+        }
         const selectedItem = profileItemDefinations.find((item) => item.profile_id === value);
         if (selectedItem) {
             setSelectedProfile(selectedItem);
