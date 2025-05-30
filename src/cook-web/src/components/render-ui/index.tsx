@@ -51,7 +51,6 @@ export const BlockUI = ({ id, type, properties, mode = 'edit', onChanged }: {
     const UITypes = useUITypes()
 
     const handleChanged = (changed: boolean) => {
-        console.log(`Block ${id} changed status:`, changed, 'Current Type:', blockUITypes[id], 'isChanged:', changed);
         onChanged?.(changed);
     }
 
@@ -129,7 +128,6 @@ export const RenderBlockUI = ({ block, mode = 'edit', onExpandChange }: { block:
     }
 
     const onUITypeChange = (id: string, type: string) => {
-        console.log('Select onChange - Current Type:', blockUITypes[block.properties.block_id], 'New Type:', type, 'isChanged:', isChanged);
         if (type === blockUITypes[block.properties.block_id]) {
             return;
         }
@@ -142,13 +140,11 @@ export const RenderBlockUI = ({ block, mode = 'edit', onExpandChange }: { block:
     }
 
     const handleConfirmChange = () => {
-        console.log('Confirm Change - Previous Type:', blockUITypes[block.properties.block_id], 'New Type:', pendingType, 'isChanged:', isChanged);
         handleTypeChange(pendingType);
         setShowConfirmDialog(false);
     }
 
     const handleBlockChanged = (changed: boolean) => {
-        console.log(`Block ${block.properties.block_id} changed status:`, changed, 'Current Type:', blockUITypes[block.properties.block_id], 'isChanged:', isChanged);
         if (changed !== isChanged) {
             setIsChanged(changed);
         }
