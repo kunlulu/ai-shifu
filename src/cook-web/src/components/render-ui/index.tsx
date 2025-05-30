@@ -69,6 +69,7 @@ export const BlockUI = ({ id, type, properties, mode = 'edit', onChanged }: {
             setError(err);
             return;
         }
+        actions.setBlockUIPropertiesById(id, properties);
         if (currentNode) {
             actions.autoSaveBlocks(currentNode.id, blocks, blockContentTypes, blockContentProperties, blockUITypes, p, currentShifu?.shifu_id || '')
         }
