@@ -109,7 +109,6 @@ export default function Goto(props: GotoProps) {
     }, [])
 
     const handleValueChange = async (value: string) => {
-        console.log("in");
         if (!changed) {
             setChanged(true);
             onChanged?.(true);
