@@ -1,6 +1,7 @@
 import os
 import pytest
 
+
 @pytest.fixture(scope="session")
 def app():
     os.environ.setdefault("REDIS_MOCK", "true")
