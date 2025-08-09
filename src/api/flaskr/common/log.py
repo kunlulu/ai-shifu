@@ -154,7 +154,7 @@ def init_log(app: Flask) -> Flask:
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
     file_handler = TimedRotatingFileHandler(
-        app.config["LOGGING_PATH"], when="midnight", backupCount=7
+        log_file, when="midnight", backupCount=7
     )
     file_handler.setFormatter(formatter)
     console_handler = logging.StreamHandler()
