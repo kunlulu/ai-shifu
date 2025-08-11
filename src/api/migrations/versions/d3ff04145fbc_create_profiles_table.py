@@ -126,7 +126,10 @@ def upgrade():
         ),
         sa.Column("profile_id", sa.BigInteger(), nullable=False, comment="Profile ID"),
         sa.Column(
-            "profile_item_id", sa.BigInteger(), nullable=False, comment="Profile item ID"
+            "profile_item_id",
+            sa.BigInteger(),
+            nullable=False,
+            comment="Profile item ID",
         ),
         sa.Column("profile_value", sa.Text(), nullable=False, comment="Profile value"),
         sa.Column("created", sa.TIMESTAMP(), nullable=False, comment="Creation time"),

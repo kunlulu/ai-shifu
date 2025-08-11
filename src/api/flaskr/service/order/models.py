@@ -135,7 +135,9 @@ class PingxxOrder(db.Model):
     )
     pingxx_id = Column(String(36), nullable=False, default="", comment="Pingxx ID")
     channel = Column(String(36), nullable=False, default="", comment="Payment channel")
-    amount = Column(BigInteger, nullable=False, default="0.00", comment="Payment amount")
+    amount = Column(
+        BigInteger, nullable=False, default="0.00", comment="Payment amount"
+    )
     currency = Column(String(36), nullable=False, default="CNY", comment="Currency")
     subject = Column(String(255), nullable=False, default="", comment="Payment subject")
     body = Column(String(255), nullable=False, default="", comment="Payment body")
@@ -219,8 +221,12 @@ class Discount(db.Model):
         String(36), nullable=False, default="", comment="Discount channel"
     )
     discount_filter = Column(Text, nullable=False, comment="Discount filter")
-    discount_count = Column(BigInteger, nullable=False, default=0, comment="Discount count")
-    discount_used = Column(BigInteger, nullable=False, default=0, comment="Discount used")
+    discount_count = Column(
+        BigInteger, nullable=False, default=0, comment="Discount count"
+    )
+    discount_used = Column(
+        BigInteger, nullable=False, default=0, comment="Discount used"
+    )
     discount_generated_user = Column(
         String(36), nullable=False, default="", comment="Discount generated user"
     )
