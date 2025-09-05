@@ -14,7 +14,7 @@ const USER_STATE_DICT = {
 
 // Module-level singleton state for global deduplication
 const identifyState = {
-  timeout: undefined as NodeJS.Timeout | undefined,
+  timeout: undefined as ReturnType<typeof setTimeout> | undefined,
   prevUserInfo: undefined as string | undefined,
 };
 
