@@ -14,7 +14,7 @@ const USER_STATE_DICT = {
 export const useTracking = () => {
   const { frameLayout } = useUiLayoutStore((state) => state);
   const { userInfo } = useUserStore((state) => state);
-  const identifyTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const identifyTimeoutRef = useRef<number | undefined>(undefined);
   const prevUserInfoRef = useRef<string | undefined>(undefined);
 
   // Identify user when user info changes with debouncing and change detection
