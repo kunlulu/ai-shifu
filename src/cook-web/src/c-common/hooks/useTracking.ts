@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 import { EVENT_NAMES, tracking } from '@/c-common/tools/tracking';
 import { useUserStore } from '@/store';
 import { useUiLayoutStore } from '@/c-store/useUiLayoutStore';
@@ -11,21 +11,26 @@ const USER_STATE_DICT = {
   已注册: 'user',
   已付费: 'member',
 };
+
+// Module-level singleton state for global deduplication
+const identifyState = {
+  timeout: undefined as NodeJS.Timeout | undefined,
+  prevUserInfo: undefined as string | undefined,
+};
+
 export const useTracking = () => {
   const { frameLayout } = useUiLayoutStore(state => state);
   const { userInfo } = useUserStore(state => state);
-  const identifyTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const prevUserInfoRef = useRef<string | undefined>(undefined);
 
-  // Identify user when user info changes with debouncing and change detection
+  // Identify user when user info changes with global debouncing and change detection
   useEffect(() => {
-    // Clear previous timeout if exists
-    if (identifyTimeoutRef.current) {
-      clearTimeout(identifyTimeoutRef.current);
+    // Clear previous global timeout if exists
+    if (identifyState.timeout) {
+      clearTimeout(identifyState.timeout);
     }
 
-    // Set debounced timeout
-    identifyTimeoutRef.current = setTimeout(() => {
+    // Set global debounced timeout
+    identifyState.timeout = setTimeout(() => {
       try {
         const umami = window.umami;
         if (!umami) {
@@ -41,7 +46,7 @@ export const useTracking = () => {
         });
 
         // Only call identify if state actually changed
-        if (currentState !== prevUserInfoRef.current) {
+        if (currentState !== identifyState.prevUserInfo) {
           // Build session data with only safe fields
           const sessionData: {
             nickname?: string;
@@ -64,8 +69,8 @@ export const useTracking = () => {
             umami.identify(null);
           }
 
-          // Update previous state reference
-          prevUserInfoRef.current = currentState;
+          // Update global previous state reference
+          identifyState.prevUserInfo = currentState;
         }
       } catch {
         // Silently fail - tracking errors should not affect user experience
@@ -75,9 +80,8 @@ export const useTracking = () => {
 
     // Cleanup function
     return () => {
-      if (identifyTimeoutRef.current) {
-        clearTimeout(identifyTimeoutRef.current);
-      }
+      // Note: We don't clear the global timeout on unmount as other components may still be using it
+      // The timeout will naturally complete or be cleared by the next update
     };
   }, [userInfo?.user_id, userInfo?.name, userInfo?.state, userInfo?.language]);
 
