@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { EVENT_NAMES, tracking } from '@/c-common/tools/tracking';
 import { useUserStore } from '@/store';
 import { useUiLayoutStore } from '@/c-store/useUiLayoutStore';
@@ -14,40 +14,71 @@ const USER_STATE_DICT = {
 export const useTracking = () => {
   const { frameLayout } = useUiLayoutStore(state => state);
   const { userInfo } = useUserStore(state => state);
+  const identifyTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const prevUserInfoRef = useRef<string | undefined>(undefined);
 
-  // Identify user when user info changes
+  // Identify user when user info changes with debouncing and change detection
   useEffect(() => {
-    try {
-      const umami = window.umami;
-      if (!umami) {
-        return;
-      }
-
-      // Build session data with only safe fields
-      const sessionData: {
-        nickname?: string;
-        user_state?: string;
-        language?: string;
-      } = {};
-      if (userInfo?.name) sessionData.nickname = userInfo.name;
-      if (userInfo?.state) sessionData.user_state = userInfo.state;
-      if (userInfo?.language) sessionData.language = userInfo.language;
-
-      // Identify user with their unique ID and session data
-      if (userInfo?.user_id) {
-        if (Object.keys(sessionData).length > 0) {
-          umami.identify(userInfo.user_id, sessionData);
-        } else {
-          umami.identify(userInfo.user_id);
-        }
-      } else {
-        // Clear identification if no user
-        umami.identify(null);
-      }
-    } catch {
-      // Silently fail - tracking errors should not affect user experience
-      // Uncomment for debugging: console.error('Umami identify error:', error);
+    // Clear previous timeout if exists
+    if (identifyTimeoutRef.current) {
+      clearTimeout(identifyTimeoutRef.current);
     }
+
+    // Set debounced timeout
+    identifyTimeoutRef.current = setTimeout(() => {
+      try {
+        const umami = window.umami;
+        if (!umami) {
+          return;
+        }
+
+        // Create a unique identifier for current state
+        const currentState = JSON.stringify({
+          user_id: userInfo?.user_id,
+          name: userInfo?.name,
+          state: userInfo?.state,
+          language: userInfo?.language,
+        });
+
+        // Only call identify if state actually changed
+        if (currentState !== prevUserInfoRef.current) {
+          // Build session data with only safe fields
+          const sessionData: {
+            nickname?: string;
+            user_state?: string;
+            language?: string;
+          } = {};
+          if (userInfo?.name) sessionData.nickname = userInfo.name;
+          if (userInfo?.state) sessionData.user_state = userInfo.state;
+          if (userInfo?.language) sessionData.language = userInfo.language;
+
+          // Identify user with their unique ID and session data
+          if (userInfo?.user_id) {
+            if (Object.keys(sessionData).length > 0) {
+              umami.identify(userInfo.user_id, sessionData);
+            } else {
+              umami.identify(userInfo.user_id);
+            }
+          } else {
+            // Clear identification if no user
+            umami.identify(null);
+          }
+
+          // Update previous state reference
+          prevUserInfoRef.current = currentState;
+        }
+      } catch {
+        // Silently fail - tracking errors should not affect user experience
+        // Uncomment for debugging: console.error('Umami identify error:', error);
+      }
+    }, 100); // 100ms debounce delay
+
+    // Cleanup function
+    return () => {
+      if (identifyTimeoutRef.current) {
+        clearTimeout(identifyTimeoutRef.current);
+      }
+    };
   }, [userInfo?.user_id, userInfo?.name, userInfo?.state, userInfo?.language]);
 
   const getEventBasicData = useCallback(() => {
