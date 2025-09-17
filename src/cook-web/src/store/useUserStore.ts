@@ -117,9 +117,9 @@ export const useUserStore = create<
           set(() => ({
             userInfo,
           }));
-
-          // Let i18next handle the language and its fallback mechanism
-          i18n.changeLanguage(userInfo.language);
+          if (userInfo.language) {
+            i18n.changeLanguage(userInfo.language);
+          }
         } catch (err) {
           // @ts-expect-error EXPECT
           // Only reset to guest if it's a clear authentication error (not network or server issues)
