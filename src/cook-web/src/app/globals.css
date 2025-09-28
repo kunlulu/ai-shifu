@@ -115,4 +115,7 @@ html {
 .content-render-theme {
   --primary: var(--primary-color);
   --primary-foreground: var(--primary-foreground-color);
+  .markdown-body input {
+    min-width: 380px;
+  }
 }

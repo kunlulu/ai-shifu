@@ -76,7 +76,7 @@ export interface UseChatSessionResult {
 /**
  * useChatLogicHook orchestrates the streaming chat lifecycle for lesson content.
  */
-export function useChatLogicHook({
+function useChatLogicHook({
   shifuBid,
   outlineBid,
   lessonId,
@@ -663,3 +663,5 @@ export function useChatLogicHook({
     onTypeFinished,
   };
 }
+
+export default useChatLogicHook;
