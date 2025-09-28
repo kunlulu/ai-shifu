@@ -44,7 +44,6 @@ function useAutoScroll<T extends HTMLElement>(
   const scrollToBottom = useCallback(
     (behavior: ScrollBehavior = "auto") => {
       const el = containerRef.current;
-      console.log('scrollToBottom====', el,el.scrollHeight);
       if (!el) return;
       el.scrollTo({ top: el.scrollHeight, behavior });
       autoScrollRef.current = true; // manual call should restore auto scroll

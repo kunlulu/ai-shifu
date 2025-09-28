@@ -112,10 +112,10 @@ const MainMenuModal = ({
   };
 
   const updateLanguage = (language: string) => {
-    const normalizedLang = normalizeLanguage(language);
-    i18n.changeLanguage(language);
-
-    api.updateUserInfo({ language: normalizedLang });
+    // const normalizedLang = normalizeLanguage(language);
+    // i18n.changeLanguage(language);
+    // console.log('updateLanguage====', language);
+    api.updateUserInfo({ language });
   };
 
   return (

@@ -112,8 +112,8 @@ export const sendSmsCode = ({ mobile, check_code }) => {
 
 // 获取用户详细信息
 export const getUserProfile = courseId => {
-  return request.get('/api/user/get_profile', {
-    params: { course_id: courseId },
+  return request.get('/api/user/get_profile?course_id=' + courseId).then(res => {
+    return res.profiles || [];
   });
 };
 

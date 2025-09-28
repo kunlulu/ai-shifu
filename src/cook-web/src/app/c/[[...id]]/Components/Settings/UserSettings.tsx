@@ -20,11 +20,11 @@ import { useUserStore } from '@/store';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { useEnvStore } from '@/c-store/envStore';
-
+import { getUserProfile } from '@/c-api/user';
 import api from '@/api';
 
-// const fixed_keys = ['nickname', 'avatar', 'sex', 'birth'];
-// const hidden_keys = ['language'];
+const fixed_keys = ['sys_user_nickname', 'avatar', 'sex', 'birth'];
+const hidden_keys = ['language'];
 
 export const UserSettings = ({
   onHomeClick,
@@ -59,7 +59,7 @@ export const UserSettings = ({
     const data = [];
     // @ts-expect-error EXPECT
     data.push({
-      key: 'nickname',
+      key: 'sys_user_nickname',
       value: nickName,
     });
     // @ts-expect-error EXPECT
@@ -136,25 +136,20 @@ export const UserSettings = ({
   }, []);
 
   const loadData = useCallback(async () => {
-    // TODO: FIXME
-    const userInfo = await api.getUserInfo({});
-    if (userInfo) {
-      setNickName(userInfo.name || userInfo.username || userInfo.email);
-      setAvatar(userInfo.avatar);
-    }
-    // const { data: respData } = await getUserProfile(courseId);
-    // respData.forEach((v) => {
-    //   if (v.key === 'nickname') {
-    //     setNickName(v.value);
-    //   } else if (v.key === 'avatar') {
-    //     setAvatar(v.value);
-    //   } else if (v.key === 'sex') {
-    //     setSex(v.value);
-    //   } else if (v.key === 'birth') {
-    //     setBirth(v.value);
-    //   }
-    // });
-    // setDynFormData(respData.filter((v) => (!fixed_keys.includes(v.key) && !hidden_keys.includes(v.key))));
+    const respData  = await getUserProfile(courseId);
+    
+    respData.forEach((v) => {
+      if (v.key === 'sys_user_nickname') {
+        setNickName(v.value);
+      } else if (v.key === 'avatar') {
+        setAvatar(v.value);
+      } else if (v.key === 'sex') {
+        setSex(v.value);
+      } else if (v.key === 'birth') {
+        setBirth(v.value);
+      }
+    });
+    setDynFormData(respData.filter((v) => (!fixed_keys.includes(v.key) && !hidden_keys.includes(v.key))));
   }, []);
 
   useEffect(() => {
