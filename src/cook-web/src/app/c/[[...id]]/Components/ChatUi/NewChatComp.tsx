@@ -161,32 +161,85 @@ export const NewChatComponents = ({
     [lessonUpdate, updateSelectedLesson],
   );
 
+
+  const syncGeneratedBlockId = (incomingId?: string | null) => {
+    if (!incomingId) {
+      return;
+    }
+    const previousId = currentBlockIdRef.current;
+    if (!previousId || previousId === incomingId) {
+      currentBlockIdRef.current = incomingId;
+      return;
+    }
+
+    let changed = false;
+    setContentList(prev => {
+      const mapped = prev.map(item => {
+        if (item.generated_block_bid === previousId) {
+          changed = true;
+          return { ...item, generated_block_bid: incomingId };
+        }
+        return item;
+      });
+      if (!changed) {
+        return prev;
+      }
+      contentListRef.current = mapped;
+      return mapped;
+    });
+
+    if (changed) {
+      setLastInteractionBlock(prevState =>
+        prevState && prevState.generated_block_bid === previousId
+          ? { ...prevState, generated_block_bid: incomingId }
+          : prevState,
+      );
+    }
+
+    currentBlockIdRef.current = incomingId;
+  };
+
   // get sse message
   const run = useCallback(
     (sseParams: SSEParams) => {
       setIsTypeFinished(false);
       // Create a placeholder block immediately with a loading bar
-      const id = genUuid();
+      const id = sseParams.reload_generated_block_bid || genUuid();
       currentBlockIdRef.current = id;
       currentContentRef.current = '';
       setLastInteractionBlock(null);
       setContentList(prev => {
-        const newList = [
-          ...prev,
-          {
-            generated_block_bid: id,
-            content: '',
-            customRenderBar: () => <LoadingBar />,
-            defaultButtonText: '',
-            defaultInputText: '',
-            readonly: false,
-          } as ContentItem,
-        ];
-        contentListRef.current = newList;
-        return newList;
+        const placeholderItem: ContentItem = {
+          generated_block_bid: id,
+          content: '',
+          customRenderBar: () => <LoadingBar />,
+          defaultButtonText: '',
+          defaultInputText: '',
+          readonly: false,
+        } as ContentItem;
+
+        let nextList: ContentItem[];
+        if (sseParams.reload_generated_block_bid) {
+          let replaced = false;
+          nextList = prev.map(item => {
+            if (item.generated_block_bid === id) {
+              replaced = true;
+              return { ...placeholderItem };
+            }
+            return item;
+          });
+          if (!replaced) {
+            nextList = [...prev, placeholderItem];
+          }
+        } else {
+          nextList = [...prev, placeholderItem];
+        }
+        contentListRef.current = nextList;
+        return nextList;
       });
 
       let isEnd = false;
+ 
       getRunMessage(
         shifu_bid,
         outline_bid,
@@ -195,6 +248,8 @@ export const NewChatComponents = ({
         async response => {
           try {
             const nid = response.generated_block_bid;
+            syncGeneratedBlockId(nid);
+            const blockId = currentBlockIdRef.current;
             // Stream typing effect
             if ([SSE_OUTPUT_TYPE.BREAK].includes(response.type)) {
               trackTrailProgress(nid);
@@ -221,7 +276,6 @@ export const NewChatComponents = ({
               const nextText = prevText + delta;
               currentContentRef.current = nextText;
 
-              const blockId = currentBlockIdRef.current;
               if (blockId) {
                 setContentList(prev => {
                   const updatedList = prev.map(item =>
@@ -255,7 +309,6 @@ export const NewChatComponents = ({
                 lessonUpdateResp(response, isEnd);
               }
             } else if (response.type === SSE_OUTPUT_TYPE.BREAK) {
-              const blockId = currentBlockIdRef.current;
               if (blockId) {
                 setContentList(prev => {
                   const updatedList = prev.map(item =>
@@ -584,6 +637,7 @@ export const NewChatComponents = ({
   const onTypeFinished = () => {
     if (lastInteractionBlock) {
       const gid = contentList[contentList.length - 1].generated_block_bid;
+      console.log('onTypeFinished', contentList[contentList.length - 1], contentList[contentList.length - 1].generated_block_bid);
       const newInteractionBlock = [
         {
           generated_block_bid: gid,
