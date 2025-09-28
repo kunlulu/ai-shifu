@@ -424,7 +424,7 @@ function useChatLogicHook({
 
         if (curr === loadedChapterId) {
           refreshData();
-          // @ts-ignore
+          // @ts-expect-error
           updateResetedChapterId(null);
         }
       },
