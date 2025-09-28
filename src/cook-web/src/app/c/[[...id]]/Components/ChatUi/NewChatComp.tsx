@@ -23,6 +23,7 @@ import useChatLogicHook from './useChatLogicHook';
 export const NewChatComponents = ({
   className,
   lessonUpdate,
+  onGoChapter,
   chapterId,
   lessonId,
   onPurchased,
