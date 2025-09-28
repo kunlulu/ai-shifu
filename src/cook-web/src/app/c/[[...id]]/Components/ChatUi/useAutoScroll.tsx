@@ -1,97 +1,87 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from "react";
 
-function useAutoScroll(
-  containerRef: React.RefObject<HTMLElement>,
-  opts?: {
-    bottomSelector?: string;
-    threshold?: number; // px from bottom considered "at bottom"
-  },
+interface UseScrollOptions {
+  threshold?: number; // pixel distance treated as "close enough" to bottom
+}
+
+function useAutoScroll<T extends HTMLElement>(
+  containerRef: React.RefObject<T>,
+  opts?: UseScrollOptions
 ) {
-  const bottomSelector = opts?.bottomSelector ?? '#chat-box-bottom';
-  const threshold = opts?.threshold ?? 120;
+  const threshold = opts?.threshold ?? 80;
   const autoScrollRef = useRef(true);
-  const moRef = useRef<MutationObserver | null>(null);
-  const roRef = useRef<ResizeObserver | null>(null);
 
-  // track user scroll intent
+  // Determine whether the user is near the bottom of the container
+  const checkIfAtBottom = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+
+    if (distanceToBottom <= threshold) {
+      // User reached the bottom again → re-enable auto scroll
+      autoScrollRef.current = true;
+    } else {
+      // User scrolled away from the bottom → stop auto scroll
+      autoScrollRef.current = false;
+    }
+  }, [containerRef, threshold]);
+
+  // Track manual scroll events from the user
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+
     const onScroll = () => {
-      const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-      // within threshold => still at bottom
-      autoScrollRef.current = distanceToBottom <= threshold;
+      checkIfAtBottom();
     };
-    el.addEventListener('scroll', onScroll, { passive: true });
-    // init
-    onScroll();
-    return () => el.removeEventListener('scroll', onScroll);
-  }, [containerRef, threshold]);
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+    checkIfAtBottom(); // initial check on mount
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [containerRef, checkIfAtBottom]);
+
 
   const scrollToBottom = useCallback(
-    (behavior: ScrollBehavior = 'auto') => {
+    (behavior: ScrollBehavior = "auto") => {
       const el = containerRef.current;
+      console.log('scrollToBottom====', el,el.scrollHeight);
       if (!el) return;
-      const bottomEl =
-        (el.querySelector(bottomSelector) as HTMLElement | null) ||
-        (el.lastElementChild as HTMLElement | null);
-      const doScroll = () => {
-        if (bottomEl && bottomEl.scrollIntoView) {
-          bottomEl.scrollIntoView({ behavior, block: 'end' });
-        } else {
-          el.scrollTop = el.scrollHeight;
-        }
-      };
-      doScroll();
-      requestAnimationFrame(doScroll);
-      setTimeout(doScroll, 40);
+      el.scrollTo({ top: el.scrollHeight, behavior });
+      autoScrollRef.current = true; // manual call should restore auto scroll
     },
-    [containerRef, bottomSelector],
+    [containerRef]
   );
 
-  // auto scroll when DOM changes (but only if user hasn't scrolled away)
+  // Auto-scroll on DOM mutations only if user has not opted out
   useEffect(() => {
     const el = containerRef.current;
-    if (!el || typeof MutationObserver === 'undefined') return;
+    if (!el || typeof MutationObserver === "undefined") return;
 
-    moRef.current = new MutationObserver(() => {
+    const observer = new MutationObserver(() => {
       if (autoScrollRef.current) {
-        // schedule after layout
-        requestAnimationFrame(() => scrollToBottom('auto'));
+        requestAnimationFrame(() => scrollToBottom("auto"));
       }
     });
 
-    moRef.current.observe(el, {
+    observer.observe(el, {
       childList: true,
       subtree: true,
       characterData: true,
     });
 
-    // optional: also observe last child size changes
-    if (typeof ResizeObserver !== 'undefined') {
-      roRef.current = new ResizeObserver(() => {
-        if (autoScrollRef.current)
-          requestAnimationFrame(() => scrollToBottom('auto'));
-      });
-      if (el.lastElementChild) roRef.current.observe(el.lastElementChild);
-    }
-
-    return () => {
-      moRef.current?.disconnect();
-      roRef.current?.disconnect();
-      moRef.current = null;
-      roRef.current = null;
-    };
+    return () => observer.disconnect();
   }, [containerRef, scrollToBottom]);
 
   return {
     scrollToBottom,
     enableAutoScroll: () => {
       autoScrollRef.current = true;
+      scrollToBottom("auto");
     },
     disableAutoScroll: () => {
       autoScrollRef.current = false;
     },
+    isAutoScrollEnabled: () => autoScrollRef.current,
   };
 }
 

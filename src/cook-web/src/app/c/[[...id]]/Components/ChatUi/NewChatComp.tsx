@@ -33,6 +33,7 @@ export const NewChatComponents = ({
 }) => {
   const { trackEvent, trackTrailProgress } = useTracking();
   const { t } = useTranslation();
+  const chatBoxBottomRef = useRef<HTMLDivElement | null>(null);
   const showOutputInProgressToast = useCallback(() => {
     toast({
       title: t('chat.outputInProgress'),
@@ -55,10 +56,12 @@ export const NewChatComponents = ({
     appendMsg: () => {},
     deleteMsg: () => {},
   });
-  const { scrollToBottom } = useAutoScroll(chatRef as any, {
-    bottomSelector: '#chat-box-bottom',
-    threshold: 120,
-  });
+  const { scrollToBottom } = useAutoScroll(
+    chatRef as any,
+    {
+      threshold: 120,
+    },
+  );
 
   const {
     open: payModalOpen,
@@ -78,6 +81,7 @@ export const NewChatComponents = ({
     chapterId,
     previewMode: preview_mode,
     trackEvent,
+    chatBoxBottomRef,
     trackTrailProgress,
     lessonUpdate,
     chapterUpdate,
@@ -127,7 +131,7 @@ export const NewChatComponents = ({
           ),
         )
       )}
-      <div id='chat-box-bottom'></div>
+      <div ref={chatBoxBottomRef} id='chat-box-bottom'></div>
       {payModalOpen &&
         (mobileStyle ? (
           <PayModalM

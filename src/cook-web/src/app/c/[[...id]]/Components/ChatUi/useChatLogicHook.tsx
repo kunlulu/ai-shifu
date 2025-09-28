@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type ComponentType,
+  type RefObject,
 } from 'react';
 import { genUuid } from '@/c-utils/common';
 import { fixMarkdownStream } from '@/c-utils/markdownUtils';
@@ -63,6 +64,7 @@ export interface UseChatSessionParams {
   scrollToBottom: (behavior?: ScrollBehavior) => void;
   showOutputInProgressToast: () => void;
   onPayModalOpen: () => void;
+  chatBoxBottomRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export interface UseChatSessionResult {
@@ -83,6 +85,7 @@ function useChatLogicHook({
   chapterId,
   previewMode,
   trackEvent,
+  chatBoxBottomRef,
   trackTrailProgress,
   lessonUpdate,
   chapterUpdate,
@@ -116,6 +119,17 @@ function useChatLogicHook({
   const runRef = useRef<((params: SSEParams) => void) | null>(null);
 
   const effectivePreviewMode = previewMode ?? PREVIEW_MODE.NORMAL;
+
+  // first part of the content is loaded, scroll to the bottom
+  useEffect(() => {
+    if (contentList.length > 0) {
+      setTimeout(() => {
+        chatBoxBottomRef.current?.scrollIntoView();
+        // there is a problem with the scrollToBottom, so we use the scrollIntoView instead
+        // scrollToBottom("smooth");
+      }, 100);
+    }
+  }, [contentList, scrollToBottom]);
 
   /**
    * Keeps the React state and mutable ref of the content list in sync.
@@ -333,6 +347,7 @@ function useChatLogicHook({
     runRef.current = run;
   }, [run]);
 
+
   /**
    * Transforms persisted study records into chat-friendly content items.
    */
@@ -383,7 +398,6 @@ function useChatLogicHook({
         if (chapterId) {
           setLoadedChapterId(chapterId);
         }
-        scrollToBottom('smooth');
       } else {
         runRef.current?.({
           input: '',
@@ -581,7 +595,7 @@ function useChatLogicHook({
       }
 
       setIsTypeFinished(false);
-      scrollToBottom();
+      // scrollToBottom();
       run({
         input: {
           [variableName as string]: buttonText || inputText,
