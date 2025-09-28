@@ -185,19 +185,57 @@ export class Request {
   }
 
   post(url: string, body: any = {}, config: RequestConfig = {}) {
-    return this.interceptFetch(url, {
+    const isFormData =
+      typeof FormData !== 'undefined' && body instanceof FormData;
+    const headers = { ...(config.headers as HeadersInit) };
+
+    const requestConfig: RequestConfig = {
       method: 'POST',
-      body: JSON.stringify(body),
       ...config,
-    });
+    };
+
+    if (isFormData) {
+      if (headers && 'Content-Type' in headers) {
+        delete (headers as Record<string, string>)['Content-Type'];
+      }
+      requestConfig.headers = headers;
+      requestConfig.body = body;
+    } else {
+      requestConfig.body = JSON.stringify(body ?? {});
+      requestConfig.headers = {
+        'Content-Type': 'application/json',
+        ...headers,
+      } as HeadersInit;
+    }
+
+    return this.interceptFetch(url, requestConfig);
   }
 
   put(url: string, body: any = {}, config: RequestConfig = {}) {
-    return this.interceptFetch(url, {
+    const isFormData =
+      typeof FormData !== 'undefined' && body instanceof FormData;
+    const headers = { ...(config.headers as HeadersInit) };
+
+    const requestConfig: RequestConfig = {
       method: 'PUT',
-      body: JSON.stringify(body),
       ...config,
-    });
+    };
+
+    if (isFormData) {
+      if (headers && 'Content-Type' in headers) {
+        delete (headers as Record<string, string>)['Content-Type'];
+      }
+      requestConfig.headers = headers;
+      requestConfig.body = body;
+    } else {
+      requestConfig.body = JSON.stringify(body ?? {});
+      requestConfig.headers = {
+        'Content-Type': 'application/json',
+        ...headers,
+      } as HeadersInit;
+    }
+
+    return this.interceptFetch(url, requestConfig);
   }
 
   delete(url: string, config: RequestConfig = {}) {

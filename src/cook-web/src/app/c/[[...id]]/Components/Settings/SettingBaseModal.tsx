@@ -20,7 +20,7 @@ export const SettingBaseModal = ({
   children,
   onOk,
   onClose,
-  defaultWidth = '360px',
+  defaultWidth = '100%',
   title,
   header = (t, title) => <div className={styles.header}>{title}</div>,
 }) => {
