@@ -94,7 +94,7 @@ export interface PostGeneratedContentActionData {
 export const getRunMessage = (
   shifu_bid,
   outline_bid,
-  preview_mode = PREVIEW_MODE.NORMAL,
+  preview_mode = PREVIEW_MODE.NORMAL as PreviewMode,
   body,
   onMessage,
 ) => {

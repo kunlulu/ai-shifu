@@ -1,7 +1,7 @@
 import { Loader } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-export const LoadingBar = () => {
+const LoadingBar = () => {
   const { t } = useTranslation();
   return (
     <span className='flex gap-[10px] items-center'>
@@ -13,3 +13,4 @@ export const LoadingBar = () => {
     </span>
   );
 };
+export default LoadingBar;

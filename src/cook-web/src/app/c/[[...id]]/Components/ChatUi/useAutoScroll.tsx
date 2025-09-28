@@ -29,7 +29,7 @@ function useAutoScroll(
   }, [containerRef, threshold]);
 
   const scrollToBottom = useCallback(
-    (behavior: 'auto' | 'smooth' = 'auto') => {
+    (behavior: ScrollBehavior = 'auto') => {
       const el = containerRef.current;
       if (!el) return;
       const bottomEl =
