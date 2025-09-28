@@ -77,10 +77,6 @@ const MainMenuModal = ({
     shifu.loginTools.openLogin();
   };
 
-  // BUGFIX: 退出登录功能修复
-  // 问题：原函数名拼写错误为onLooutClick，导致点击事件无法正确绑定
-  // 解决：修正函数名拼写为onLogoutClick，确保退出登录功能正常工作
-  // 影响：特别在移动端，此拼写错误导致退出登录完全失效
   const onLogoutClick = evt => {
     evt.preventDefault();
     evt.stopPropagation();
@@ -124,7 +120,7 @@ const MainMenuModal = ({
         open={logoutConfirmOpen}
         onOpenChange={open => setLogoutConfirmOpen(open)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className={ mobileStyle ? 'w-[80%]' : ''}>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('user.confirmLogoutTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
