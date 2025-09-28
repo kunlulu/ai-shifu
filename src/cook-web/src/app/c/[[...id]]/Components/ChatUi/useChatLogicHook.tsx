@@ -211,13 +211,13 @@ function useChatLogicHook({
     (sseParams: SSEParams) => {
       setIsTypeFinished(false);
 
-      const id = sseParams.reload_generated_block_bid || genUuid();
-      currentBlockIdRef.current = id;
+      const placeholderId = genUuid();
+      currentBlockIdRef.current = placeholderId;
       currentContentRef.current = '';
       setLastInteractionBlock(null);
       setTrackedContentList(prev => {
         const placeholderItem: ChatContentItem = {
-          generated_block_bid: id,
+          generated_block_bid: placeholderId,
           content: '',
           customRenderBar: () => <LoadingBar />,
           defaultButtonText: '',
@@ -225,23 +225,7 @@ function useChatLogicHook({
           readonly: false,
         };
 
-        let nextList: ChatContentItem[];
-        if (sseParams.reload_generated_block_bid) {
-          let replaced = false;
-          nextList = prev.map(item => {
-            if (item.generated_block_bid === id) {
-              replaced = true;
-              return { ...placeholderItem };
-            }
-            return item;
-          });
-          if (!replaced) {
-            nextList = [...prev, placeholderItem];
-          }
-        } else {
-          nextList = [...prev, placeholderItem];
-        }
-        return nextList;
+        return [...prev, placeholderItem];
       });
 
       let isEnd = false;
