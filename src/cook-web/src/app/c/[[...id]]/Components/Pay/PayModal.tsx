@@ -335,12 +335,18 @@ export const PayModal = ({
                           level={'M'}
                         />
                         {qrcodeStatus !== 'active' ? (
-                          <div className='absolute left-0 top-0 right-0 bottom-0 flex flex-col content-center justify-center bg-black/75'>
+                          <div className='absolute left-0 top-0 right-0 bottom-0 flex flex-col items-center justify-center pointer-events-none bg-white/50 backdrop-blur-[1px] transition-opacity duration-200'>
                             {qrcodeStatus === 'loading' ? (
-                              <LoaderIcon className='animation-spin' />
+                              <LoaderIcon
+                                className={cn(
+                                  'animation-spin h-8 w-8 drop-shadow',
+                                  styles.price,
+                                )}
+                              />
                             ) : null}
                             {qrcodeStatus === 'error' ? (
                               <Button
+                                className='pointer-events-auto bg-white/95 text-black shadow'
                                 variant='outline'
                                 onClick={onQrcodeRefresh}
                               >
