@@ -625,18 +625,19 @@ export const NewChatComponents = ({
               onRefresh={onRefresh}
             />
           ) : (
-            <ContentRender
-              key={idx}
-              typingSpeed={60}
-              enableTypewriter={!item.isHistory}
-              content={item.content}
-              customRenderBar={item.customRenderBar}
-              defaultButtonText={item.defaultButtonText}
-              defaultInputText={item.defaultInputText}
-              readonly={item.readonly}
-              onSend={onSend}
-              onTypeFinished={onTypeFinished}
-            />
+            <div key={idx} className='content-render-theme'>
+              <ContentRender
+                typingSpeed={60}
+                enableTypewriter={!item.isHistory}
+                content={item.content}
+                customRenderBar={item.customRenderBar}
+                defaultButtonText={item.defaultButtonText}
+                defaultInputText={item.defaultInputText}
+                readonly={item.readonly}
+                onSend={onSend}
+                onTypeFinished={onTypeFinished}
+              />
+            </div>
           ),
         )
       )}
