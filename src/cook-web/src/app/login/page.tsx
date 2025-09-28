@@ -20,11 +20,13 @@ import LanguageSelect from '@/components/language-select';
 import { useTranslation } from 'react-i18next';
 import i18n, { browserLanguage, normalizeLanguage } from '@/i18n';
 import { environment } from '@/config/environment';
+import { useUserStore } from '@/store';
 
 export default function AuthPage() {
   const router = useRouter();
   const [authMode, setAuthMode] = useState<'login' | 'feedback'>('login');
   const [isI18nReady, setIsI18nReady] = useState(false);
+  const { userInfo, isInitialized } = useUserStore();
 
   // Get login methods from environment configuration
   const enabledMethods = environment.loginMethodsEnabled;
@@ -36,7 +38,7 @@ export default function AuthPage() {
   const [loginMethod, setLoginMethod] = useState<'phone' | 'email'>(
     defaultMethod as 'phone' | 'email',
   );
-  const [language, setLanguage] = useState(browserLanguage);
+  const [language, setLanguage] = useState<string | null>(null);
 
   const searchParams = useSearchParams();
   const handleAuthSuccess = () => {
@@ -58,20 +60,38 @@ export default function AuthPage() {
   };
 
   const { t, ready } = useTranslation();
+  
 
   useEffect(() => {
-    i18n.changeLanguage(language);
-  }, [language]);
+    if (!isInitialized) {
+      return;
+    }
+
+    const preferred = userInfo?.language
+      ? normalizeLanguage(userInfo.language)
+      : null;
+
+    const nextLanguage = preferred ?? browserLanguage;
+
+    if (language !== nextLanguage) {
+      i18n.changeLanguage(nextLanguage);
+      setLanguage(nextLanguage);
+    }
+  }, [isInitialized, userInfo]);
 
   // Monitor i18n ready state to prevent language flash
   useEffect(() => {
+    if (!language) {
+      return;
+    }
+
     if (ready && i18n.hasResourceBundle(language, 'translation')) {
       setIsI18nReady(true);
     }
   }, [ready, language]);
 
   // Show loading state until translations are ready
-  if (!isI18nReady) {
+  if (!isI18nReady || !language) {
     return (
       <div className='min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900'>
         <div className='w-full max-w-md space-y-2'>
