@@ -198,7 +198,8 @@ function useChatLogicHook({
     let changed = false;
     setTrackedContentList(prev => {
       const mapped = prev.map(item => {
-        if (item.generated_block_bid === previousId) {
+        // if item has content , don't change the block id, because it's the content block or interaction block
+        if (!item.content &&item.generated_block_bid === previousId) {
           changed = true;
           return { ...item, generated_block_bid: incomingId };
         }
