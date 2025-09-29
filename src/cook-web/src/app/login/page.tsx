@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import {
@@ -39,6 +39,7 @@ export default function AuthPage() {
     defaultMethod as 'phone' | 'email',
   );
   const [language, setLanguage] = useState<string | null>(null);
+  const manualLanguageRef = useRef(false);
 
   const searchParams = useSearchParams();
   const handleAuthSuccess = () => {
@@ -70,9 +71,18 @@ export default function AuthPage() {
     const preferred = userInfo?.language
       ? normalizeLanguage(userInfo.language)
       : null;
-    const nextLanguage = preferred ?? browserLanguage;
+    const nextLanguage = normalizeLanguage(preferred ?? browserLanguage);
+
+    if (!nextLanguage) {
+      return;
+    }
 
     if (language === nextLanguage) {
+      manualLanguageRef.current = false;
+      return;
+    }
+
+    if (manualLanguageRef.current) {
       return;
     }
 
@@ -97,6 +107,26 @@ export default function AuthPage() {
       isCancelled = true;
     };
   }, [browserLanguage, isInitialized, language, userInfo]);
+
+  const handleManualLanguageChange = useCallback(
+    async (value: string) => {
+      const normalized = normalizeLanguage(value);
+      if (!normalized || normalized === language) {
+        return;
+      }
+
+      manualLanguageRef.current = true;
+      setIsI18nReady(false);
+
+      try {
+        await i18n.changeLanguage(normalized);
+        setLanguage(normalized);
+      } catch (error) {
+        console.error('Failed to change language', error);
+      }
+    },
+    [language],
+  );
 
   console.log('render language===',language,isI18nReady)
 
@@ -159,7 +189,7 @@ export default function AuthPage() {
             <div className='absolute top-0 right-0'>
               <LanguageSelect
                 language={language}
-                onSetLanguage={value => setLanguage(normalizeLanguage(value))}
+                onSetLanguage={handleManualLanguageChange}
                 variant='login'
               />
             </div>
