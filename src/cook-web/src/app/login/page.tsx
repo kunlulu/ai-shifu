@@ -70,14 +70,35 @@ export default function AuthPage() {
     const preferred = userInfo?.language
       ? normalizeLanguage(userInfo.language)
       : null;
-
     const nextLanguage = preferred ?? browserLanguage;
 
-    if (language !== nextLanguage) {
-      i18n.changeLanguage(nextLanguage);
-      setLanguage(nextLanguage);
+    if (language === nextLanguage) {
+      return;
     }
-  }, [isInitialized, userInfo]);
+
+    let isCancelled = false;
+
+    setIsI18nReady(false);
+
+    const applyLanguage = async () => {
+      try {
+        await i18n.changeLanguage(nextLanguage);
+        if (!isCancelled) {
+          setLanguage(nextLanguage);
+        }
+      } catch (error) {
+        console.error('Failed to change language', error);
+      }
+    };
+
+    applyLanguage();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [browserLanguage, isInitialized, language, userInfo]);
+
+  console.log('render language===',language,isI18nReady)
 
   // Monitor i18n ready state to prevent language flash
   useEffect(() => {
@@ -85,10 +106,17 @@ export default function AuthPage() {
       return;
     }
 
-    if (ready && i18n.hasResourceBundle(language, 'translation')) {
+    const resolvedLanguage = i18n.resolvedLanguage ?? i18n.language;
+    const hasBundle = i18n.hasResourceBundle(language, 'translation');
+
+    if (!ready || resolvedLanguage !== language) {
+      return;
+    }
+
+    if (hasBundle) {
       setIsI18nReady(true);
     }
-  }, [ready, language]);
+  }, [language, ready]);
 
   // Show loading state until translations are ready
   if (!isI18nReady || !language) {
