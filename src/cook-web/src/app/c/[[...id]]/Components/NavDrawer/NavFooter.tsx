@@ -16,7 +16,6 @@ export const NavFooter = forwardRef(({ onClick, isCollapse = false }, ref) => {
   const userInfo = useUserStore(state => state.userInfo);
   const isLoggedIn = useUserStore(state => state.isLoggedIn);
   const avatar = userInfo?.avatar || imgUser.src;
-
   const htmlRef = useRef(null);
 
   const containElement = elem => {

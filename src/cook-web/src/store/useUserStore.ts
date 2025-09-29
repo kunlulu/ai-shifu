@@ -117,8 +117,7 @@ export const useUserStore = create<
 
         // If already has token, try to get user info
         try {
-          const {data: res} = await getUserInfo();
-          const userInfo = res;
+          const userInfo = await getUserInfo();
 
           // Determine if user is authenticated based on mobile number or email
           const isAuthenticated = !!(userInfo.mobile || userInfo.email);

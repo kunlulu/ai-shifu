@@ -29,7 +29,7 @@ export const ChangeAvatar = ({ className, image, onChange }) => {
 
   const onAvatarSettingModalOk = useCallback(
     async ({ img }) => {
-      const { data: imgUrl } = await uploadAvatar({ avatar: img });
+      const imgUrl = await uploadAvatar({ avatar: img });
       onChange?.({ dataUrl: imgUrl });
       setImg(imgUrl);
       setModalOpen(false);

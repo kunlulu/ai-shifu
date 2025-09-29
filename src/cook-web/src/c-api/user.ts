@@ -121,10 +121,7 @@ export const getUserProfile = courseId => {
 export const uploadAvatar = ({ avatar }) => {
   const formData = new FormData();
   formData.append('avatar', avatar);
-  console.log('uploadAvatar====', formData,avatar);
-  return request.post('/api/user/upload_avatar', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  return request.post('/api/user/upload_avatar', formData);
 };
 
 // 更新用户详细信息

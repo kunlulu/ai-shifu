@@ -121,6 +121,12 @@ export class Request {
       },
     };
 
+    const isFormDataBody =
+      typeof FormData !== 'undefined' && config.body instanceof FormData;
+    if (isFormDataBody && mergedConfig.headers) {
+      delete (mergedConfig.headers as Record<string, string>)['Content-Type'];
+    }
+
     // Handle URL
     let fullUrl = url;
     if (!url.startsWith('http')) {
