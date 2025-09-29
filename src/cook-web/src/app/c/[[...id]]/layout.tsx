@@ -45,7 +45,8 @@ const initializeEnvData = async (): Promise<void> => {
       });
       if (res.ok) {
         const data = await res.json();
-        await updateCourseId(data?.courseId || '');
+
+        // await updateCourseId(data?.courseId || '');
         await updateAppId(data?.wechatAppId || '');
         await updateAlwaysShowLessonTree(data?.alwaysShowLessonTree || 'false');
         await updateUmamiWebsiteId(data?.umamiWebsiteId || '');

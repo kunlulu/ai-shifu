@@ -399,6 +399,12 @@ function useChatLogicHook({
         if (chapterId) {
           setLoadedChapterId(chapterId);
         }
+        if(recordResp.records[recordResp.records.length - 1].block_type === SSE_OUTPUT_TYPE.CONTENT) {
+          runRef.current?.({
+            input: '',
+            input_type: SSE_INPUT_TYPE.NORMAL,
+          });
+        }
       } else {
         runRef.current?.({
           input: '',
@@ -550,7 +556,7 @@ function useChatLogicHook({
       setTrackedContentList(newList);
 
       setIsTypeFinished(false);
-      run({
+      runRef.current?.({
         input: '',
         input_type: SSE_INPUT_TYPE.NORMAL,
         reload_generated_block_bid: generatedBlockBid,
@@ -558,7 +564,6 @@ function useChatLogicHook({
     },
     [
       isTypeFinished,
-      run,
       setTrackedContentList,
       showOutputInProgressToast,
     ],
@@ -597,7 +602,7 @@ function useChatLogicHook({
 
       setIsTypeFinished(false);
       // scrollToBottom();
-      run({
+      runRef.current?.({
         input: {
           [variableName as string]: buttonText || inputText,
         },
@@ -611,8 +616,6 @@ function useChatLogicHook({
     [
       isTypeFinished,
       onPayModalOpen,
-      run,
-      scrollToBottom,
       setTrackedContentList,
       showOutputInProgressToast,
       trackEvent,
