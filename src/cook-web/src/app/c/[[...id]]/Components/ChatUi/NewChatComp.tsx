@@ -6,7 +6,7 @@ import { ContentRender } from 'markdown-flow-ui';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { cn } from '@/lib/utils';
-import { AppContext } from '@/c-components/AppContext';
+import { AppContext } from '../AppContext';
 import { useChatComponentsScroll } from './ChatComponents/useChatComponentsScroll';
 import useAutoScroll from './useAutoScroll';
 import { useTracking } from '@/c-common/hooks/useTracking';
@@ -115,7 +115,10 @@ export const NewChatComponents = ({
               onRefresh={onRefresh}
             />
           ) : (
-            <div key={idx} className='content-render-theme'>
+            <div
+              key={idx}
+              className={cn('content-render-theme', mobileStyle ? 'mobile' : '')}
+            >
               <ContentRender
                 typingSpeed={60}
                 enableTypewriter={!item.isHistory}

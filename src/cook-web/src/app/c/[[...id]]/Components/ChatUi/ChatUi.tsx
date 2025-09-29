@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { useShallow } from 'zustand/react/shallow';
 import { useTranslation } from 'react-i18next';
 
-import { AppContext } from '@/c-components/AppContext';
 import ChatComponents from './NewChatComp';
 import UserSettings from '../Settings/UserSettings';
 import { FRAME_LAYOUT_MOBILE } from '@/c-constants/uiConstants';

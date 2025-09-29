@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 import { calModalWidth } from '@/c-utils/common';
-import { AppContext } from '@/c-components/AppContext';
+import { AppContext } from '../AppContext';
 
 import { Button } from '@/components/ui/Button';
 import {

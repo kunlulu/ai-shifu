@@ -12,7 +12,7 @@ import {
 } from 'react';
 import clsx from 'clsx';
 
-import { AppContext } from '@/c-components/AppContext';
+import { AppContext } from '../AppContext';
 import NavHeader from './NavHeader';
 import NavBody from './NavBody';
 import NavFooter from './NavFooter';

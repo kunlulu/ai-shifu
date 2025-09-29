@@ -376,7 +376,6 @@ export default function ChatPage() {
       );
     };
   }, []);
-
   return (
     <div className={clsx(styles.newChatPage)}>
       <AppContext.Provider
