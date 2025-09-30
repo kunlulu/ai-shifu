@@ -37,7 +37,7 @@ const ShortcutModal = ({ open, onClose }: Props) => {
     },
     {
       id: 'shortcut',
-      title: t('shortcut.showHelp'),
+      title: t('shortcut.showHelp'), 
       keys: inMacOs
         ? [t('shortcut.keys.cmd'), '/']
         : [t('shortcut.keys.ctrl'), '/'],
