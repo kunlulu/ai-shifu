@@ -9,29 +9,32 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/Dialog';
-
+import { useTranslation } from 'react-i18next';
 import { useUiLayoutStore } from '@/c-store/useUiLayoutStore';
 
-const ShortcutModal = ({ open, onClose }) => {
+type Props = { open: boolean; onClose: () => void };
+const ShortcutModal = ({ open, onClose }: Props) => {
+  const { t } = useTranslation();
   const { inMacOs } = useUiLayoutStore(
     useShallow(state => ({ inMacOs: state.inMacOs })),
   );
-
-  const shortcutKeysOptions = [
+  const shortcutKeysOptions: { id: string; titleKey: string; keys: string[] }[] = [
     {
       id: 'continue',
-      title: '继续（无需用户输入或选择时）',
-      keys: ['空格'],
+      titleKey: 'shortcut.continue',
+      keys: [t('shortcut.keys.space')],
     },
     {
       id: 'ask',
-      title: '追问',
-      keys: inMacOs ? ['⌘', '⇧', 'A'] : ['Ctrl', '⇧', 'A'],
+      titleKey: 'shortcut.ask',
+      keys: inMacOs
+        ? [t('shortcut.keys.cmd'), t('shortcut.keys.shift'), 'A']
+        : [t('shortcut.keys.ctrl'), t('shortcut.keys.shift'), 'A'],
     },
     {
       id: 'shortcut',
-      title: '显示快捷方式',
-      keys: inMacOs ? ['⌘', '/'] : ['Ctrl', '/'],
+      titleKey: 'shortcut.showHelp',
+      keys: inMacOs ? [t('shortcut.keys.cmd'), '/'] : [t('shortcut.keys.ctrl'), '/'],
     },
   ];
 

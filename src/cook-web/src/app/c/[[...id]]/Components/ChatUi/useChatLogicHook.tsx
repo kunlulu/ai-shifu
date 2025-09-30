@@ -259,7 +259,7 @@ function useChatLogicHook({
             syncGeneratedBlockId(nid);
             const blockId = currentBlockIdRef.current;
 
-            if ([SSE_OUTPUT_TYPE.BREAK].includes(response.type)) {
+            if (nid && [SSE_OUTPUT_TYPE.BREAK].includes(response.type)) {
               trackTrailProgress(nid);
             }
 
@@ -392,6 +392,7 @@ function useChatLogicHook({
       const recordResp = await getLessonStudyRecord({
         shifu_bid: shifuBid,
         outline_bid: outlineBid,
+        preview_mode: effectivePreviewMode,
       });
 
       if (recordResp?.records?.length > 0) {

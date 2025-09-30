@@ -14,10 +14,10 @@ export const BirthdaySettingModal = ({
 }) => {
   const { t, i18n } = useTranslation();
 
-  // BUGFIX: 生日选择器状态管理优化
-  // 问题：组件初始化后，当父组件传入的currentBirthday发生变化时，Calendar不会同步更新
-  // 解决：使用useEffect监听currentBirthday变化，确保状态同步
-  // 默认值：已有用户显示后端返回的生日，新用户默认2000-01-01
+  // BUGFIX: Improve state management for the birthday selector
+  // Issue: After initialization the Calendar does not update when the parent changes currentBirthday
+  // Fix: Use useEffect to watch currentBirthday and keep the state in sync
+  // Default: Existing users see the backend value; new users default to 2000-01-01
   const [value, setValue] = useState(currentBirthday || new Date('2000-01-01'));
 
   useEffect(() => {

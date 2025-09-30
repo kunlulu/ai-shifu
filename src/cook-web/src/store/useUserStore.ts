@@ -61,10 +61,10 @@ export const useUserStore = create<
 
     // Public API: Logout user
     logout: async (reload = true) => {
-      // BUGFIX: 防止退出登录时页面双重加载问题
-      // 问题：logout触发页面刷新后，某些API请求返回认证错误，导致request.ts再次触发页面跳转
-      // 解决：设置全局标志，让request.ts在logout过程中跳过自动跳转逻辑
-      // 相关文件：src/lib/request.ts
+      // BUGFIX: Prevent the page from loading twice during logout
+      // Issue: Logout triggers a refresh, some API calls then return auth errors, and request.ts redirects again
+      // Fix: Set a global flag so request.ts skips automatic redirects while logout is in progress
+      // Related file: src/lib/request.ts
       if (typeof window !== 'undefined') {
         window.__IS_LOGGING_OUT__ = true;
       }
@@ -77,8 +77,8 @@ export const useUserStore = create<
       get()._updateUserStatus();
 
       if (reload) {
-        // OPTIMIZATION: 使用replace而不是assign，避免在浏览器历史中创建重复记录
-        // 这样用户点击后退按钮时不会回到"退出登录"的中间状态
+        // OPTIMIZATION: Use replace instead of assign to avoid duplicating history entries
+        // This keeps the back button from returning to the intermediate "logging out" state
         const url = removeParamFromUrl(window.location.href, ['code', 'state']);
         window.location.replace(url);
       }

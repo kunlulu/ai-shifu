@@ -19,9 +19,9 @@
     cursor: pointer;
     border-radius: 50%;
     background-color: #f5f5f5;
-    // BUGFIX: 头像编辑按钮显示优化
-    // 问题：原来设置为overflow:hidden导致编辑按钮被裁剪，用户看不到完整按钮
-    // 解决：改为overflow:visible，确保编辑按钮完全显示在头像区域外
+    // BUGFIX: Improve visibility of the avatar edit button
+    // Issue: Using overflow:hidden clipped the edit button so users could not see it completely
+    // Fix: Switch to overflow: visible so the button remains fully visible outside the avatar area
     overflow: visible;
 
     :global(.ui-avatar) {
@@ -40,9 +40,9 @@
       right: -4px;
       width: 32px;
       height: 32px;
-      // BUGFIX: 编辑按钮样式优化
-      // 问题：编辑按钮样式与UI设计不一致，缺少品牌色彩和层级显示
-      // 解决：添加蓝色背景、圆形设计、白色边框和阴影，确保按钮在所有背景下都清晰可见
+      // BUGFIX: Refine edit-button styling
+      // Issue: The edit button did not match the design, missing brand color and visual hierarchy
+      // Fix: Add a blue background, circular shape, white border, and shadow so the button stands out on any background
       background-color: #1890ff;
       border-radius: 50%;
       border: 2px solid white;

@@ -147,7 +147,7 @@ export const useLessonTree = () => {
     return true;
   }, []);
 
-  // 用于重新加载课程树，但保持临时状态
+  // Reload the course tree while preserving transient state
   const reloadTree = useCallback(
     async (chapterId = undefined, lessonId = undefined) => {
       const newTree = await loadTreeInner();
@@ -156,7 +156,7 @@ export const useLessonTree = () => {
       } else {
         setSelectedState(newTree, chapterId, lessonId);
       }
-      // 设置 collapse 状态
+      // Restore each catalog's collapse state
       await newTree?.catalogs.forEach(c => {
         const oldCatalog = tree?.catalogs.find(oc => oc.id === c.id);
 

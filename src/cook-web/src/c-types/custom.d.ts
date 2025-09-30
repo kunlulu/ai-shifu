@@ -9,9 +9,9 @@ declare module '*.md';
 
 declare global {
   interface Window {
-    // BUGFIX: 防止退出登录时页面双重加载的全局标志
-    // 用于在logout过程中阻止request.ts的自动跳转逻辑
-    // 相关文件：src/store/useUserStore.ts, src/lib/request.ts
+    // BUGFIX: Global flag to prevent double page load during logout.
+    // Used to block automatic redirect logic in request.ts during the logout process.
+    // Related files: src/store/useUserStore.ts, src/lib/request.ts
     __IS_LOGGING_OUT__?: boolean;
   }
 }

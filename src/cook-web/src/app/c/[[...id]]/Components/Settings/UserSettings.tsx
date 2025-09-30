@@ -1,5 +1,5 @@
 /**
- * 用户配置界面
+ * User settings interface
  */
 import styles from './UserSettings.module.scss';
 
@@ -44,13 +44,13 @@ export const UserSettings = ({
   const [sexSettingModalOpen, setSexSettingModalOpen] = useState(false);
   const [birthModalOpen, setBirthModalOpen] = useState(false);
 
-  // 头像
+  // Avatar
   const [avatar, setAvatar] = useState('');
-  // 昵称
+  // Nickname
   const [nickName, setNickName] = useState('');
-  // 性别
+  // Gender
   const [sex, setSex] = useState(SEX_NAMES[SEX.SECRET]);
-  // 生日
+  // Birthday
   const [birth, setBirth] = useState('');
 
   const [dynFormData, setDynFormData] = useState([]);
@@ -136,6 +136,7 @@ export const UserSettings = ({
   }, []);
 
   const loadData = useCallback(async () => {
+    if (!courseId) return;
     const respData = await getUserProfile(courseId);
 
     respData.forEach(v => {
@@ -154,7 +155,7 @@ export const UserSettings = ({
         v => !fixed_keys.includes(v.key) && !hidden_keys.includes(v.key),
       ),
     );
-  }, []);
+  }, [courseId]);
 
   useEffect(() => {
     loadData();

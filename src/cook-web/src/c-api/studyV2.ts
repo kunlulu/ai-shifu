@@ -92,11 +92,11 @@ export interface PostGeneratedContentActionData {
 }
 
 export const getRunMessage = (
-  shifu_bid,
-  outline_bid,
-  preview_mode = PREVIEW_MODE.NORMAL as PreviewMode,
-  body,
-  onMessage,
+  shifu_bid: string,
+  outline_bid: string,
+  preview_mode: PreviewMode = PREVIEW_MODE.NORMAL,
+  body: { input: Record<string, any> | string; [key: string]: any },
+  onMessage: (data: any) => void,
 ) => {
   const token = useUserStore.getState().getToken();
 
@@ -152,7 +152,7 @@ export const getRunMessage = (
 export const getLessonStudyRecord = async ({
   shifu_bid,
   outline_bid,
-  preview_mode,
+  preview_mode = PREVIEW_MODE.NORMAL,
 }: GetLessonStudyRecordParams): Promise<LessonStudyRecords> => {
   return request
     .get(
