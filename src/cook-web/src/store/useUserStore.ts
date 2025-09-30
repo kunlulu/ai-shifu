@@ -68,6 +68,7 @@ export const useUserStore = create<
       if (typeof window !== 'undefined') {
         window.__IS_LOGGING_OUT__ = true;
       }
+      
 
       await registerAsGuest();
       set(() => ({

@@ -117,6 +117,8 @@ function useChatLogicHook({
   const currentContentRef = useRef<string>('');
   const currentBlockIdRef = useRef<string | null>(null);
   const runRef = useRef<((params: SSEParams) => void) | null>(null);
+  const sseRef = useRef<EventSource|null>(null);
+
 
   const effectivePreviewMode = previewMode ?? PREVIEW_MODE.NORMAL;
 
@@ -227,6 +229,7 @@ function useChatLogicHook({
    */
   const run = useCallback(
     (sseParams: SSEParams) => {
+      sseRef.current?.close();
       setIsTypeFinished(false);
 
       const placeholderId = genUuid();
@@ -248,7 +251,7 @@ function useChatLogicHook({
 
       let isEnd = false;
 
-      getRunMessage(
+      const source = getRunMessage(
         shifuBid,
         outlineBid,
         effectivePreviewMode,
@@ -310,7 +313,7 @@ function useChatLogicHook({
               } else {
                 lessonUpdateResp(response, isEnd);
               }
-            } else if (response.type === SSE_OUTPUT_TYPE.BREAK) {
+            } else if (response.type === SSE_OUTPUT_TYPE.BREAK || response.type === SSE_OUTPUT_TYPE.TEXT_END) {
               if (blockId) {
                 setTrackedContentList(prevState => {
                   const updatedList = prevState.map(item =>
@@ -333,6 +336,7 @@ function useChatLogicHook({
           }
         },
       );
+      sseRef.current = source;
     },
     [
       chapterUpdate,
@@ -346,6 +350,12 @@ function useChatLogicHook({
       updateUserInfo,
     ],
   );
+
+  useEffect(() => {
+    return () => {
+      sseRef.current?.close();
+    };
+  }, []);
 
   useEffect(() => {
     runRef.current = run;

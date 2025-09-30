@@ -114,7 +114,6 @@ export const FeedbackModal = ({ open, onClose }) => {
 
             <DialogFooter>
               <Button
-                type='submit'
                 className={cn('w-full', styles.okBtn)}
                 onClick={e => {
                   e.preventDefault();

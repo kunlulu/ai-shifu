@@ -40,9 +40,9 @@ export const SettingBaseModal = ({
       onOpenChange={handleOpenChange}
     >
       <DialogContent className={cn(styles.SettingBaseModal)}>
-        <DialogHeader>
+        {/* <DialogHeader>
           <DialogTitle>{title || t('common.settings')}</DialogTitle>
-        </DialogHeader>
+        </DialogHeader> */}
         <div
           style={{
             width: calModalWidth({

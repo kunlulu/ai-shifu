@@ -6,7 +6,7 @@ import { getStringEnv } from '@/c-utils/envUtils';
 import { useSystemStore } from '@/c-store/useSystemStore';
 import { useUserStore } from '@/store/useUserStore';
 
-// ===== Constants + Types for shared literals =====
+// ===== Constants  Types for shared literals =====
 export const BLOCK_TYPE = {
   CONTENT: 'content',
   INTERACTION: 'interaction',
@@ -37,6 +37,7 @@ export type PreviewMode = (typeof PREVIEW_MODE)[keyof typeof PREVIEW_MODE];
 export const SSE_OUTPUT_TYPE = {
   CONTENT: 'content',
   BREAK: 'break',
+  TEXT_END: 'text_end',
   INTERACTION: 'interaction',
   OUTLINE_ITEM_UPDATE: 'outline_item_update',
   PROFILE_UPDATE: 'update_user_info', // TODO: update user_info
@@ -99,6 +100,7 @@ export const getRunMessage = (
   onMessage: (data: any) => void,
 ) => {
   const token = useUserStore.getState().getToken();
+  const payload = {...body};
 
   let baseURL = getStringEnv('baseURL');
   if (baseURL === '' || baseURL === '/') {
@@ -106,7 +108,7 @@ export const getRunMessage = (
   }
 
   // TODO: MOCK
-  body.input = Object.values(body.input).join('');
+  payload.input = Object.values(body.input).join('');
   const source = new SSE(
     `${baseURL}/api/learn/shifu/${shifu_bid}/run/${outline_bid}?preview_mode=${preview_mode}`,
     {
@@ -116,12 +118,12 @@ export const getRunMessage = (
         Authorization: `Bearer ${token}`,
         Token: token,
       },
-      payload: JSON.stringify(body),
+      payload: JSON.stringify(payload),
       method: 'PUT',
     },
   );
 
-  source.onmessage = event => {
+  source.addEventListener('message', (event) => {
     try {
       const response = JSON.parse(event.data);
       console.log('====sse response====', response);
@@ -131,11 +133,13 @@ export const getRunMessage = (
     } catch (e) {
       console.log(e);
     }
-  };
-
-  source.onerror = () => {};
-  source.onclose = () => {};
-  source.onopen = () => {};
+  });
+  source.addEventListener('error', (e) => {
+    console.error('[SSE error]', e);
+  });
+  source.addEventListener('open', () => {
+    console.log('[SSE connection opened]');
+  });
   source.stream();
 
   return source;
