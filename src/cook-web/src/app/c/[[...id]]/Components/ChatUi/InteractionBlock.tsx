@@ -81,13 +81,13 @@ export default function InteractionBlock({
   );
 
   const send = (action: LikeStatus) => {
-      postGeneratedContentAction({
-        shifu_bid,
-        generated_block_bid,
-        action,
-      }).catch(e => {
-        // errors handled by request layer toast; ignore here
-      });
+    postGeneratedContentAction({
+      shifu_bid,
+      generated_block_bid,
+      action,
+    }).catch(e => {
+      // errors handled by request layer toast; ignore here
+    });
   };
 
   const onLike = () => {

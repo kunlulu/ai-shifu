@@ -18,7 +18,11 @@ const ShortcutModal = ({ open, onClose }: Props) => {
   const { inMacOs } = useUiLayoutStore(
     useShallow(state => ({ inMacOs: state.inMacOs })),
   );
-  const shortcutKeysOptions: { id: string; titleKey: string; keys: string[] }[] = [
+  const shortcutKeysOptions: {
+    id: string;
+    titleKey: string;
+    keys: string[];
+  }[] = [
     {
       id: 'continue',
       titleKey: 'shortcut.continue',
@@ -34,7 +38,9 @@ const ShortcutModal = ({ open, onClose }: Props) => {
     {
       id: 'shortcut',
       titleKey: 'shortcut.showHelp',
-      keys: inMacOs ? [t('shortcut.keys.cmd'), '/'] : [t('shortcut.keys.ctrl'), '/'],
+      keys: inMacOs
+        ? [t('shortcut.keys.cmd'), '/']
+        : [t('shortcut.keys.ctrl'), '/'],
     },
   ];
 

@@ -127,7 +127,6 @@ export default function AuthPage() {
     [language],
   );
 
-
   // Monitor i18n ready state to prevent language flash
   useEffect(() => {
     if (!language) {
