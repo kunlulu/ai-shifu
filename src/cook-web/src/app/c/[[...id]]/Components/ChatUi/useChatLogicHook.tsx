@@ -203,10 +203,14 @@ function useChatLogicHook({
           // if item has content , don't change the block id, because it's the content block or interaction block
           if (!item.content && item.generated_block_bid === previousId) {
             changed = true;
+            console.log('====debug incomingId====', incomingId);
+            console.log('====debug generated_block_bid====',item.generated_block_bid);
+            console.log('====debug change item content====',item);
             return { ...item, generated_block_bid: incomingId };
           }
           return item;
         });
+        console.log('====debug mapped====', changed ? mapped : prev);
         return changed ? mapped : prev;
       });
 
@@ -258,6 +262,7 @@ function useChatLogicHook({
         async response => {
           try {
             const nid = response.generated_block_bid;
+            console.log('====debug 调用syncGeneratedBlockId====', response);
             syncGeneratedBlockId(nid);
             const blockId = currentBlockIdRef.current;
 
