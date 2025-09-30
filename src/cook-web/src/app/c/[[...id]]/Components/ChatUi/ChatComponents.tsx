@@ -230,7 +230,6 @@ export const ChatComponents = forwardRef<any, any>(
     });
 
     const { userInfo, mobileStyle } = useContext(AppContext);
-    console.log('ChatComponents mobileStyle',userInfo, mobileStyle);
     const chatRef = useRef(null);
 
     const { updateResetedChapterId } = useCourseStore(
