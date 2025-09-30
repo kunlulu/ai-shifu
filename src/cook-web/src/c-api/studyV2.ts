@@ -100,7 +100,7 @@ export const getRunMessage = (
   onMessage: (data: any) => void,
 ) => {
   const token = useUserStore.getState().getToken();
-  const payload = {...body};
+  const payload = { ...body };
 
   let baseURL = getStringEnv('baseURL');
   if (baseURL === '' || baseURL === '/') {
@@ -123,7 +123,7 @@ export const getRunMessage = (
     },
   );
 
-  source.addEventListener('message', (event) => {
+  source.addEventListener('message', event => {
     try {
       const response = JSON.parse(event.data);
       console.log('====sse response====', response);
@@ -134,7 +134,7 @@ export const getRunMessage = (
       console.log(e);
     }
   });
-  source.addEventListener('error', (e) => {
+  source.addEventListener('error', e => {
     console.error('[SSE error]', e);
   });
   source.addEventListener('open', () => {

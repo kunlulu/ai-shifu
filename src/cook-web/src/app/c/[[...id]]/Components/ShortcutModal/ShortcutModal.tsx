@@ -71,7 +71,9 @@ const ShortcutModal = ({ open, onClose }: Props) => {
     >
       <DialogContent className={styles.shortcutModal}>
         <DialogHeader>
-          <DialogTitle className={styles.shortcutTitle}>{t('shortcut.title')}</DialogTitle>
+          <DialogTitle className={styles.shortcutTitle}>
+            {t('shortcut.title')}
+          </DialogTitle>
         </DialogHeader>
         <div className={styles.shortcutContent}>
           {shortcutKeysOptions.map(option => {
