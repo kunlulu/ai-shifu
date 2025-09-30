@@ -20,6 +20,6 @@ export const getCourseInfo = async (courseId: string, previewMode: boolean) => {
       return data;
     })
     .catch(err => {
-      return err;
+      return null;
     });
 };

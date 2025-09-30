@@ -190,7 +190,7 @@ export const PayModal = ({
     setOriginalPrice('');
 
     const resp = await getCourseInfo(courseId, previewMode);
-    setPrice(resp.course_price);
+    setPrice(resp?.course_price);
 
     setIsLoading(false);
   }, [courseId, previewMode]);

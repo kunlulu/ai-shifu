@@ -136,7 +136,6 @@ export const getRunMessage = (
   source.onerror = () => {};
   source.onclose = () => {};
   source.onopen = () => {};
-  source.close = () => {};
   source.stream();
 
   return source;
