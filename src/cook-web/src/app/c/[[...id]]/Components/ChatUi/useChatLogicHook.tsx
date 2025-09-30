@@ -127,7 +127,7 @@ function useChatLogicHook({
       setTimeout(() => {
         chatBoxBottomRef.current?.scrollIntoView();
         // there is a problem with the scrollToBottom, so we use the scrollIntoView instead
-        // scrollToBottom("smooth"); 
+        // scrollToBottom("smooth");
       }, 100);
     }
   }, [contentList, scrollToBottom]);
