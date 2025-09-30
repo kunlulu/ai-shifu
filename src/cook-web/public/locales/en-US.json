@@ -129,10 +129,10 @@
     "copySuccess": "Copied to clipboard",
     "copyText": "Copy",
     "loginSuccess": "Login successful",
+    "outputInProgress": "Content is still generating. Please wait before retrying.",
     "startAutoSkip": "Start Auto-skip",
     "stopAutoSkip": "Stop Auto-skip",
-    "thinking": "Thinking...",
-    "outputInProgress": "Content is still generating. Please wait before retrying."
+    "thinking": "Thinking..."
   },
   "cmEditor": {
     "image": "Image",
@@ -171,7 +171,6 @@
     "selectModel": "Select Model",
     "settings": "Settings",
     "shifu": "Shifu",
-    "submitting": "Submitting...",
     "shortcut": {
       "key": {
         "/": "/",
@@ -188,6 +187,7 @@
       }
     },
     "submitFailed": "Submit failed",
+    "submitting": "Submitting...",
     "unknownError": "Unknown error",
     "useImage": "Use Image",
     "useResource": "Use Resource",

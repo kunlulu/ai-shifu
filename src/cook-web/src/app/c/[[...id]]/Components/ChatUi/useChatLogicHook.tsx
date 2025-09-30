@@ -54,7 +54,7 @@ export interface UseChatSessionParams {
   outlineBid: string;
   lessonId: string;
   chapterId?: string;
-  previewMode?: typeof PREVIEW_MODE[keyof typeof PREVIEW_MODE];
+  previewMode?: (typeof PREVIEW_MODE)[keyof typeof PREVIEW_MODE];
   trackEvent: (name: string, payload?: Record<string, any>) => void;
   trackTrailProgress: (generatedBlockBid: string) => void;
   lessonUpdate?: (params: Record<string, any>) => void;
@@ -185,39 +185,42 @@ function useChatLogicHook({
   /**
    * Replaces provisional block ids with the server-specified identifiers.
    */
-  const syncGeneratedBlockId = useCallback((incomingId?: string | null) => {
-    if (!incomingId) {
-      return;
-    }
-    const previousId = currentBlockIdRef.current;
-    if (!previousId || previousId === incomingId) {
-      currentBlockIdRef.current = incomingId;
-      return;
-    }
+  const syncGeneratedBlockId = useCallback(
+    (incomingId?: string | null) => {
+      if (!incomingId) {
+        return;
+      }
+      const previousId = currentBlockIdRef.current;
+      if (!previousId || previousId === incomingId) {
+        currentBlockIdRef.current = incomingId;
+        return;
+      }
 
-    let changed = false;
-    setTrackedContentList(prev => {
-      const mapped = prev.map(item => {
-        // if item has content , don't change the block id, because it's the content block or interaction block
-        if (!item.content &&item.generated_block_bid === previousId) {
-          changed = true;
-          return { ...item, generated_block_bid: incomingId };
-        }
-        return item;
+      let changed = false;
+      setTrackedContentList(prev => {
+        const mapped = prev.map(item => {
+          // if item has content , don't change the block id, because it's the content block or interaction block
+          if (!item.content && item.generated_block_bid === previousId) {
+            changed = true;
+            return { ...item, generated_block_bid: incomingId };
+          }
+          return item;
+        });
+        return changed ? mapped : prev;
       });
-      return changed ? mapped : prev;
-    });
 
-    if (changed) {
-      setLastInteractionBlock(prevState =>
-        prevState && prevState.generated_block_bid === previousId
-          ? { ...prevState, generated_block_bid: incomingId }
-          : prevState,
-      );
-    }
+      if (changed) {
+        setLastInteractionBlock(prevState =>
+          prevState && prevState.generated_block_bid === previousId
+            ? { ...prevState, generated_block_bid: incomingId }
+            : prevState,
+        );
+      }
 
-    currentBlockIdRef.current = incomingId;
-  }, [setTrackedContentList]);
+      currentBlockIdRef.current = incomingId;
+    },
+    [setTrackedContentList],
+  );
 
   /**
    * Starts the SSE request and streams content into the chat list.
@@ -348,7 +351,6 @@ function useChatLogicHook({
     runRef.current = run;
   }, [run]);
 
-
   /**
    * Transforms persisted study records into chat-friendly content items.
    */
@@ -399,7 +401,10 @@ function useChatLogicHook({
         if (chapterId) {
           setLoadedChapterId(chapterId);
         }
-        if(recordResp.records[recordResp.records.length - 1].block_type === SSE_OUTPUT_TYPE.CONTENT) {
+        if (
+          recordResp.records[recordResp.records.length - 1].block_type ===
+          SSE_OUTPUT_TYPE.CONTENT
+        ) {
           runRef.current?.({
             input: '',
             input_type: SSE_INPUT_TYPE.NORMAL,
@@ -482,8 +487,11 @@ function useChatLogicHook({
   }, [lessonId]);
 
   useEffect(() => {
-    const onGoToNavigationNode = (event: CustomEvent<{ chapterId: string; lessonId: string }>) => {
-      const { chapterId: targetChapterId, lessonId: targetLessonId } = event.detail;
+    const onGoToNavigationNode = (
+      event: CustomEvent<{ chapterId: string; lessonId: string }>,
+    ) => {
+      const { chapterId: targetChapterId, lessonId: targetLessonId } =
+        event.detail;
       if (targetChapterId !== loadedChapterId) {
         return;
       }
@@ -562,11 +570,7 @@ function useChatLogicHook({
         reload_generated_block_bid: generatedBlockBid,
       });
     },
-    [
-      isTypeFinished,
-      setTrackedContentList,
-      showOutputInProgressToast,
-    ],
+    [isTypeFinished, setTrackedContentList, showOutputInProgressToast],
   );
 
   /**

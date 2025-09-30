@@ -56,12 +56,9 @@ export const NewChatComponents = ({
     appendMsg: () => {},
     deleteMsg: () => {},
   });
-  const { scrollToBottom } = useAutoScroll(
-    chatRef as any,
-    {
-      threshold: 120,
-    },
-  );
+  const { scrollToBottom } = useAutoScroll(chatRef as any, {
+    threshold: 120,
+  });
 
   const {
     open: payModalOpen,
@@ -74,23 +71,24 @@ export const NewChatComponents = ({
     refreshUserInfo();
   };
 
-  const { items, isLoading, onSend, onRefresh, onTypeFinished } = useChatLogicHook({
-    shifuBid,
-    outlineBid: lessonId,
-    lessonId,
-    chapterId,
-    previewMode: preview_mode,
-    trackEvent,
-    chatBoxBottomRef,
-    trackTrailProgress,
-    lessonUpdate,
-    chapterUpdate,
-    updateSelectedLesson,
-    scrollToLesson,
-    scrollToBottom,
-    showOutputInProgressToast,
-    onPayModalOpen,
-  });
+  const { items, isLoading, onSend, onRefresh, onTypeFinished } =
+    useChatLogicHook({
+      shifuBid,
+      outlineBid: lessonId,
+      lessonId,
+      chapterId,
+      previewMode: preview_mode,
+      trackEvent,
+      chatBoxBottomRef,
+      trackTrailProgress,
+      lessonUpdate,
+      chapterUpdate,
+      updateSelectedLesson,
+      scrollToLesson,
+      scrollToBottom,
+      showOutputInProgressToast,
+      onPayModalOpen,
+    });
 
   return (
     <div
@@ -117,7 +115,10 @@ export const NewChatComponents = ({
           ) : (
             <div
               key={idx}
-              className={cn('content-render-theme', mobileStyle ? 'mobile' : '')}
+              className={cn(
+                'content-render-theme',
+                mobileStyle ? 'mobile' : '',
+              )}
             >
               <ContentRender
                 typingSpeed={60}
@@ -134,7 +135,10 @@ export const NewChatComponents = ({
           ),
         )
       )}
-      <div ref={chatBoxBottomRef} id='chat-box-bottom'></div>
+      <div
+        ref={chatBoxBottomRef}
+        id='chat-box-bottom'
+      ></div>
       {payModalOpen &&
         (mobileStyle ? (
           <PayModalM

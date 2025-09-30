@@ -136,9 +136,9 @@ export const UserSettings = ({
   }, []);
 
   const loadData = useCallback(async () => {
-    const respData  = await getUserProfile(courseId);
-    
-    respData.forEach((v) => {
+    const respData = await getUserProfile(courseId);
+
+    respData.forEach(v => {
       if (v.key === 'sys_user_nickname') {
         setNickName(v.value);
       } else if (v.key === 'avatar') {
@@ -149,7 +149,11 @@ export const UserSettings = ({
         setBirth(v.value);
       }
     });
-    setDynFormData(respData.filter((v) => (!fixed_keys.includes(v.key) && !hidden_keys.includes(v.key))));
+    setDynFormData(
+      respData.filter(
+        v => !fixed_keys.includes(v.key) && !hidden_keys.includes(v.key),
+      ),
+    );
   }, []);
 
   useEffect(() => {

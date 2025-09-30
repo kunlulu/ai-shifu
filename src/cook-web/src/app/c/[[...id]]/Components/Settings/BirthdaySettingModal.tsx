@@ -69,15 +69,15 @@ export const BirthdaySettingModal = ({
       closeOnMaskClick={true}
       title={t('settings.dialogTitle.selectBirthday')}
     >
-        <Calendar
-          mode='single'
-          selected={value}
-          onSelect={onChange}
-          defaultMonth={value}
-          className='rounded-lg w-full'
-          formatters={formatters}
-          key={i18n.language}
-        />
+      <Calendar
+        mode='single'
+        selected={value}
+        onSelect={onChange}
+        defaultMonth={value}
+        className='rounded-lg w-full'
+        formatters={formatters}
+        key={i18n.language}
+      />
     </SettingBaseModal>
   );
 };

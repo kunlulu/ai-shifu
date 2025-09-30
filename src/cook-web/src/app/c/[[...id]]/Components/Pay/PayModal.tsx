@@ -267,9 +267,7 @@ export const PayModal = ({
           className={cn(styles.payModal, 'max-w-none')}
           onPointerDownOutside={evt => evt.preventDefault()}
         >
-          <DialogTitle className='sr-only'>
-            {t('pay.dialogTitle')}
-          </DialogTitle>
+          <DialogTitle className='sr-only'>{t('pay.dialogTitle')}</DialogTitle>
           {!initLoading && (
             <div className={styles.payModalContent}>
               <div

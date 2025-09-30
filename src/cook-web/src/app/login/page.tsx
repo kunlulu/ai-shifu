@@ -61,7 +61,6 @@ export default function AuthPage() {
   };
 
   const { t, ready } = useTranslation();
-  
 
   useEffect(() => {
     if (!isInitialized) {
@@ -128,7 +127,7 @@ export default function AuthPage() {
     [language],
   );
 
-  console.log('render language===',language,isI18nReady)
+  console.log('render language===', language, isI18nReady);
 
   // Monitor i18n ready state to prevent language flash
   useEffect(() => {

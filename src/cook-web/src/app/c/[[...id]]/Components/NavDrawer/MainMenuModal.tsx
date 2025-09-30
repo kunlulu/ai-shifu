@@ -120,7 +120,7 @@ const MainMenuModal = ({
         open={logoutConfirmOpen}
         onOpenChange={open => setLogoutConfirmOpen(open)}
       >
-        <AlertDialogContent className={ mobileStyle ? 'w-[80%]' : ''}>
+        <AlertDialogContent className={mobileStyle ? 'w-[80%]' : ''}>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('user.confirmLogoutTitle')}</AlertDialogTitle>
             <AlertDialogDescription>

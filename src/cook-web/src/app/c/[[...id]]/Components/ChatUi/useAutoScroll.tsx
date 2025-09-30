@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback } from 'react';
 
 interface UseScrollOptions {
   threshold?: number; // pixel distance treated as "close enough" to bottom
@@ -6,7 +6,7 @@ interface UseScrollOptions {
 
 function useAutoScroll<T extends HTMLElement>(
   containerRef: React.RefObject<T>,
-  opts?: UseScrollOptions
+  opts?: UseScrollOptions,
 ) {
   const threshold = opts?.threshold ?? 80;
   const autoScrollRef = useRef(true);
@@ -35,30 +35,29 @@ function useAutoScroll<T extends HTMLElement>(
       checkIfAtBottom();
     };
 
-    el.addEventListener("scroll", onScroll, { passive: true });
+    el.addEventListener('scroll', onScroll, { passive: true });
     checkIfAtBottom(); // initial check on mount
-    return () => el.removeEventListener("scroll", onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
   }, [containerRef, checkIfAtBottom]);
 
-
   const scrollToBottom = useCallback(
-    (behavior: ScrollBehavior = "auto") => {
+    (behavior: ScrollBehavior = 'auto') => {
       const el = containerRef.current;
       if (!el) return;
       el.scrollTo({ top: el.scrollHeight, behavior });
       autoScrollRef.current = true; // manual call should restore auto scroll
     },
-    [containerRef]
+    [containerRef],
   );
 
   // Auto-scroll on DOM mutations only if user has not opted out
   useEffect(() => {
     const el = containerRef.current;
-    if (!el || typeof MutationObserver === "undefined") return;
+    if (!el || typeof MutationObserver === 'undefined') return;
 
     const observer = new MutationObserver(() => {
       if (autoScrollRef.current) {
-        requestAnimationFrame(() => scrollToBottom("auto"));
+        requestAnimationFrame(() => scrollToBottom('auto'));
       }
     });
 
@@ -75,7 +74,7 @@ function useAutoScroll<T extends HTMLElement>(
     scrollToBottom,
     enableAutoScroll: () => {
       autoScrollRef.current = true;
-      scrollToBottom("auto");
+      scrollToBottom('auto');
     },
     disableAutoScroll: () => {
       autoScrollRef.current = false;
