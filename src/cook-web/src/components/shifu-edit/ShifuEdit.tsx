@@ -376,27 +376,9 @@ const ScriptEditor = ({ id }: { id: string }) => {
   return (
     <div className='flex flex-col h-screen bg-gray-50'>
       <Header />
-      <div
-        className='flex-1 container mx-auto px-10'
-        style={{
-          height: 'calc(100vh - 50px)',
-          overflowY: 'auto',
-        }}
-      >
-        <div
-          className='my-2'
-          style={{
-            position: 'fixed',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            top: 48,
-            bottom: 0,
-            zIndex: 1,
-          }}
-        >
-          <div className='px-3 flex items-center justify-between gap-3'>
+      <div className='flex-1 flex overflow-hidden scroll-y'>
+        <div className='p-4 bg-white'>
+          <div className='flex items-center justify-between gap-3'>
             <div
               onClick={() => setFoldOutlineTree(!foldOutlineTree)}
               className='rounded border bg-white p-1 cursor-pointer text-sm hover:bg-gray-200'
@@ -417,7 +399,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
           </div>
 
           {!foldOutlineTree && (
-            <div className='p-2 flex-1 h-full overflow-y-auto overflow-x-hidden pr-4 w-[240px]'>
+            <div className='flex-1 h-full overflow-y-auto overflow-x-hidden w-[256px]'>
               <ol className=' text-sm'>
                 <OutlineTree
                   items={chapters}
@@ -429,14 +411,8 @@ const ScriptEditor = ({ id }: { id: string }) => {
             </div>
           )}
         </div>
-
-        <div
-          className='flex-1 overflow-auto relative text-sm'
-          style={{
-            paddingLeft: foldOutlineTree ? 80 : 260,
-          }}
-        >
-          <div className='my-2 bg-white p-8 gap-4 flex flex-col rounded shadow-md'>
+        <div className='flex-1 overflow-auto relative text-sm'>
+          <div className='p-8 gap-4 flex flex-col max-w-[900px] mx-auto'>
             {isLoading ? (
               <div className='h-40 flex items-center justify-center'>
                 <Loading />
