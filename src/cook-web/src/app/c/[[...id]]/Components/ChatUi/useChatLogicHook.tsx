@@ -47,6 +47,7 @@ export interface ChatContentItem {
   readonly?: boolean;
   isHistory?: boolean;
   generated_block_bid: string;
+  ask_generated_block_bid?: string; // use for ask block, because an interaction block gid isn't ask gid
   parent_block_bid?: string; // when like_status is not none, the parent_block_bid is the generated_block_bid of the interaction block
   like_status?: LikeStatus;
   type: ChatContentItemType;
@@ -366,7 +367,6 @@ function useChatLogicHook({
         isHistory: true,
         type: item.block_type as any,
       });
-      console.log('历史记录中有非互动块', item.block_type)
       // add interaction block
       if (item.like_status) {
         result.push({
@@ -376,6 +376,7 @@ function useChatLogicHook({
           type: ChatContentItemType.LIKE_STATUS,
         });
       }
+      
     });
     return result;
   }, []);

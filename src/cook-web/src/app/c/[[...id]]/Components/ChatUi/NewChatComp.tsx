@@ -19,7 +19,7 @@ import PayModalM from '../Pay/PayModalM';
 import { PREVIEW_MODE } from '@/c-api/studyV2';
 import InteractionBlock from './InteractionBlock';
 import useChatLogicHook, { ChatContentItemType } from './useChatLogicHook';
-import LoadingBar from './LoadingBar';
+import AskBlock from './AskBlock';
 
 export const NewChatComponents = ({
   className,
