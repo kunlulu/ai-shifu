@@ -114,6 +114,20 @@ export default function InteractionBlock({
       className={cn(['interaction-block'], className)}
       style={{ display: 'flex', alignItems: 'center', paddingLeft: 20 }}
     >
+      {/* <button>追问</button> */}
+      <button
+        type='button'
+        aria-label='Refresh'
+        aria-pressed={false}
+        style={refreshBtnStyle}
+        disabled={disabled || readonly}
+        onClick={() => onRefresh?.(generated_block_bid)}
+      >
+        <RefreshCcw
+          size={14}
+          className={cn('text-gray-400', 'w-5', 'h-5')}
+        />
+      </button>
       <button
         type='button'
         aria-label='Like'
@@ -151,19 +165,7 @@ export default function InteractionBlock({
           )}
         />
       </button>
-      <button
-        type='button'
-        aria-label='Refresh'
-        aria-pressed={false}
-        style={refreshBtnStyle}
-        disabled={disabled || readonly}
-        onClick={() => onRefresh?.(generated_block_bid)}
-      >
-        <RefreshCcw
-          size={14}
-          className={cn('text-gray-400', 'w-5', 'h-5')}
-        />
-      </button>
+     
     </div>
   );
 }

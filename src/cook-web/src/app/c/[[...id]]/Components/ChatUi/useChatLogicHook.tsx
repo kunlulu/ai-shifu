@@ -5,7 +5,6 @@ import {
   useRef,
   useState,
   type ComponentType,
-  type RefObject,
 } from 'react';
 import { genUuid } from '@/c-utils/common';
 import { fixMarkdownStream } from '@/c-utils/markdownUtils';
@@ -22,6 +21,7 @@ import {
   SSE_OUTPUT_TYPE,
   SYS_INTERACTION_TYPE,
   LIKE_STATUS,
+  BLOCK_TYPE,
 } from '@/c-api/studyV2';
 import { LESSON_STATUS_VALUE } from '@/c-constants/courseConstants';
 import {
@@ -32,15 +32,24 @@ import { EVENT_NAMES } from '@/c-common/hooks/useTracking';
 import { OnSendContentParams } from 'markdown-flow-ui';
 import LoadingBar from './LoadingBar';
 
+export enum ChatContentItemType {
+  CONTENT = 'content',
+  INTERACTION = 'interaction',
+  ASK = 'ask',
+  LIKE_STATUS = 'likeStatus',
+}
+
 export interface ChatContentItem {
-  content: string;
+  content?: string;
   customRenderBar?: (() => JSX.Element | null) | ComponentType<any>;
-  defaultButtonText: string;
-  defaultInputText: string;
-  readonly: boolean;
+  defaultButtonText?: string;
+  defaultInputText?: string;
+  readonly?: boolean;
   isHistory?: boolean;
   generated_block_bid: string;
+  parent_block_bid?: string; // when like_status is not none, the parent_block_bid is the generated_block_bid of the interaction block
   like_status?: LikeStatus;
+  type: ChatContentItemType;
 }
 
 interface SSEParams {
@@ -183,45 +192,6 @@ function useChatLogicHook({
     [lessonUpdate, updateSelectedLesson],
   );
 
-  /**
-   * Replaces provisional block ids with the server-specified identifiers.
-   */
-  const syncGeneratedBlockId = useCallback(
-    (incomingId?: string | null) => {
-      if (!incomingId) {
-        return;
-      }
-      const previousId = currentBlockIdRef.current;
-      if (!previousId || previousId === incomingId) {
-        currentBlockIdRef.current = incomingId;
-        return;
-      }
-
-      let changed = false;
-      setTrackedContentList(prev => {
-        const mapped = prev.map(item => {
-          // if item has content , don't change the block id, because it's the content block or interaction block
-          if (!item.content && item.generated_block_bid === previousId) {
-            changed = true;
-            return { ...item, generated_block_bid: incomingId };
-          }
-          return item;
-        });
-        return changed ? mapped : prev;
-      });
-
-      if (changed) {
-        setLastInteractionBlock(prevState =>
-          prevState && prevState.generated_block_bid === previousId
-            ? { ...prevState, generated_block_bid: incomingId }
-            : prevState,
-        );
-      }
-
-      currentBlockIdRef.current = incomingId;
-    },
-    [setTrackedContentList],
-  );
 
   /**
    * Starts the SSE request and streams content into the chat list.
@@ -231,20 +201,16 @@ function useChatLogicHook({
       sseRef.current?.close();
       setIsTypeFinished(false);
 
-      const placeholderId = genUuid();
-      currentBlockIdRef.current = placeholderId;
+      currentBlockIdRef.current = 'loading';
       currentContentRef.current = '';
       setLastInteractionBlock(null);
       setTrackedContentList(prev => {
         const placeholderItem: ChatContentItem = {
-          generated_block_bid: placeholderId,
+          generated_block_bid: currentBlockIdRef.current || '',
           content: '',
           customRenderBar: () => <LoadingBar />,
-          defaultButtonText: '',
-          defaultInputText: '',
-          readonly: false,
+          type: ChatContentItemType.CONTENT,
         };
-
         return [...prev, placeholderItem];
       });
 
@@ -258,7 +224,15 @@ function useChatLogicHook({
         async response => {
           try {
             const nid = response.generated_block_bid;
-            syncGeneratedBlockId(nid);
+            if(currentBlockIdRef.current === 'loading') {
+              // close loading
+              setTrackedContentList((pre) => {
+                const newList = pre.filter(item => item.generated_block_bid !== 'loading');
+                return newList;
+              });
+              currentBlockIdRef.current = nid;
+            }
+            
             const blockId = currentBlockIdRef.current;
 
             if (nid && [SSE_OUTPUT_TYPE.BREAK].includes(response.type)) {
@@ -267,12 +241,13 @@ function useChatLogicHook({
 
             if (response.type === SSE_OUTPUT_TYPE.INTERACTION) {
               setLastInteractionBlock({
-                generated_block_bid: currentBlockIdRef.current || '',
+                generated_block_bid: nid,
                 content: response.content,
                 customRenderBar: () => null,
                 defaultButtonText: '',
                 defaultInputText: '',
                 readonly: false,
+                type: ChatContentItemType.INTERACTION,
               });
             } else if (response.type === SSE_OUTPUT_TYPE.CONTENT) {
               if (isEnd) {
@@ -283,18 +258,31 @@ function useChatLogicHook({
               const delta = fixMarkdownStream(prevText, response.content || '');
               const nextText = prevText + delta;
               currentContentRef.current = nextText;
-
               if (blockId) {
                 setTrackedContentList(prevState => {
-                  const updatedList = prevState.map(item =>
-                    item.generated_block_bid === blockId
-                      ? {
-                          ...item,
-                          content: nextText,
-                          customRenderBar: () => null,
-                        }
-                      : item,
-                  );
+                  let hasItem = false
+                  const updatedList = prevState.map(item => {
+                    if(item.generated_block_bid === blockId) {
+                      hasItem = true
+                      return {
+                        ...item,
+                        content: nextText,
+                        customRenderBar: () => null,
+                      }
+                    }
+                    return item;
+                  });
+                  if(!hasItem) {
+                    updatedList.push({
+                      generated_block_bid: blockId,
+                      content: nextText,
+                      defaultButtonText: '',
+                      defaultInputText: '',
+                      readonly: false,
+                      customRenderBar: () => null,
+                      type: ChatContentItemType.CONTENT,
+                    });
+                  }
                   return updatedList;
                 });
               }
@@ -347,7 +335,6 @@ function useChatLogicHook({
       outlineBid,
       setTrackedContentList,
       shifuBid,
-      syncGeneratedBlockId,
       trackTrailProgress,
       updateUserInfo,
     ],
@@ -377,16 +364,16 @@ function useChatLogicHook({
         defaultInputText: item.user_input || '',
         readonly: false,
         isHistory: true,
+        type: item.block_type as any,
       });
+      console.log('历史记录中有非互动块', item.block_type)
+      // add interaction block
       if (item.like_status) {
         result.push({
-          generated_block_bid: item.generated_block_bid,
-          content: '',
+          generated_block_bid: '',
+          parent_block_bid: item.generated_block_bid,
           like_status: item.like_status,
-          customRenderBar: () => null,
-          defaultButtonText: '',
-          defaultInputText: '',
-          readonly: false,
+          type: ChatContentItemType.LIKE_STATUS,
         });
       }
     });
@@ -415,8 +402,10 @@ function useChatLogicHook({
           setLoadedChapterId(chapterId);
         }
         if (
-          recordResp.records[recordResp.records.length - 1].block_type ===
-          SSE_OUTPUT_TYPE.CONTENT
+          (recordResp.records[recordResp.records.length - 1].block_type ===
+          BLOCK_TYPE.CONTENT) || 
+          (recordResp.records[recordResp.records.length - 1].block_type ===
+          BLOCK_TYPE.ERROR)
         ) {
           runRef.current?.({
             input: '',
@@ -442,6 +431,7 @@ function useChatLogicHook({
     setTrackedContentList,
     shifuBid,
   ]);
+  
 
   useEffect(() => {
     if (!chapterId) {
@@ -536,7 +526,7 @@ function useChatLogicHook({
     ): { newList: ChatContentItem[]; needChangeItemIndex: number } => {
       const newList = [...contentListRef.current];
       const needChangeItemIndex = newList.findIndex(item =>
-        item.content.includes(params.variableName || ''),
+        item.content?.includes(params.variableName || ''),
       );
       if (needChangeItemIndex !== -1) {
         newList[needChangeItemIndex] = {
@@ -649,13 +639,11 @@ function useChatLogicHook({
       const gid = lastItem.generated_block_bid;
       const newInteractionBlock: ChatContentItem[] = [
         {
-          generated_block_bid: gid,
+          parent_block_bid: gid,
+          generated_block_bid: '',
           content: '',
           like_status: LIKE_STATUS.NONE,
-          customRenderBar: () => null,
-          defaultButtonText: '',
-          defaultInputText: '',
-          readonly: false,
+          type: ChatContentItemType.LIKE_STATUS,
         },
         lastInteractionBlock,
       ];

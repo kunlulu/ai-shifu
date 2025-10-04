@@ -18,7 +18,8 @@ import PayModal from '../Pay/PayModal';
 import PayModalM from '../Pay/PayModalM';
 import { PREVIEW_MODE } from '@/c-api/studyV2';
 import InteractionBlock from './InteractionBlock';
-import useChatLogicHook from './useChatLogicHook';
+import useChatLogicHook, { ChatContentItemType } from './useChatLogicHook';
+import LoadingBar from './LoadingBar';
 
 export const NewChatComponents = ({
   className,
@@ -103,11 +104,11 @@ export const NewChatComponents = ({
         <></>
       ) : (
         items.map((item, idx) =>
-          item.like_status ? (
+          item.type === ChatContentItemType.LIKE_STATUS ? (
             <InteractionBlock
-              key={`${item.generated_block_bid}-interaction`}
+              key={`${item.parent_block_bid}-interaction`}
               shifu_bid={shifuBid}
-              generated_block_bid={item.generated_block_bid}
+              generated_block_bid={item.parent_block_bid || ''}
               like_status={item.like_status}
               readonly={item.readonly}
               onRefresh={onRefresh}
@@ -123,8 +124,8 @@ export const NewChatComponents = ({
               <ContentRender
                 typingSpeed={60}
                 enableTypewriter={!item.isHistory}
-                content={item.content}
-                customRenderBar={item.customRenderBar}
+                content={item.content || ''}
+                customRenderBar={item.customRenderBar || (() => null)}
                 defaultButtonText={item.defaultButtonText}
                 defaultInputText={item.defaultInputText}
                 readonly={item.readonly}

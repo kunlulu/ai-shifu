@@ -10,6 +10,7 @@ import { useUserStore } from '@/store/useUserStore';
 export const BLOCK_TYPE = {
   CONTENT: 'content',
   INTERACTION: 'interaction',
+  ERROR: 'error_message'
 } as const;
 export type BlockType = (typeof BLOCK_TYPE)[keyof typeof BLOCK_TYPE];
 
