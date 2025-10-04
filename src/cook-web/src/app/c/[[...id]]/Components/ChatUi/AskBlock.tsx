@@ -6,6 +6,7 @@ import { ContentRender } from 'markdown-flow-ui';
 import { getRunMessage, SSE_INPUT_TYPE, SSE_OUTPUT_TYPE, PREVIEW_MODE, type PreviewMode } from '@/c-api/studyV2';
 import { fixMarkdownStream } from '@/c-utils/markdownUtils';
 import LoadingBar from './LoadingBar';
+import styles from './AskBlock.module.scss';
 
 export interface AskMessage {
   role: 'user' | 'teacher';
@@ -191,39 +192,31 @@ export default function AskBlock({
 
 
   return (
-    <div className={cn('ask-block', className)} style={{ paddingLeft: 20 }}>
+    <div className={cn(styles.askBlock, className)} style={{
+      marginTop: isExpanded || messagesToShow.length > 0 ? '8px' : '0',
+      padding: isExpanded || messagesToShow.length > 0 ? '16px' : '0',
+    }}>
       {/* 问题对话列表 */}
       {messagesToShow.length > 0 && (
-        <div
+        <div className={cn(styles.messageList)}
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            marginBottom: isExpanded ? '16px' : '0',
+            marginBottom: isExpanded ? '12px' : '0',
           }}
         >
           {messagesToShow.map((message, index) => (
             <div
               key={index}
+              className={cn(styles.messageWrapper)}
               style={{
-                display: 'flex',
                 justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start',
-                width: '100%',
               }}
             >
               {message.role === 'user' ? (
                 // 用户消息：简单的文本气泡
                 <div
                   className={cn(
-                    'px-4 py-2.5 rounded-lg',
-                    'text-sm',
-                    'max-w-[80%]'
+                    styles.userMessage
                   )}
-                  style={{
-                    backgroundColor: '#F5F5F5',
-                    color: '#333333',
-                    wordBreak: 'break-word',
-                  }}
                 >
                   {message.content}
                 </div>
@@ -231,13 +224,8 @@ export default function AskBlock({
                 // 老师回复：使用 ContentRender 渲染 Markdown
                 <div
                   className={cn(
-                    'rounded-lg',
-                    'max-w-[80%]'
+                    styles.assistantMessage
                   )}
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #E0E0E0',
-                  }}
                 >
                   <ContentRender
                     content={message.content}
@@ -260,47 +248,28 @@ export default function AskBlock({
       {/* 自定义输入框 - 只在展开时显示 */}
       {isExpanded && (
         <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 12px',
-            borderRadius: '8px',
-            border: '1px solid #E0E0E0',
-            backgroundColor: '#FFFFFF',
-          }}
+          className={cn(styles.userInput)}
         >
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder={t('chat.askContent')}
-          className={cn('flex-1 outline-none border-none bg-transparent')}
-          style={{
-            fontSize: '14px',
-            color: '#333333',
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleSendCustomQuestion();
-            }
-          }}
-        />
-        <button
-          onClick={handleSendCustomQuestion}
-          className={cn(
-            'flex items-center justify-center',
-            'w-6 h-6 rounded',
-            'transition-colors',
-            'text-[#1A68EB] hover:text-[#1557D0] cursor-pointer'
-          )}
-          style={{
-            border: 'none',
-            outline: 'none',
-            backgroundColor: 'transparent',
-          }}
-        >
-          <Send size={16} />
-        </button>
+            <input
+            ref={inputRef}
+            type="text"
+            placeholder={t('chat.askContent')}
+            className={cn('flex-1 outline-none border-none bg-transparent')}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                handleSendCustomQuestion();
+                }
+            }}
+            />
+            <button
+            onClick={handleSendCustomQuestion}
+            className={cn(
+                'flex items-center justify-center',
+                'cursor-pointer',
+            )}
+            >
+                <Send size={12} />
+            </button>
         </div>
       )}
     </div>
