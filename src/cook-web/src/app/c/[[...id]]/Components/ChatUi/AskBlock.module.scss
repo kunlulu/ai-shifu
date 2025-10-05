@@ -54,10 +54,12 @@
     >button{
       border: none;
       outline: none;
-      background-color: #E5E5E5;
       border-radius: 50%;
       width: 20px;
       height: 20px;
+      &.isSending{
+        background-color: #E5E5E5;
+      }
       :global(.lucide-send){
         width: 12.7px;
         height: 12.7px;

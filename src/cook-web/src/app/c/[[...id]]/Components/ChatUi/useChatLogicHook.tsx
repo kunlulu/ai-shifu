@@ -5,8 +5,8 @@ import {
   useRef,
   useState,
   type ComponentType,
+  useContext,
 } from 'react';
-import { genUuid } from '@/c-utils/common';
 import { fixMarkdownStream } from '@/c-utils/markdownUtils';
 import { useCourseStore } from '@/c-store/useCourseStore';
 import { useUserStore } from '@/store';
@@ -32,6 +32,9 @@ import {
 import { EVENT_NAMES } from '@/c-common/hooks/useTracking';
 import { OnSendContentParams } from 'markdown-flow-ui';
 import LoadingBar from './LoadingBar';
+import { useTranslation } from 'react-i18next';
+import AskIcon from '@/c-assets/newchat/light/icon_ask.svg';
+import { AppContext } from '../AppContext';
 
 export enum ChatContentItemType {
   CONTENT = 'content',
@@ -109,6 +112,9 @@ function useChatLogicHook({
   showOutputInProgressToast,
   onPayModalOpen,
 }: UseChatSessionParams): UseChatSessionResult {
+  const { t } = useTranslation();
+  const { mobileStyle } = useContext(AppContext);
+
   const { updateUserInfo } = useUserStore(
     useShallow(state => ({
       updateUserInfo: state.updateUserInfo,
@@ -391,7 +397,7 @@ function useChatLogicHook({
         flushBuffer();
         result.push({
           generated_block_bid: item.generated_block_bid,
-          content: item.content,
+          content: item.content+ (!mobileStyle ? `` : `<ask-button><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></ask-button>`),
           customRenderBar: () => null,
           defaultButtonText: item.user_input || '',
           defaultInputText: item.user_input || '',

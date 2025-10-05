@@ -116,6 +116,7 @@ export const NewChatComponents = ({
             />
           ) : 
           item.type === ChatContentItemType.LIKE_STATUS ? (
+            mobileStyle ?  <></> :
             <InteractionBlock
               key={`${item.parent_block_bid}-interaction`}
               shifu_bid={shifuBid}
@@ -137,6 +138,9 @@ export const NewChatComponents = ({
                 typingSpeed={60}
                 enableTypewriter={!item.isHistory}
                 content={item.content || ''}
+                onClickAskButton={() => {
+                  console.log("ask button clicked");
+                }}
                 customRenderBar={item.customRenderBar || (() => null)}
                 defaultButtonText={item.defaultButtonText}
                 defaultInputText={item.defaultInputText}

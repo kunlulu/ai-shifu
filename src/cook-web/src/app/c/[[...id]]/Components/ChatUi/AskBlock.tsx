@@ -289,6 +289,7 @@ export default function AskBlock({
             className={cn(
                 'flex items-center justify-center',
                 'cursor-pointer',
+                isStreamingRef.current || !isTypeFinished ? styles.isSending : '',
             )}
             >
                 <Send size={12} />
