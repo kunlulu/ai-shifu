@@ -7,21 +7,22 @@ import { getRunMessage, SSE_INPUT_TYPE, SSE_OUTPUT_TYPE, PREVIEW_MODE, type Prev
 import { fixMarkdownStream } from '@/c-utils/markdownUtils';
 import LoadingBar from './LoadingBar';
 import styles from './AskBlock.module.scss';
+import { ChatContentItem } from './useChatLogicHook';
 
 export interface AskMessage {
   role: 'user' | 'teacher';
   content: string;
-  isStreaming?: boolean; // 是否正在流式输出
+  isStreaming?: boolean; 
 }
 
 export interface AskBlockProps {
-  ask_list?: AskMessage[];
+  askList?: AskMessage[];
   className?: string;
-  isExpanded?: boolean; // 是否展开
+  isExpanded?: boolean; 
   shifu_bid: string;
   outline_bid: string;
   preview_mode?: PreviewMode;
-  generated_block_bid: string; // 用于追问的 block id
+  generated_block_bid: string; 
 }
 
 /**
@@ -29,16 +30,22 @@ export interface AskBlockProps {
  * 追问区域组件，包含问答对话列表和自定义输入框，支持流式渲染
  */
 export default function AskBlock({
-  ask_list = [],
+  askList = [],
   className,
-  isExpanded = true,
+  isExpanded = false,
   shifu_bid,
   outline_bid,
   preview_mode = PREVIEW_MODE.NORMAL,
   generated_block_bid,
 }: AskBlockProps) {
   const { t } = useTranslation();
-  const [displayList, setDisplayList] = useState<AskMessage[]>(ask_list);
+  const [displayList, setDisplayList] = useState<AskMessage[]>(() => {
+    return askList.map((item, index) => ({
+      content: item.content || '',
+      role: index % 2 === 0 ? 'user' : 'teacher',
+    }));
+  });
+
 
   const inputRef = useRef<HTMLInputElement>(null);
   const sseRef = useRef<any>(null);
@@ -118,13 +125,15 @@ export default function AskBlock({
               }
               return newList;
             });
-          } else if (
-            response.type === SSE_OUTPUT_TYPE.BREAK ||
-            response.type === SSE_OUTPUT_TYPE.TEXT_END ||
-            response.type === SSE_OUTPUT_TYPE.INTERACTION
-          ) {
+          } else 
+          // if (
+          //   response.type === SSE_OUTPUT_TYPE.BREAK ||
+          //   response.type === SSE_OUTPUT_TYPE.TEXT_END ||
+          //   response.type === SSE_OUTPUT_TYPE.INTERACTION
+          // )
+           {
             // 流式结束
-            console.log('流式结束，设置 isStreamingRef.current = false');
+            console.log('SSE end, close sse:', response);
             isStreamingRef.current = false;
             setDisplayList(prev => {
               const newList = [...prev];
@@ -189,7 +198,7 @@ export default function AskBlock({
 
   // 决定显示哪些消息
   const messagesToShow = isExpanded ? displayList : displayList.slice(0, 1);
-
+  // console.log('displayList:',isExpanded,messagesToShow);
 
   return (
     <div className={cn(styles.askBlock, className)} style={{

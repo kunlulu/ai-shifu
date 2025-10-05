@@ -19,7 +19,7 @@ import PayModalM from '../Pay/PayModalM';
 import { PREVIEW_MODE } from '@/c-api/studyV2';
 import InteractionBlock from './InteractionBlock';
 import useChatLogicHook, { ChatContentItemType } from './useChatLogicHook';
-import AskBlock from './AskBlock';
+import AskBlock, { AskMessage } from './AskBlock';
 
 export const NewChatComponents = ({
   className,
@@ -72,7 +72,7 @@ export const NewChatComponents = ({
     refreshUserInfo();
   };
 
-  const { items, isLoading, onSend, onRefresh, onTypeFinished } =
+  const { items, isLoading, onSend, onRefresh, onTypeFinished, toggleAskExpanded } =
     useChatLogicHook({
       shifuBid,
       outlineBid: lessonId,
@@ -104,17 +104,26 @@ export const NewChatComponents = ({
         <></>
       ) : (
         items.map((item, idx) =>
+          item.type === ChatContentItemType.ASK ? (
+            <AskBlock
+              isExpanded={item.isAskExpanded}
+              shifu_bid={shifuBid}
+              outline_bid={lessonId}
+              preview_mode={preview_mode}
+              generated_block_bid={item.parent_block_bid || ''}
+              key={`${item.parent_block_bid}-ask`}
+              askList={(item.ask_list || []) as any[]}
+            />
+          ) : 
           item.type === ChatContentItemType.LIKE_STATUS ? (
             <InteractionBlock
               key={`${item.parent_block_bid}-interaction`}
               shifu_bid={shifuBid}
               generated_block_bid={item.parent_block_bid || ''}
-              ask_generated_block_bid={item.ask_generated_block_bid || item.parent_block_bid}
-              outline_bid={lessonId}
-              preview_mode={preview_mode}
               like_status={item.like_status}
               readonly={item.readonly}
               onRefresh={onRefresh}
+              onToggleAskExpanded={toggleAskExpanded}
             />
           ) : (
             <div

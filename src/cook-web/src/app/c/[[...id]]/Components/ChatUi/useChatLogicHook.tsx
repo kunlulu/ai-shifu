@@ -22,6 +22,7 @@ import {
   SYS_INTERACTION_TYPE,
   LIKE_STATUS,
   BLOCK_TYPE,
+  BlockType,
 } from '@/c-api/studyV2';
 import { LESSON_STATUS_VALUE } from '@/c-constants/courseConstants';
 import {
@@ -50,7 +51,9 @@ export interface ChatContentItem {
   ask_generated_block_bid?: string; // use for ask block, because an interaction block gid isn't ask gid
   parent_block_bid?: string; // when like_status is not none, the parent_block_bid is the generated_block_bid of the interaction block
   like_status?: LikeStatus;
-  type: ChatContentItemType;
+  type: ChatContentItemType | BlockType;
+  ask_list?: ChatContentItem[]; // list of ask records for this content block
+  isAskExpanded?: boolean; // whether the ask panel is expanded
 }
 
 interface SSEParams {
@@ -83,6 +86,7 @@ export interface UseChatSessionResult {
   onSend: (content: OnSendContentParams) => void;
   onRefresh: (generatedBlockBid: string) => void;
   onTypeFinished: () => void;
+  toggleAskExpanded: (parentBlockBid: string) => void;
 }
 
 /**
@@ -132,15 +136,15 @@ function useChatLogicHook({
   const effectivePreviewMode = previewMode ?? PREVIEW_MODE.NORMAL;
 
   // first part of the content is loaded, scroll to the bottom
-  useEffect(() => {
-    if (contentList.length > 0) {
-      setTimeout(() => {
-        chatBoxBottomRef.current?.scrollIntoView();
-        // there is a problem with the scrollToBottom, so we use the scrollIntoView instead
-        // scrollToBottom("smooth");
-      }, 100);
-    }
-  }, [contentList, scrollToBottom]);
+  // useEffect(() => {
+  //   if (contentList.length > 0) {
+  //     setTimeout(() => {
+  //       chatBoxBottomRef.current?.scrollIntoView();
+  //       // there is a problem with the scrollToBottom, so we use the scrollIntoView instead
+  //       // scrollToBottom("smooth");
+  //     }, 100);
+  //   }
+  // }, [contentList, scrollToBottom]);
 
   /**
    * Keeps the React state and mutable ref of the content list in sync.
@@ -356,30 +360,80 @@ function useChatLogicHook({
    */
   const mapRecordsToContent = useCallback((records: StudyRecordItem[]) => {
     const result: ChatContentItem[] = [];
-    records.forEach((item: StudyRecordItem) => {
-      result.push({
-        generated_block_bid: item.generated_block_bid,
-        content: item.content,
-        customRenderBar: () => null,
-        defaultButtonText: item.user_input || '',
-        defaultInputText: item.user_input || '',
-        readonly: false,
-        isHistory: true,
-        type: item.block_type as any,
-      });
-      // add interaction block
-      if (item.like_status) {
+    let buffer: StudyRecordItem[] = []; // 缓存连续 ask
+    let lastContentId: string | null = null;
+  
+    const flushBuffer = () => {
+      if (buffer.length > 0) {
+        const parentId = lastContentId || '';
         result.push({
-          generated_block_bid: '',
-          parent_block_bid: item.generated_block_bid,
-          like_status: item.like_status,
-          type: ChatContentItemType.LIKE_STATUS,
+          generated_block_bid: '', 
+          type: BLOCK_TYPE.ASK,
+          isAskExpanded: false,
+          parent_block_bid: parentId,
+          ask_list: buffer.map(b => ({
+            ...b,
+            type: BLOCK_TYPE.ASK,
+          })), // 保留原始 ask 列表
+          readonly: false,
+          isHistory: true,
+          customRenderBar: () => null,
+          defaultButtonText: '',
+          defaultInputText: '',
+        });
+        buffer = [];
+      }
+    };
+  
+    records.forEach((item: StudyRecordItem) => {
+      if (item.block_type === BLOCK_TYPE.CONTENT) {
+        // flush 之前缓存的 ask
+        flushBuffer();
+        result.push({
+          generated_block_bid: item.generated_block_bid,
+          content: item.content,
+          customRenderBar: () => null,
+          defaultButtonText: item.user_input || '',
+          defaultInputText: item.user_input || '',
+          readonly: false,
+          isHistory: true,
+          type: item.block_type,
+        });
+        lastContentId = item.generated_block_bid;
+  
+        if (item.like_status) {
+          result.push({
+            generated_block_bid: '',
+            parent_block_bid: item.generated_block_bid,
+            like_status: item.like_status,
+            type: ChatContentItemType.LIKE_STATUS,
+          });
+        }
+      } else if (item.block_type === BLOCK_TYPE.ASK) {
+        // 累积 ask
+        buffer.push(item);
+      } else {
+        // flush 并处理其他类型
+        flushBuffer();
+        result.push({
+          generated_block_bid: item.generated_block_bid,
+          content: item.content,
+          customRenderBar: () => null,
+          defaultButtonText: item.user_input || '',
+          defaultInputText: item.user_input || '',
+          readonly: false,
+          isHistory: true,
+          type: item.block_type,
         });
       }
-      
     });
+  
+    // 最后 flush
+    flushBuffer();
+    console.log('result:', result);
     return result;
   }, []);
+  
 
   /**
    * Loads the persisted lesson records and primes the chat stream.
@@ -654,6 +708,49 @@ function useChatLogicHook({
     setIsTypeFinished(true);
   }, [contentList, lastInteractionBlock, setTrackedContentList]);
 
+  /**
+   * toggleAskExpanded toggles the expanded state of the ask panel for a specific block
+   */
+  const toggleAskExpanded = useCallback((parentBlockBid: string) => {
+    setTrackedContentList(prev => {
+      // Check if ASK block already exists
+      const hasAskBlock = prev.some(
+        item => item.parent_block_bid === parentBlockBid && item.type === ChatContentItemType.ASK
+      );
+
+      if (hasAskBlock) {
+        // Toggle existing ASK block's expanded state
+        return prev.map(item =>
+          item.parent_block_bid === parentBlockBid && item.type === ChatContentItemType.ASK
+            ? { ...item, isAskExpanded: !item.isAskExpanded }
+            : item
+        );
+      } else {
+        // Create new ASK block after LIKE_STATUS block
+        return prev.flatMap(item => {
+          if (item.parent_block_bid === parentBlockBid && item.type === ChatContentItemType.LIKE_STATUS) {
+            return [
+              item,
+              {
+                generated_block_bid: '',
+                parent_block_bid: parentBlockBid,
+                type: BLOCK_TYPE.ASK,
+                content: '',
+                isAskExpanded: true,
+                ask_list: [],
+                readonly: false,
+                customRenderBar: () => null,
+                defaultButtonText: '',
+                defaultInputText: '',
+              },
+            ];
+          }
+          return [item];
+        });
+      }
+    });
+  }, [setTrackedContentList]);
+
   const items = useMemo(
     () =>
       contentList.map(item => ({
@@ -669,6 +766,7 @@ function useChatLogicHook({
     onSend,
     onRefresh,
     onTypeFinished,
+    toggleAskExpanded,
   };
 }
 

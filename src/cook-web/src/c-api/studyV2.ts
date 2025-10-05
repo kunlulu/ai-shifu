@@ -10,6 +10,7 @@ import { useUserStore } from '@/store/useUserStore';
 export const BLOCK_TYPE = {
   CONTENT: 'content',
   INTERACTION: 'interaction',
+  ASK: 'ask',
   ERROR: 'error_message'
 } as const;
 export type BlockType = (typeof BLOCK_TYPE)[keyof typeof BLOCK_TYPE];
@@ -38,6 +39,7 @@ export type PreviewMode = (typeof PREVIEW_MODE)[keyof typeof PREVIEW_MODE];
 export const SSE_OUTPUT_TYPE = {
   CONTENT: 'content',
   BREAK: 'break',
+  ASK: 'ask',
   TEXT_END: 'text_end',
   INTERACTION: 'interaction',
   OUTLINE_ITEM_UPDATE: 'outline_item_update',

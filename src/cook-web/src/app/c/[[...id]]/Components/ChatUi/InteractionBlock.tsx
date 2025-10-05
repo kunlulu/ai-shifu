@@ -7,21 +7,17 @@ import { RefreshCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import AskIcon from '@/c-assets/newchat/light/icon_ask.svg';
-import AskBlock from './AskBlock';
-
 type Size = 'sm' | 'md' | 'lg';
 
 export interface InteractionBlockProps {
   shifu_bid: string;
   generated_block_bid: string;
-  ask_generated_block_bid?: string;
-  outline_bid?: string; // 用于追问功能
-  preview_mode?: any; // 用于追问功能
   like_status?: LikeStatus | null; // initial status
   readonly?: boolean;
   disabled?: boolean;
   size?: Size;
   className?: string;
+  onToggleAskExpanded?: (generated_block_bid: string) => void;
   onRefresh?: (generated_block_bid: string) => void;
 }
 
@@ -33,21 +29,18 @@ export interface InteractionBlockProps {
 export default function InteractionBlock({
   shifu_bid,
   generated_block_bid,
-  ask_generated_block_bid = '',
-  outline_bid = '',
-  preview_mode,
   like_status = LIKE_STATUS.NONE,
   readonly = false,
   disabled = false,
   className,
   onRefresh,
+  onToggleAskExpanded,
 }: InteractionBlockProps) {
 
   const {t } = useTranslation();
   const [status, setStatus] = useState<LikeStatus>(
     (like_status as LikeStatus) ?? LIKE_STATUS.NONE,
   );
-  const [askPanelVisible, setAskPanelVisible] = useState(false);
 
   const isLike = status === LIKE_STATUS.LIKE;
   const isDislike = status === LIKE_STATUS.DISLIKE;
@@ -118,8 +111,7 @@ export default function InteractionBlock({
   };
 
   const handleChangeAskPanel = () => {
-    const newVisible = !askPanelVisible;
-    setAskPanelVisible(newVisible);
+    onToggleAskExpanded?.(generated_block_bid);
   };
 
 
@@ -202,20 +194,6 @@ export default function InteractionBlock({
           />
         </button>
       </div>
-      {outline_bid && (
-        <AskBlock
-          ask_list={[
-            // 示例数据，实际应该从 props 或 API 获取
-            // { role: 'user', content: '这个问题是这样理解的吗？' },
-            // { role: 'teacher', content: '是的，你的理解是正确的...' },
-          ]}
-          isExpanded={askPanelVisible}
-          shifu_bid={shifu_bid}
-          outline_bid={outline_bid}
-          preview_mode={preview_mode}
-          generated_block_bid={ask_generated_block_bid}
-        />
-      )}
     </div>
   );
 }
