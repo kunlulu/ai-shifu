@@ -7,7 +7,7 @@ import { getRunMessage, SSE_INPUT_TYPE, SSE_OUTPUT_TYPE, PREVIEW_MODE, type Prev
 import { fixMarkdownStream } from '@/c-utils/markdownUtils';
 import LoadingBar from './LoadingBar';
 import styles from './AskBlock.module.scss';
-import { ChatContentItem } from './useChatLogicHook';
+import { toast } from '@/hooks/useToast';
 
 export interface AskMessage {
   role: 'user' | 'teacher';
@@ -51,17 +51,31 @@ export default function AskBlock({
   const sseRef = useRef<any>(null);
   const currentContentRef = useRef<string>('');
   const isStreamingRef = useRef(false);
-
+  const [isTypeFinished, setIsTypeFinished] = useState(true);
+  const showOutputInProgressToast = useCallback(() => {
+    toast({
+      title: t('chat.outputInProgress'),
+    });
+  }, [t]);
 
   const handleSendCustomQuestion = useCallback(() => {
     const question = inputRef.current?.value.trim() || '';
+    if(isStreamingRef.current) {
+      showOutputInProgressToast();
+      return;
+    }
 
-    if (!question || isStreamingRef.current) {
+    if (!isTypeFinished) {
+      showOutputInProgressToast();
+      return;
+    }
+    if (!question) {
       return;
     }
 
     // 关闭之前的 SSE 连接
     sseRef.current?.close();
+    setIsTypeFinished(false);
 
     // 将新问题作为用户消息追加到列表末尾
     setDisplayList(prev => [
@@ -103,6 +117,7 @@ export default function AskBlock({
       },
       async (response) => {
         try {
+          setIsTypeFinished(false);
           console.log('SSE response:', response);
 
           if (response.type === SSE_OUTPUT_TYPE.CONTENT) {
@@ -157,7 +172,7 @@ export default function AskBlock({
 
     // 添加错误和连接关闭的监听，确保状态被重置
     source.addEventListener('error', () => {
-      console.log('SSE error, 设置 isStreamingRef.current = false');
+      console.log('SSE error');
       isStreamingRef.current = false;
       setDisplayList(prev => {
         const newList = [...prev];
@@ -176,7 +191,6 @@ export default function AskBlock({
       console.log('SSE readystatechange:', source.readyState);
       // readyState: 0=CONNECTING, 1=OPEN, 2=CLOSED
       if (source.readyState === 2) {
-        console.log('SSE closed, 设置 isStreamingRef.current = false');
         isStreamingRef.current = false;
         setDisplayList(prev => {
           const newList = [...prev];
@@ -245,7 +259,7 @@ export default function AskBlock({
                     enableTypewriter={message.isStreaming === true}
                     typingSpeed={60}
                     readonly={true}
-                    onTypeFinished={() => {}}
+                    onTypeFinished={() => setIsTypeFinished(true)}
                   />
                 </div>
               )}
