@@ -267,11 +267,11 @@ export default function AskBlock({
   }, []);
 
   const handleClickTitle = useCallback((index: number) => {
-    if(index !== 0 || isExpanded) {
+    if(index !== 0 || isExpanded || !mobileStyle) {
       return;
     }
     onToggleAskExpanded?.(generated_block_bid);
-  }, [onToggleAskExpanded, generated_block_bid, isExpanded]);
+  }, [onToggleAskExpanded, generated_block_bid, isExpanded, mobileStyle]);
 
   const renderMessages = (extraClass?: string) => {
     if (messagesToShow.length === 0) {
