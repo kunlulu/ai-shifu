@@ -111,11 +111,7 @@ export const NewChatComponents = ({
               outline_bid={lessonId}
               preview_mode={preview_mode}
               generated_block_bid={item.parent_block_bid || ''}
-              onClose={
-                item.parent_block_bid
-                  ? () => toggleAskExpanded(item.parent_block_bid as string)
-                  : undefined
-              }
+              onToggleAskExpanded={toggleAskExpanded}
               key={`${item.parent_block_bid}-ask`}
               askList={(item.ask_list || []) as any[]}
             />

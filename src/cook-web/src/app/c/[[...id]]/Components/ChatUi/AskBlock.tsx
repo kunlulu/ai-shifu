@@ -28,7 +28,7 @@ export interface AskBlockProps {
   outline_bid: string;
   preview_mode?: PreviewMode;
   generated_block_bid: string; 
-  onClose?: () => void;
+  onToggleAskExpanded?: (generated_block_bid: string) => void;
 }
 
 /**
@@ -43,7 +43,7 @@ export default function AskBlock({
   outline_bid,
   preview_mode = PREVIEW_MODE.NORMAL,
   generated_block_bid,
-  onClose,
+  onToggleAskExpanded,
 }: AskBlockProps) {
   const { t } = useTranslation();
   const { mobileStyle } = useContext(AppContext);
@@ -258,12 +258,20 @@ export default function AskBlock({
 
   const handleClose = useCallback(() => {
     setIsFullscreen(false);
-    onClose?.();
-  }, [onClose]);
+    // onClose?.();
+    onToggleAskExpanded?.(generated_block_bid);
+  }, [onToggleAskExpanded, generated_block_bid]);
 
   const handleToggleFullscreen = useCallback(() => {
     setIsFullscreen(prev => !prev);
   }, []);
+
+  const handleClickTitle = useCallback((index: number) => {
+    if(index !== 0 || isExpanded) {
+      return;
+    }
+    onToggleAskExpanded?.(generated_block_bid);
+  }, [onToggleAskExpanded, generated_block_bid, isExpanded]);
 
   const renderMessages = (extraClass?: string) => {
     if (messagesToShow.length === 0) {
@@ -285,6 +293,7 @@ export default function AskBlock({
           <div
             key={index}
             className={cn(styles.messageWrapper)}
+            onClick={() => handleClickTitle(index)} 
             style={{
               justifyContent: message.type === BLOCK_TYPE.ASK ? 'flex-end' : 'flex-start',
             }}
