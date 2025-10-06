@@ -64,6 +64,7 @@ export default function AskBlock({
   const [isTypeFinished, setIsTypeFinished] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showMobileDialog, setShowMobileDialog] = useState(askList.length > 0);
+  const mobileContentRef = useRef<HTMLDivElement | null>(null);
   const showOutputInProgressToast = useCallback(() => {
     toast({
       title: t('chat.outputInProgress'),
@@ -256,6 +257,25 @@ export default function AskBlock({
     };
   }, [mobileStyle, isExpanded]);
 
+  useEffect(() => {
+    if (!mobileStyle || !showMobileDialog || !isExpanded) {
+      return;
+    }
+
+    const container = mobileContentRef.current;
+    if (!container) {
+      return;
+    }
+
+    const rafId = requestAnimationFrame(() => {
+      container.scrollTop = container.scrollHeight;
+    });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+    };
+  }, [mobileStyle, showMobileDialog, isExpanded, messagesToShow.length]);
+
   const handleClose = useCallback(() => {
     setIsFullscreen(false);
     // onClose?.();
@@ -273,7 +293,11 @@ export default function AskBlock({
     onToggleAskExpanded?.(generated_block_bid);
   }, [onToggleAskExpanded, generated_block_bid, isExpanded, mobileStyle]);
 
-  const renderMessages = (extraClass?: string) => {
+  const renderMessages = ({
+    extraClass,
+  }: {
+    extraClass?: string;
+  } = {}) => {
     if (messagesToShow.length === 0) {
       return null;
     }
@@ -400,7 +424,11 @@ export default function AskBlock({
                   </button>
                 </div>
               </div>
-              <div className={styles.mobileContent}>{renderMessages(styles.mobileMessageList)}</div>
+              <div className={styles.mobileContent} ref={mobileContentRef}>
+                {renderMessages({
+                  extraClass: styles.mobileMessageList,
+                })}
+              </div>
               {renderInput(styles.mobileInput)}
             </div>
           </>
