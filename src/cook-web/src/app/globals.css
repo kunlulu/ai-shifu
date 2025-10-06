@@ -119,6 +119,12 @@ html {
     min-width: 380px;
   }
   &.mobile {
+    .custom-variable-container{
+      width: 100%;
+      >span{
+        width: 100%;
+      }
+    }
     .markdown-body input {
       min-width: 0;
       width: 100%;

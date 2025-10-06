@@ -111,6 +111,11 @@ export const NewChatComponents = ({
               outline_bid={lessonId}
               preview_mode={preview_mode}
               generated_block_bid={item.parent_block_bid || ''}
+              onClose={
+                item.parent_block_bid
+                  ? () => toggleAskExpanded(item.parent_block_bid as string)
+                  : undefined
+              }
               key={`${item.parent_block_bid}-ask`}
               askList={(item.ask_list || []) as any[]}
             />
@@ -138,9 +143,7 @@ export const NewChatComponents = ({
                 typingSpeed={60}
                 enableTypewriter={!item.isHistory}
                 content={item.content || ''}
-                onClickAskButton={() => {
-                  console.log("ask button clicked");
-                }}
+                onClickAskButton={() => toggleAskExpanded(item.generated_block_bid || '')}
                 customRenderBar={item.customRenderBar || (() => null)}
                 defaultButtonText={item.defaultButtonText}
                 defaultInputText={item.defaultInputText}

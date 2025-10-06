@@ -43,6 +43,7 @@ export enum ChatContentItemType {
   LIKE_STATUS = 'likeStatus',
 }
 
+
 export interface ChatContentItem {
   content?: string;
   customRenderBar?: (() => JSX.Element | null) | ComponentType<any>;
@@ -377,9 +378,9 @@ function useChatLogicHook({
           type: BLOCK_TYPE.ASK,
           isAskExpanded: false,
           parent_block_bid: parentId,
-          ask_list: buffer.map(b => ({
-            ...b,
-            type: BLOCK_TYPE.ASK,
+          ask_list: buffer.map(item => ({
+            ...item,
+            type: item.block_type,
           })), // 保留原始 ask 列表
           readonly: false,
           isHistory: true,
@@ -415,7 +416,7 @@ function useChatLogicHook({
             type: ChatContentItemType.LIKE_STATUS,
           });
         }
-      } else if (item.block_type === BLOCK_TYPE.ASK) {
+      } else if (item.block_type === BLOCK_TYPE.ASK || item.block_type === BLOCK_TYPE.ANSWER) {
         // 累积 ask
         buffer.push(item);
       } else {

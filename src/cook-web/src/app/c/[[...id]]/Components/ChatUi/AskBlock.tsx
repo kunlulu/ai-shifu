@@ -1,16 +1,21 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useContext, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
-import { Send } from 'lucide-react';
+import { Send, Maximize2, Minimize2, X } from 'lucide-react';
 import { ContentRender } from 'markdown-flow-ui';
 import { getRunMessage, SSE_INPUT_TYPE, SSE_OUTPUT_TYPE, PREVIEW_MODE, type PreviewMode } from '@/c-api/studyV2';
 import { fixMarkdownStream } from '@/c-utils/markdownUtils';
 import LoadingBar from './LoadingBar';
 import styles from './AskBlock.module.scss';
 import { toast } from '@/hooks/useToast';
+import { AppContext } from '../AppContext';
+import Image from 'next/image';
+import ShifuIcon from '@/c-assets/newchat/light/icon_shifu.svg';
+import { BLOCK_TYPE } from '@/c-api/studyV2';
+
 
 export interface AskMessage {
-  role: 'user' | 'teacher';
+  type: typeof BLOCK_TYPE.ASK | typeof BLOCK_TYPE.ANSWER;
   content: string;
   isStreaming?: boolean; 
 }
@@ -23,6 +28,7 @@ export interface AskBlockProps {
   outline_bid: string;
   preview_mode?: PreviewMode;
   generated_block_bid: string; 
+  onClose?: () => void;
 }
 
 /**
@@ -37,12 +43,16 @@ export default function AskBlock({
   outline_bid,
   preview_mode = PREVIEW_MODE.NORMAL,
   generated_block_bid,
+  onClose,
 }: AskBlockProps) {
   const { t } = useTranslation();
+  const { mobileStyle } = useContext(AppContext);
+  
+
   const [displayList, setDisplayList] = useState<AskMessage[]>(() => {
-    return askList.map((item, index) => ({
+    return askList.map((item) => ({
       content: item.content || '',
-      role: index % 2 === 0 ? 'user' : 'teacher',
+      type: item.type,
     }));
   });
 
@@ -52,6 +62,8 @@ export default function AskBlock({
   const currentContentRef = useRef<string>('');
   const isStreamingRef = useRef(false);
   const [isTypeFinished, setIsTypeFinished] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showMobileDialog, setShowMobileDialog] = useState(askList.length > 0);
   const showOutputInProgressToast = useCallback(() => {
     toast({
       title: t('chat.outputInProgress'),
@@ -76,12 +88,13 @@ export default function AskBlock({
     // 关闭之前的 SSE 连接
     sseRef.current?.close();
     setIsTypeFinished(false);
+    setShowMobileDialog(true);
 
     // 将新问题作为用户消息追加到列表末尾
     setDisplayList(prev => [
       ...prev,
       {
-        role: 'user',
+        type: BLOCK_TYPE.ASK,
         content: question,
       },
     ]);
@@ -95,7 +108,7 @@ export default function AskBlock({
     setDisplayList(prev => [
       ...prev,
       {
-        role: 'teacher',
+        type: BLOCK_TYPE.ANSWER,
         content: '',
         isStreaming: true,
       },
@@ -131,7 +144,7 @@ export default function AskBlock({
             setDisplayList(prev => {
               const newList = [...prev];
               const lastIndex = newList.length - 1;
-              if (lastIndex >= 0 && newList[lastIndex].role === 'teacher') {
+              if (lastIndex >= 0 && newList[lastIndex].type === BLOCK_TYPE.ANSWER) {
                 newList[lastIndex] = {
                   ...newList[lastIndex],
                   content: nextText,
@@ -153,7 +166,7 @@ export default function AskBlock({
             setDisplayList(prev => {
               const newList = [...prev];
               const lastIndex = newList.length - 1;
-              if (lastIndex >= 0 && newList[lastIndex].role === 'teacher') {
+              if (lastIndex >= 0 && newList[lastIndex].type === BLOCK_TYPE.ANSWER) {
                 newList[lastIndex] = {
                   ...newList[lastIndex],
                   isStreaming: false,
@@ -177,7 +190,7 @@ export default function AskBlock({
       setDisplayList(prev => {
         const newList = [...prev];
         const lastIndex = newList.length - 1;
-        if (lastIndex >= 0 && newList[lastIndex].role === 'teacher') {
+        if (lastIndex >= 0 && newList[lastIndex].type === BLOCK_TYPE.ANSWER) {
           newList[lastIndex] = {
             ...newList[lastIndex],
             isStreaming: false,
@@ -195,7 +208,7 @@ export default function AskBlock({
         setDisplayList(prev => {
           const newList = [...prev];
           const lastIndex = newList.length - 1;
-          if (lastIndex >= 0 && newList[lastIndex].role === 'teacher') {
+          if (lastIndex >= 0 && newList[lastIndex].type === BLOCK_TYPE.ANSWER) {
             newList[lastIndex] = {
               ...newList[lastIndex],
               isStreaming: false,
@@ -207,95 +220,196 @@ export default function AskBlock({
     });
 
     sseRef.current = source;
-  }, [shifu_bid, outline_bid, preview_mode, generated_block_bid]);
+  }, [shifu_bid, outline_bid, preview_mode, generated_block_bid, isTypeFinished, showOutputInProgressToast]);
 
 
   // 决定显示哪些消息
   const messagesToShow = isExpanded ? displayList : displayList.slice(0, 1);
   // console.log('displayList:',isExpanded,messagesToShow);
 
-  return (
-    <div className={cn(styles.askBlock, className)} style={{
-      marginTop: isExpanded || messagesToShow.length > 0 ? '8px' : '0',
-      padding: isExpanded || messagesToShow.length > 0 ? '16px' : '0',
-    }}>
-      {/* 问题对话列表 */}
-      {messagesToShow.length > 0 && (
-        <div className={cn(styles.messageList)}
-          style={{
-            marginBottom: isExpanded ? '12px' : '0',
-          }}
-        >
-          {messagesToShow.map((message, index) => (
-            <div
-              key={index}
-              className={cn(styles.messageWrapper)}
-              style={{
-                justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start',
-              }}
-            >
-              {message.role === 'user' ? (
-                // 用户消息：简单的文本气泡
-                <div
-                  className={cn(
-                    styles.userMessage
-                  )}
-                >
-                  {message.content}
-                </div>
-              ) : (
-                // 老师回复：使用 ContentRender 渲染 Markdown
-                <div
-                  className={cn(
-                    styles.assistantMessage
-                  )}
-                >
-                  <ContentRender
-                    content={message.content}
-                    customRenderBar={message.isStreaming && !message.content ? () => <LoadingBar /> : () => null}
-                    onSend={() => {}}
-                    defaultButtonText={''}
-                    defaultInputText={''}
-                    enableTypewriter={message.isStreaming === true}
-                    typingSpeed={60}
-                    readonly={true}
-                    onTypeFinished={() => setIsTypeFinished(true)}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+  useEffect(() => {
+    if (!isExpanded) {
+      setIsFullscreen(false);
+    }
+  }, [isExpanded]);
 
-      {/* 自定义输入框 - 只在展开时显示 */}
-      {isExpanded && (
-        <div
-          className={cn(styles.userInput)}
-        >
-            <input
-            ref={inputRef}
-            type="text"
-            placeholder={t('chat.askContent')}
-            className={cn('flex-1 outline-none border-none bg-transparent')}
-            onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                handleSendCustomQuestion();
-                }
+  useEffect(() => {
+    if (askList.length > 0) {
+      setShowMobileDialog(true);
+    }
+  }, [askList.length]);
+
+  useEffect(() => {
+    if (!mobileStyle || !isExpanded) {
+      return;
+    }
+
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [mobileStyle, isExpanded]);
+
+  const handleClose = useCallback(() => {
+    setIsFullscreen(false);
+    onClose?.();
+  }, [onClose]);
+
+  const handleToggleFullscreen = useCallback(() => {
+    setIsFullscreen(prev => !prev);
+  }, []);
+
+  const renderMessages = (extraClass?: string) => {
+    if (messagesToShow.length === 0) {
+      return null;
+    }
+
+    return (
+      <div
+        className={cn(styles.messageList, extraClass)}
+        style={
+          !mobileStyle
+            ? {
+                marginBottom: isExpanded ? '12px' : '0',
+              }
+            : undefined
+        }
+      >
+        {messagesToShow.map((message, index) => (
+          <div
+            key={index}
+            className={cn(styles.messageWrapper)}
+            style={{
+              justifyContent: message.type === BLOCK_TYPE.ASK ? 'flex-end' : 'flex-start',
             }}
-            />
-            <button
-            onClick={handleSendCustomQuestion}
-            className={cn(
-                'flex items-center justify-center',
-                'cursor-pointer',
-                isStreamingRef.current || !isTypeFinished ? styles.isSending : '',
+          >
+            {message.type === BLOCK_TYPE.ASK ? (
+              <div className={cn(styles.userMessage)}>{message.content}</div>
+            ) : (
+              <div className={cn(styles.assistantMessage)}>
+                <ContentRender
+                  content={message.content}
+                  customRenderBar={
+                    message.isStreaming && !message.content
+                      ? () => <LoadingBar />
+                      : () => null
+                  }
+                  onSend={() => {}}
+                  defaultButtonText={''}
+                  defaultInputText={''}
+                  enableTypewriter={message.isStreaming === true}
+                  typingSpeed={60}
+                  readonly={true}
+                  onTypeFinished={() => setIsTypeFinished(true)}
+                />
+              </div>
             )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderInput = (extraClass?: string) => {
+    if (!isExpanded) {
+      return null;
+    }
+
+    return (
+      <div className={cn(styles.userInput, extraClass)}>
+        <input
+          ref={inputRef}
+          type='text'
+          placeholder={t('chat.askContent')}
+          className={cn('flex-1 outline-none border-none bg-transparent')}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              handleSendCustomQuestion();
+            }
+          }}
+        />
+        <button
+          onClick={handleSendCustomQuestion}
+          className={cn(
+            'flex items-center justify-center',
+            'cursor-pointer',
+            isStreamingRef.current || !isTypeFinished ? styles.isSending : '',
+          )}
+        >
+          <Send size={mobileStyle ? 18 : 12} />
+        </button>
+      </div>
+    );
+  };
+
+  if (mobileStyle && showMobileDialog && messagesToShow.length > 0) {
+    return (
+      <div className={cn(styles.askBlock, className, styles.mobile)}>
+        {!isExpanded && renderMessages()}
+        {isExpanded && (
+          <>
+            <div className={styles.mobileOverlay} onClick={handleClose} />
+            <div
+              className={cn(
+                styles.mobilePanel,
+                isFullscreen ? styles.mobilePanelFullscreen : '',
+              )}
             >
-                <Send size={12} />
-            </button>
-        </div>
-      )}
+              <div className={styles.mobileHeader}>
+                <div className={styles.mobileTitle}>
+                  <Image
+                    src={ShifuIcon.src}
+                    alt='shifu icon'
+                    width={20}
+                    height={20}
+                    className={styles.mobileIcon}
+                  />
+                  <span>{t('chat.ask')}</span>
+                </div>
+                <div className={styles.mobileActions}>
+                  <button
+                    type='button'
+                    className={styles.mobileActionButton}
+                    onClick={handleToggleFullscreen}
+                    aria-label={isFullscreen ? 'Collapse' : 'Expand'}
+                  >
+                    {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                  </button>
+                  <button
+                    type='button'
+                    className={styles.mobileActionButton}
+                    onClick={handleClose}
+                    aria-label='Close'
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
+              <div className={styles.mobileContent}>{renderMessages(styles.mobileMessageList)}</div>
+              {renderInput(styles.mobileInput)}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(styles.askBlock, className, mobileStyle ? styles.mobile : '')}
+      style={{
+        marginTop: isExpanded || messagesToShow.length > 0 ? '8px' : '0',
+        padding: isExpanded || messagesToShow.length > 0 ? '16px' : '0',
+      }}
+    >
+      {renderMessages()}
+      {renderInput()}
     </div>
   );
 }
