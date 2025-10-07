@@ -125,6 +125,41 @@ export const NewChatComponents = ({
     });
   }, [items]);
 
+  // Close interaction popover when scrolling
+  useEffect(() => {
+    if (!mobileStyle || !mobileInteraction.open) {
+      return;
+    }
+
+    const handleScroll = () => {
+      // Close popover and clear selection when scrolling
+      setMobileInteraction(prev => ({ ...prev, open: false }));
+      setLongPressedBlockBid('');
+    };
+
+    // Try to find the actual scrolling container
+    // Check current element, parent, and window
+    const chatContainer = chatRef.current;
+    const parentContainer = chatContainer?.parentElement;
+
+    // Add listeners to multiple possible scroll containers
+    const listeners: Array<{ element: EventTarget; handler: typeof handleScroll }> = [];
+
+
+    // Listen to parent container
+    if (parentContainer) {
+      parentContainer.addEventListener('scroll', handleScroll, { passive: true });
+      listeners.push({ element: parentContainer, handler: handleScroll });
+    }
+
+    return () => {
+      // Clean up all listeners
+      listeners.forEach(({ element, handler }) => {
+        element.removeEventListener('scroll', handler);
+      });
+    };
+  }, [mobileStyle, mobileInteraction.open]);
+
   // Memoize callbacks to prevent unnecessary re-renders
   const handleClickAskButton = useCallback((blockBid: string) => {
     toggleAskExpanded(blockBid);
