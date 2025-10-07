@@ -113,7 +113,7 @@ function useChatLogicHook({
   showOutputInProgressToast,
   onPayModalOpen,
 }: UseChatSessionParams): UseChatSessionResult {
-  const { t } = useTranslation();
+  const { t, i18n, ready } = useTranslation();
   const { mobileStyle } = useContext(AppContext);
 
   const { updateUserInfo } = useUserStore(
@@ -130,8 +130,8 @@ function useChatLogicHook({
   const [contentList, setContentList] = useState<ChatContentItem[]>([]);
   const [isTypeFinished, setIsTypeFinished] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [lastInteractionBlock, setLastInteractionBlock] =
-    useState<ChatContentItem | null>(null);
+  // const [lastInteractionBlock, setLastInteractionBlock] =
+  //   useState<ChatContentItem | null>(null);
   const [loadedChapterId, setLoadedChapterId] = useState('');
 
   const contentListRef = useRef<ChatContentItem[]>([]);
@@ -254,7 +254,7 @@ function useChatLogicHook({
             }
 
             if (response.type === SSE_OUTPUT_TYPE.INTERACTION) {
-              console.log('🔵 Received INTERACTION type:', response);
+              // console.log('🔵 Received INTERACTION type:', response);
               const interactionBlock = {
                 generated_block_bid: nid,
                 content: response.content,
@@ -266,7 +266,7 @@ function useChatLogicHook({
               };
               // setLastInteractionBlock(interactionBlock);
               lastInteractionBlockRef.current = interactionBlock;
-              console.log('🔵 Set lastInteractionBlockRef.current:', interactionBlock);
+              // console.log('🔵 Set lastInteractionBlockRef.current:', interactionBlock);
             } else if (response.type === SSE_OUTPUT_TYPE.CONTENT) {
               if (isEnd) {
                 return;
@@ -322,8 +322,8 @@ function useChatLogicHook({
               response.type === SSE_OUTPUT_TYPE.BREAK ||
               response.type === SSE_OUTPUT_TYPE.TEXT_END
             ) {
-              console.log('🟢 Received TEXT_END/BREAK, type:', response.type);
-              console.log('🟢 lastInteractionBlockRef.current:', lastInteractionBlockRef.current);
+              // console.log('🟢 Received TEXT_END/BREAK, type:', response.type);
+              // console.log('🟢 lastInteractionBlockRef.current:', lastInteractionBlockRef.current);
               if (blockId) {
                 setTrackedContentList(prevState => {
                   const updatedList = prevState.map(item =>
@@ -333,6 +333,11 @@ function useChatLogicHook({
                   );
                   return updatedList;
                 });
+
+                // Set finished state if no interaction block pending
+                if (!lastInteractionBlockRef.current) {
+                  setIsTypeFinished(true);
+                }
               }
               currentBlockIdRef.current = null;
               currentContentRef.current = '';
@@ -569,7 +574,8 @@ function useChatLogicHook({
         return;
       }
       setIsTypeFinished(true);
-      setLastInteractionBlock(null);
+      // setLastInteractionBlock(null);
+      lastInteractionBlockRef.current = null;
       scrollToLesson(targetLessonId);
       updateSelectedLesson(targetLessonId);
     };
@@ -700,34 +706,66 @@ function useChatLogicHook({
     ],
   );
 
-  useEffect(() => {
-    console.log('⚠️ lastInteractionBlockRef设置', lastInteractionBlockRef.current);
-  }, [lastInteractionBlockRef.current]);
-
   /**
    * onTypeFinished appends the interaction UI once streaming completes.
    */
   const onTypeFinished = useCallback(() => {
-    console.log('🟢 onTypeFinished', lastInteractionBlockRef.current, contentList.length);
-    if (lastInteractionBlockRef.current && contentList.length > 0) {
-      const lastItem = contentList[contentList.length - 1];
-      const gid = lastItem.generated_block_bid;
-      const newInteractionBlock: ChatContentItem[] = [
-        {
-          parent_block_bid: gid,
-          generated_block_bid: '',
-          content: '',
-          like_status: LIKE_STATUS.NONE,
-          type: ChatContentItemType.LIKE_STATUS,
-        },
-        lastInteractionBlockRef.current,
-      ];
-      setTrackedContentList(prev => [...prev, ...newInteractionBlock]);
-      setLastInteractionBlock(null);
-      lastInteractionBlockRef.current = null;
+    // console.log('🟢 onTypeFinished called', {
+    //   hasInteractionBlock: !!lastInteractionBlockRef.current,
+    //   contentListLength: contentListRef.current.length,
+    //   isTypeFinished,
+    // });
+
+    // Only process if:
+    // 1. There's a pending interaction block
+    // 2. Currently in typing state (not already finished)
+    if (!lastInteractionBlockRef.current || !isTypeFinished) {
+      // console.log('🟢 onTypeFinishe跳过 - no pending interaction or already finished');
+      return;
     }
-    setIsTypeFinished(true);
-  }, [contentList, lastInteractionBlockRef, setTrackedContentList]);
+
+    // console.log('🟢 onTypeFinished真正执行');
+    if (contentListRef.current.length > 0) {
+      setTrackedContentList(prev => {
+        const updatedList = [...prev];
+
+        // Find the last CONTENT type item and append AskButton to its content
+        // Set isHistory=true to prevent triggering typewriter effect for AskButton
+        if (mobileStyle) {
+          for (let i = updatedList.length - 1; i >= 0; i--) {
+            if (updatedList[i].type === ChatContentItemType.CONTENT) {
+              updatedList[i] = {
+                ...updatedList[i],
+                content: (updatedList[i].content || '') + `<ask-button><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></ask-button>`,
+                isHistory: true, // Prevent AskButton from triggering typewriter
+              };
+              break;
+            }
+          }
+        }
+
+        // Add interaction blocks
+        const lastItem = updatedList[updatedList.length - 1];
+        const gid = lastItem.generated_block_bid;
+        updatedList.push(
+          {
+            parent_block_bid: gid,
+            generated_block_bid: '',
+            content: '',
+            like_status: LIKE_STATUS.NONE,
+            type: ChatContentItemType.LIKE_STATUS,
+          },
+          lastInteractionBlockRef.current!
+        );
+
+        return updatedList;
+      });
+
+      lastInteractionBlockRef.current = null;
+      setIsTypeFinished(true);
+      // console.log('🟢 onTypeFinished processed - interaction block added');
+    }
+  }, [setTrackedContentList, isTypeFinished, mobileStyle]);
 
   /**
    * toggleAskExpanded toggles the expanded state of the ask panel for a specific block
