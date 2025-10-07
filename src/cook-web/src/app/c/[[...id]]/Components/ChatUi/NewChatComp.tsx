@@ -146,7 +146,7 @@ export const NewChatComponents = ({
       {isLoading ? (
         <></>
       ) : (
-        items.map((item) => {
+        items.map((item, idx) => {
           const isLongPressed = longPressedBlockBid === item.generated_block_bid;
 
           if (item.type === ChatContentItemType.ASK) {
@@ -158,7 +158,7 @@ export const NewChatComponents = ({
                 preview_mode={preview_mode}
                 generated_block_bid={item.parent_block_bid || ''}
                 onToggleAskExpanded={toggleAskExpanded}
-                key={`${item.parent_block_bid}-ask`}
+                key={`${idx}-ask`}
                 askList={(item.ask_list || []) as any[]}
               />
             );
@@ -167,7 +167,7 @@ export const NewChatComponents = ({
           if (item.type === ChatContentItemType.LIKE_STATUS) {
             return mobileStyle ? null : (
               <InteractionBlock
-                key={`${item.parent_block_bid}-interaction`}
+                key={`${idx}-interaction`}
                 shifu_bid={shifuBid}
                 generated_block_bid={item.parent_block_bid || ''}
                 like_status={item.like_status}
@@ -180,7 +180,7 @@ export const NewChatComponents = ({
 
           return (
             <div
-              key={`${item.generated_block_bid}-content`}
+              key={`${idx}-content`}
               style={{ position: 'relative' }}
             >
               {isLongPressed && mobileStyle && (
