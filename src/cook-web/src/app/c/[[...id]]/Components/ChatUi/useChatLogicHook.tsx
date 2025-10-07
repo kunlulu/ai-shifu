@@ -139,6 +139,7 @@ function useChatLogicHook({
   const currentBlockIdRef = useRef<string | null>(null);
   const runRef = useRef<((params: SSEParams) => void) | null>(null);
   const sseRef = useRef<EventSource | null>(null);
+  const lastInteractionBlockRef = useRef<ChatContentItem | null>(null);
 
   const effectivePreviewMode = previewMode ?? PREVIEW_MODE.NORMAL;
 
@@ -215,7 +216,8 @@ function useChatLogicHook({
 
       currentBlockIdRef.current = 'loading';
       currentContentRef.current = '';
-      setLastInteractionBlock(null);
+      // setLastInteractionBlock(null);
+      lastInteractionBlockRef.current = null;
       setTrackedContentList(prev => {
         const placeholderItem: ChatContentItem = {
           generated_block_bid: currentBlockIdRef.current || '',
@@ -252,7 +254,8 @@ function useChatLogicHook({
             }
 
             if (response.type === SSE_OUTPUT_TYPE.INTERACTION) {
-              setLastInteractionBlock({
+              console.log('🔵 Received INTERACTION type:', response);
+              const interactionBlock = {
                 generated_block_bid: nid,
                 content: response.content,
                 customRenderBar: () => null,
@@ -260,7 +263,10 @@ function useChatLogicHook({
                 defaultInputText: '',
                 readonly: false,
                 type: ChatContentItemType.INTERACTION,
-              });
+              };
+              // setLastInteractionBlock(interactionBlock);
+              lastInteractionBlockRef.current = interactionBlock;
+              console.log('🔵 Set lastInteractionBlockRef.current:', interactionBlock);
             } else if (response.type === SSE_OUTPUT_TYPE.CONTENT) {
               if (isEnd) {
                 return;
@@ -316,11 +322,13 @@ function useChatLogicHook({
               response.type === SSE_OUTPUT_TYPE.BREAK ||
               response.type === SSE_OUTPUT_TYPE.TEXT_END
             ) {
+              console.log('🟢 Received TEXT_END/BREAK, type:', response.type);
+              console.log('🟢 lastInteractionBlockRef.current:', lastInteractionBlockRef.current);
               if (blockId) {
                 setTrackedContentList(prevState => {
                   const updatedList = prevState.map(item =>
                     item.generated_block_bid === blockId
-                      ? { ...item, readonly: true, customRenderBar: () => null }
+                      ? { ...item, readonly: true, customRenderBar: () => null, isHistory: false }
                       : item,
                   );
                   return updatedList;
@@ -692,11 +700,16 @@ function useChatLogicHook({
     ],
   );
 
+  useEffect(() => {
+    console.log('⚠️ lastInteractionBlockRef设置', lastInteractionBlockRef.current);
+  }, [lastInteractionBlockRef.current]);
+
   /**
    * onTypeFinished appends the interaction UI once streaming completes.
    */
   const onTypeFinished = useCallback(() => {
-    if (lastInteractionBlock && contentList.length > 0) {
+    console.log('🟢 onTypeFinished', lastInteractionBlockRef.current, contentList.length);
+    if (lastInteractionBlockRef.current && contentList.length > 0) {
       const lastItem = contentList[contentList.length - 1];
       const gid = lastItem.generated_block_bid;
       const newInteractionBlock: ChatContentItem[] = [
@@ -707,13 +720,14 @@ function useChatLogicHook({
           like_status: LIKE_STATUS.NONE,
           type: ChatContentItemType.LIKE_STATUS,
         },
-        lastInteractionBlock,
+        lastInteractionBlockRef.current,
       ];
       setTrackedContentList(prev => [...prev, ...newInteractionBlock]);
       setLastInteractionBlock(null);
+      lastInteractionBlockRef.current = null;
     }
     setIsTypeFinished(true);
-  }, [contentList, lastInteractionBlock, setTrackedContentList]);
+  }, [contentList, lastInteractionBlockRef, setTrackedContentList]);
 
   /**
    * toggleAskExpanded toggles the expanded state of the ask panel for a specific block
