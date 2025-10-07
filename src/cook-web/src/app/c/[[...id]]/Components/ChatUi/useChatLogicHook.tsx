@@ -7,6 +7,7 @@ import {
   type ComponentType,
   useContext,
 } from 'react';
+import { useLatest, useMountedState } from 'react-use';
 import { fixMarkdownStream } from '@/c-utils/markdownUtils';
 import { useCourseStore } from '@/c-store/useCourseStore';
 import { useUserStore } from '@/store';
@@ -140,19 +141,44 @@ function useChatLogicHook({
   const runRef = useRef<((params: SSEParams) => void) | null>(null);
   const sseRef = useRef<EventSource | null>(null);
   const lastInteractionBlockRef = useRef<ChatContentItem | null>(null);
+  const hasScrolledToBottomRef = useRef<boolean>(false);
 
   const effectivePreviewMode = previewMode ?? PREVIEW_MODE.NORMAL;
 
-  // first part of the content is loaded, scroll to the bottom
-  // useEffect(() => {
-  //   if (contentList.length > 0) {
-  //     setTimeout(() => {
-  //       chatBoxBottomRef.current?.scrollIntoView();
-  //       // there is a problem with the scrollToBottom, so we use the scrollIntoView instead
-  //       // scrollToBottom("smooth");
-  //     }, 100);
-  //   }
-  // }, [contentList, scrollToBottom]);
+  // Use react-use hooks for safer state management
+  const isMounted = useMountedState();
+  const chatBoxBottomRefLatest = useLatest(chatBoxBottomRef);
+
+  /**
+   * Auto scroll to bottom when history records are loaded and rendered
+   * Only scroll once, don't interfere with user scrolling
+   */
+  useEffect(() => {
+    // Only scroll once after initial load
+    if (hasScrolledToBottomRef.current) {
+      return;
+    }
+
+    // Wait for: 1) loading complete, 2) has content, 3) chapter loaded
+    if (!isLoading && contentList.length > 0 && loadedChapterId) {
+      // Simple one-time scroll after a reasonable delay
+      const timer = setTimeout(() => {
+        if (!isMounted()) return;
+
+        const bottomEl = chatBoxBottomRefLatest.current?.current;
+        if (bottomEl) {
+          // Use instant scroll to avoid blocking user interaction
+          bottomEl.scrollIntoView({
+            behavior: 'instant',
+            block: 'end',
+          });
+          hasScrolledToBottomRef.current = true;
+        }
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, contentList.length, loadedChapterId, isMounted, chatBoxBottomRefLatest]);
 
   /**
    * Keeps the React state and mutable ref of the content list in sync.
@@ -461,6 +487,8 @@ function useChatLogicHook({
   const refreshData = useCallback(async () => {
     setTrackedContentList([]);
     setIsLoading(true);
+    // Reset scroll flag when reloading data
+    hasScrolledToBottomRef.current = false;
 
     try {
       const recordResp = await getLessonStudyRecord({
