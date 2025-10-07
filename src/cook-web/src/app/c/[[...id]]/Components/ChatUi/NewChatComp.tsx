@@ -109,7 +109,7 @@ export const NewChatComponents = ({
     const target = event.target as HTMLElement;
     const rect = target.getBoundingClientRect();
     const interactionItem = items.find(item => item.type === ChatContentItemType.LIKE_STATUS && item.parent_block_bid === currentBlock.generated_block_bid);
-
+    console.log('长按选中的块',currentBlock, interactionItem);
     // Use requestAnimationFrame to avoid blocking rendering
     requestAnimationFrame(() => {
       setLongPressedBlockBid(currentBlock.generated_block_bid);
@@ -124,30 +124,6 @@ export const NewChatComponents = ({
       });
     });
   }, [items]);
-
-  // Create stable touch handlers for each item
-  const touchHandlers = useMemo(() => {
-    if (!mobileStyle) return {};
-
-    const handlers: Record<string, any> = {};
-    items.forEach(item => {
-      if (item.type === ChatContentItemType.CONTENT) {
-        handlers[item.generated_block_bid || ''] = (e: any) => {
-          const timer = setTimeout(() => {
-            handleLongPress(e, item);
-          }, 600);
-          const handleEnd = () => {
-            clearTimeout(timer);
-            document.removeEventListener('touchend', handleEnd);
-            document.removeEventListener('touchmove', handleEnd);
-          };
-          document.addEventListener('touchend', handleEnd);
-          document.addEventListener('touchmove', handleEnd);
-        };
-      }
-    });
-    return handlers;
-  }, [mobileStyle, items, handleLongPress]);
 
   // Memoize callbacks to prevent unnecessary re-renders
   const handleClickAskButton = useCallback((blockBid: string) => {
@@ -217,7 +193,7 @@ export const NewChatComponents = ({
                 onClickAskButton={handleClickAskButton}
                 onSend={memoizedOnSend}
                 onTypeFinished={memoizedOnTypeFinished}
-                onTouchStart={touchHandlers[item.generated_block_bid || '']}
+                onLongPress={handleLongPress}
               />
             </div>
           );

@@ -1,4 +1,5 @@
 import { memo, useCallback } from 'react';
+import { useLongPress } from 'react-use';
 import { ContentRender, OnSendContentParams } from 'markdown-flow-ui';
 import { cn } from '@/lib/utils';
 import type { ChatContentItem } from './useChatLogicHook';
@@ -10,7 +11,7 @@ interface ContentBlockProps {
   onClickAskButton: (blockBid: string) => void;
   onSend: (content: OnSendContentParams) => void;
   onTypeFinished: () => void;
-  onTouchStart?: (e: any) => void;
+  onLongPress?: (event: any, item: ChatContentItem) => void;
 }
 
 const ContentBlock = memo(({
@@ -20,11 +21,22 @@ const ContentBlock = memo(({
   onClickAskButton,
   onSend,
   onTypeFinished,
-  onTouchStart,
+  onLongPress,
 }: ContentBlockProps) => {
   const handleClick = useCallback(() => {
     onClickAskButton(blockBid);
   }, [blockBid, onClickAskButton]);
+
+  const handleLongPress = useCallback((event: any) => {
+    if (onLongPress && mobileStyle) {
+      onLongPress(event, item);
+    }
+  }, [onLongPress, mobileStyle, item]);
+
+  const longPressEvent = useLongPress(handleLongPress, {
+    isPreventDefault: false,
+    delay: 600,
+  });
 
   return (
     <div
@@ -32,7 +44,7 @@ const ContentBlock = memo(({
         'content-render-theme',
         mobileStyle ? 'mobile' : '',
       )}
-      onTouchStart={onTouchStart}
+      {...(mobileStyle ? longPressEvent : {})}
     >
       <ContentRender
         typingSpeed={60}
@@ -53,8 +65,7 @@ const ContentBlock = memo(({
   return (
     prevProps.item === nextProps.item &&
     prevProps.mobileStyle === nextProps.mobileStyle &&
-    prevProps.blockBid === nextProps.blockBid &&
-    prevProps.onTouchStart === nextProps.onTouchStart
+    prevProps.blockBid === nextProps.blockBid
   );
 });
 

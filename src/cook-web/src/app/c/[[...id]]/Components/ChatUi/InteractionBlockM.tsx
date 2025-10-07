@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshCcw, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/Popover';
@@ -40,6 +40,10 @@ export default function InteractionBlockM({
 
   const isLike = status === LIKE_STATUS.LIKE;
   const isDislike = status === LIKE_STATUS.DISLIKE;
+
+  useEffect(() => {
+    setStatus((like_status as LikeStatus) ?? LIKE_STATUS.NONE);
+  }, [like_status]);
 
   const send = (action: LikeStatus) => {
     postGeneratedContentAction({
