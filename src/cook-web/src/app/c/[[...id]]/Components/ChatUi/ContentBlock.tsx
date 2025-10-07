@@ -8,7 +8,7 @@ interface ContentBlockProps {
   item: ChatContentItem;
   mobileStyle: boolean;
   blockBid: string;
-  onClickAskButton: (blockBid: string) => void;
+  onClickCustomButtonAfterContent: (blockBid: string) => void;
   onSend: (content: OnSendContentParams) => void;
   onTypeFinished: () => void;
   onLongPress?: (event: any, item: ChatContentItem) => void;
@@ -18,14 +18,14 @@ const ContentBlock = memo(({
   item,
   mobileStyle,
   blockBid,
-  onClickAskButton,
+  onClickCustomButtonAfterContent,
   onSend,
   onTypeFinished,
   onLongPress,
 }: ContentBlockProps) => {
   const handleClick = useCallback(() => {
-    onClickAskButton(blockBid);
-  }, [blockBid, onClickAskButton]);
+    onClickCustomButtonAfterContent(blockBid);
+  }, [blockBid, onClickCustomButtonAfterContent]);
 
   const handleLongPress = useCallback((event: any) => {
     if (onLongPress && mobileStyle) {
@@ -50,7 +50,7 @@ const ContentBlock = memo(({
         typingSpeed={60}
         enableTypewriter={!item.isHistory}
         content={item.content || ''}
-        onClickAskButton={handleClick}
+        onClickCustomButtonAfterContent={handleClick}
         customRenderBar={item.customRenderBar}
         defaultButtonText={item.defaultButtonText}
         defaultInputText={item.defaultInputText}

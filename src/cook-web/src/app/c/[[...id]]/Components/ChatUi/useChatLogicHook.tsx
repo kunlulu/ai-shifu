@@ -438,7 +438,7 @@ function useChatLogicHook({
         flushBuffer();
         result.push({
           generated_block_bid: item.generated_block_bid,
-          content: item.content+ (!mobileStyle ? `` : `<ask-button><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></ask-button>`),
+          content: item.content+ (!mobileStyle ? `` : `<custom-button-after-content><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></custom-button-after-content>`),
           customRenderBar: () => null,
           defaultButtonText: item.user_input || '',
           defaultInputText: item.user_input || '',
@@ -768,10 +768,10 @@ function useChatLogicHook({
         // Set isHistory=true to prevent triggering typewriter effect for AskButton
         if (mobileStyle) {
           for (let i = updatedList.length - 1; i >= 0; i--) {
-            if (updatedList[i].type === ChatContentItemType.CONTENT && !updatedList[i].content?.includes(`<ask-button>`)) {
+            if (updatedList[i].type === ChatContentItemType.CONTENT && !updatedList[i].content?.includes(`<custom-button-after-content>`)) {
               updatedList[i] = {
                 ...updatedList[i],
-                content: (updatedList[i].content || '') + `<ask-button><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></ask-button>`,
+                content: (updatedList[i].content || '') + `<custom-button-after-content><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></custom-button-after-content>`,
                 isHistory: true, // Prevent AskButton from triggering typewriter
               };
               break;
