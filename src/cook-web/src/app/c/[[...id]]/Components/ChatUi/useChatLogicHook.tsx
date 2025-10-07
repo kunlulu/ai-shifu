@@ -195,6 +195,7 @@ function useChatLogicHook({
             ? (updater as (prev: ChatContentItem[]) => ChatContentItem[])(prev)
             : updater;
         contentListRef.current = next;
+        console.log('通知contentListRef.current更新', next);
         return next;
       });
     },
@@ -754,6 +755,12 @@ function useChatLogicHook({
 
     // console.log('🟢 onTypeFinished真正执行');
     if (contentListRef.current.length > 0) {
+      // Capture the interaction block value before async operations
+      const interactionBlockToAdd = lastInteractionBlockRef.current;
+
+      // Clear the ref immediately to prevent reuse
+      lastInteractionBlockRef.current = null;
+
       setTrackedContentList(prev => {
         const updatedList = [...prev];
 
@@ -761,7 +768,7 @@ function useChatLogicHook({
         // Set isHistory=true to prevent triggering typewriter effect for AskButton
         if (mobileStyle) {
           for (let i = updatedList.length - 1; i >= 0; i--) {
-            if (updatedList[i].type === ChatContentItemType.CONTENT) {
+            if (updatedList[i].type === ChatContentItemType.CONTENT && !updatedList[i].content?.includes(`<ask-button>`)) {
               updatedList[i] = {
                 ...updatedList[i],
                 content: (updatedList[i].content || '') + `<ask-button><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></ask-button>`,
@@ -772,7 +779,7 @@ function useChatLogicHook({
           }
         }
 
-        // Add interaction blocks
+        // Add interaction blocks - use captured value instead of ref
         const lastItem = updatedList[updatedList.length - 1];
         const gid = lastItem.generated_block_bid;
         updatedList.push(
@@ -783,17 +790,16 @@ function useChatLogicHook({
             like_status: LIKE_STATUS.NONE,
             type: ChatContentItemType.LIKE_STATUS,
           },
-          lastInteractionBlockRef.current!
+          interactionBlockToAdd
         );
 
         return updatedList;
       });
 
-      lastInteractionBlockRef.current = null;
       setIsTypeFinished(true);
       // console.log('🟢 onTypeFinished processed - interaction block added');
     }
-  }, [setTrackedContentList, isTypeFinished, mobileStyle]);
+  }, [isTypeFinished, mobileStyle, setTrackedContentList, t]);
 
   /**
    * toggleAskExpanded toggles the expanded state of the ask panel for a specific block
