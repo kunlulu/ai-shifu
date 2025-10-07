@@ -1,8 +1,7 @@
 import './ForkChatUI/styles/index.scss';
 import 'markdown-flow-ui/dist/markdown-flow-ui.css';
 import styles from './ChatComponents.module.scss';
-import { useContext, useRef, memo, useCallback, useState, useEffect } from 'react';
-import { ContentRender } from 'markdown-flow-ui';
+import { useContext, useRef, memo, useCallback, useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { cn } from '@/lib/utils';
@@ -21,6 +20,7 @@ import InteractionBlock from './InteractionBlock';
 import useChatLogicHook, { ChatContentItem, ChatContentItemType } from './useChatLogicHook';
 import AskBlock from './AskBlock';
 import InteractionBlockM from './InteractionBlockM';
+import ContentBlock from './ContentBlock';
 
 export const NewChatComponents = ({
   className,
@@ -101,7 +101,7 @@ export const NewChatComponents = ({
     });
 
 
-  
+
   const handleLongPress = useCallback((event: any, currentBlock: ChatContentItem) => {
     if(currentBlock.type !== ChatContentItemType.CONTENT) {
       return;
@@ -109,17 +109,54 @@ export const NewChatComponents = ({
     const target = event.target as HTMLElement;
     const rect = target.getBoundingClientRect();
     const interactionItem = items.find(item => item.type === ChatContentItemType.LIKE_STATUS && item.parent_block_bid === currentBlock.generated_block_bid);
-    setLongPressedBlockBid(currentBlock.generated_block_bid);
-    setMobileInteraction({
-      open: true,
-      position: {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-      },
-      generatedBlockBid: interactionItem?.parent_block_bid || '',
-      likeStatus: interactionItem?.like_status,
+
+    // Use requestAnimationFrame to avoid blocking rendering
+    requestAnimationFrame(() => {
+      setLongPressedBlockBid(currentBlock.generated_block_bid);
+      setMobileInteraction({
+        open: true,
+        position: {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+        },
+        generatedBlockBid: interactionItem?.parent_block_bid || '',
+        likeStatus: interactionItem?.like_status,
+      });
     });
-  }, [items]);  
+  }, [items]);
+
+  // Create stable touch handlers for each item
+  const touchHandlers = useMemo(() => {
+    if (!mobileStyle) return {};
+
+    const handlers: Record<string, any> = {};
+    items.forEach(item => {
+      if (item.type === ChatContentItemType.CONTENT) {
+        handlers[item.generated_block_bid || ''] = (e: any) => {
+          const timer = setTimeout(() => {
+            handleLongPress(e, item);
+          }, 600);
+          const handleEnd = () => {
+            clearTimeout(timer);
+            document.removeEventListener('touchend', handleEnd);
+            document.removeEventListener('touchmove', handleEnd);
+          };
+          document.addEventListener('touchend', handleEnd);
+          document.addEventListener('touchmove', handleEnd);
+        };
+      }
+    });
+    return handlers;
+  }, [mobileStyle, items, handleLongPress]);
+
+  // Memoize callbacks to prevent unnecessary re-renders
+  const handleClickAskButton = useCallback((blockBid: string) => {
+    toggleAskExpanded(blockBid);
+  }, [toggleAskExpanded]);
+
+  // Memoize onSend and onTypeFinished to prevent new function references
+  const memoizedOnSend = useCallback(onSend, [onSend]);
+  const memoizedOnTypeFinished = useCallback(onTypeFinished, [onTypeFinished]);
 
   return (
     <div
@@ -133,21 +170,26 @@ export const NewChatComponents = ({
       {isLoading ? (
         <></>
       ) : (
-        items.map((item) =>
-          item.type === ChatContentItemType.ASK ? (
-            <AskBlock
-              isExpanded={item.isAskExpanded}
-              shifu_bid={shifuBid}
-              outline_bid={lessonId}
-              preview_mode={preview_mode}
-              generated_block_bid={item.parent_block_bid || ''}
-              onToggleAskExpanded={toggleAskExpanded}
-              key={`${item.parent_block_bid}-ask`}
-              askList={(item.ask_list || []) as any[]}
-            />
-          ) : 
-          item.type === ChatContentItemType.LIKE_STATUS ? (
-            mobileStyle ?  null:
+        items.map((item) => {
+          const isLongPressed = longPressedBlockBid === item.generated_block_bid;
+
+          if (item.type === ChatContentItemType.ASK) {
+            return (
+              <AskBlock
+                isExpanded={item.isAskExpanded}
+                shifu_bid={shifuBid}
+                outline_bid={lessonId}
+                preview_mode={preview_mode}
+                generated_block_bid={item.parent_block_bid || ''}
+                onToggleAskExpanded={toggleAskExpanded}
+                key={`${item.parent_block_bid}-ask`}
+                askList={(item.ask_list || []) as any[]}
+              />
+            );
+          }
+
+          if (item.type === ChatContentItemType.LIKE_STATUS) {
+            return mobileStyle ? null : (
               <InteractionBlock
                 key={`${item.parent_block_bid}-interaction`}
                 shifu_bid={shifuBid}
@@ -157,45 +199,29 @@ export const NewChatComponents = ({
                 onRefresh={onRefresh}
                 onToggleAskExpanded={toggleAskExpanded}
               />
-          ) : (
+            );
+          }
+
+          return (
             <div
               key={`${item.generated_block_bid}-content`}
-              className={cn(
-                'content-render-theme',
-                mobileStyle ? 'mobile' : '',
-              )}
-              style={{
-                backgroundColor: longPressedBlockBid === item.generated_block_bid ? 'rgba(148, 163, 184, 0.12)' : undefined,
-                transition: 'background-color 0.2s',
-              }}
-              onTouchStart={mobileStyle ? (e) => {
-                const timer = setTimeout(() => {
-                  handleLongPress(e, item);
-                }, 600);
-                const handleEnd = () => {
-                  clearTimeout(timer);
-                  document.removeEventListener('touchend', handleEnd);
-                  document.removeEventListener('touchmove', handleEnd);
-                };
-                document.addEventListener('touchend', handleEnd);
-                document.addEventListener('touchmove', handleEnd);
-              } : undefined}
+              style={{ position: 'relative' }}
             >
-              <ContentRender
-                typingSpeed={60}
-                enableTypewriter={!item.isHistory}
-                content={item.content || ''}
-                onClickAskButton={() => toggleAskExpanded(item.generated_block_bid || '')}
-                customRenderBar={item.customRenderBar || (() => null)}
-                defaultButtonText={item.defaultButtonText}
-                defaultInputText={item.defaultInputText}
-                readonly={item.readonly}
-                onSend={onSend}
-                onTypeFinished={onTypeFinished}
+              {isLongPressed && mobileStyle && (
+                <div className="long-press-overlay" />
+              )}
+              <ContentBlock
+                item={item}
+                mobileStyle={mobileStyle}
+                blockBid={item.generated_block_bid}
+                onClickAskButton={handleClickAskButton}
+                onSend={memoizedOnSend}
+                onTypeFinished={memoizedOnTypeFinished}
+                onTouchStart={touchHandlers[item.generated_block_bid || '']}
               />
             </div>
-          ),
-        )
+          );
+        })
       )}
       <div
         ref={chatBoxBottomRef}

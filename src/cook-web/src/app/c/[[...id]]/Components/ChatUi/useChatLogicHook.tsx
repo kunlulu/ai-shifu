@@ -758,13 +758,16 @@ function useChatLogicHook({
     });
   }, [setTrackedContentList]);
 
+  // Create a stable null render bar function
+  const nullRenderBar = useCallback(() => null, []);
+
   const items = useMemo(
     () =>
       contentList.map(item => ({
         ...item,
-        customRenderBar: item.customRenderBar || (() => null),
+        customRenderBar: item.customRenderBar || nullRenderBar,
       })),
-    [contentList],
+    [contentList, nullRenderBar],
   );
 
   return {
