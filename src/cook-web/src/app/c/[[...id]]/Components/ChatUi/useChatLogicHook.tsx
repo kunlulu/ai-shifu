@@ -195,7 +195,7 @@ function useChatLogicHook({
             ? (updater as (prev: ChatContentItem[]) => ChatContentItem[])(prev)
             : updater;
         contentListRef.current = next;
-        console.log('通知contentListRef.current更新', next);
+        // console.log('通知contentListRef.current更新', next);
         return next;
       });
     },
@@ -265,7 +265,7 @@ function useChatLogicHook({
         async response => {
           try {
             const nid = response.generated_block_bid;
-            if(currentBlockIdRef.current === 'loading') {
+            if(currentBlockIdRef.current === 'loading' && response.type !== SSE_OUTPUT_TYPE.VARIABLE_UPDATE) {
               // close loading
               setTrackedContentList((pre) => {
                 const newList = pre.filter(item => item.generated_block_bid !== 'loading');
