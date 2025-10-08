@@ -109,7 +109,6 @@ export const NewChatComponents = ({
     const target = event.target as HTMLElement;
     const rect = target.getBoundingClientRect();
     const interactionItem = items.find(item => item.type === ChatContentItemType.LIKE_STATUS && item.parent_block_bid === currentBlock.generated_block_bid);
-    console.log('长按选中的块',currentBlock, interactionItem);
     // Use requestAnimationFrame to avoid blocking rendering
     requestAnimationFrame(() => {
       setLongPressedBlockBid(currentBlock.generated_block_bid);

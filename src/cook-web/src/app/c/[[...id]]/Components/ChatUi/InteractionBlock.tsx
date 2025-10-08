@@ -7,6 +7,14 @@ import { RefreshCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import AskIcon from '@/c-assets/newchat/light/icon_ask.svg';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/Dialog';
 type Size = 'sm' | 'md' | 'lg';
 
 export interface InteractionBlockProps {
@@ -41,6 +49,7 @@ export default function InteractionBlock({
   const [status, setStatus] = useState<LikeStatus>(
     (like_status as LikeStatus) ?? LIKE_STATUS.NONE,
   );
+  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
 
   const isLike = status === LIKE_STATUS.LIKE;
   const isDislike = status === LIKE_STATUS.DISLIKE;
@@ -114,6 +123,16 @@ export default function InteractionBlock({
     onToggleAskExpanded?.(generated_block_bid);
   };
 
+  const handleRefreshClick = () => {
+    if (disabled || readonly) return;
+    setShowRegenerateDialog(true);
+  };
+
+  const handleConfirmRegenerate = () => {
+    setShowRegenerateDialog(false);
+    onRefresh?.(generated_block_bid);
+  };
+
 
   return (
     <div
@@ -149,7 +168,7 @@ export default function InteractionBlock({
           aria-pressed={false}
           style={refreshBtnStyle}
           disabled={disabled || readonly}
-          onClick={() => onRefresh?.(generated_block_bid)}
+          onClick={handleRefreshClick}
         >
           <RefreshCcw
             size={14}
@@ -194,6 +213,33 @@ export default function InteractionBlock({
           />
         </button>
       </div>
+
+      <Dialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('chat.regenerateConfirmTitle')}</DialogTitle>
+            <DialogDescription>
+              {t('chat.regenerateConfirmDescription')}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setShowRegenerateDialog(false)}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            >
+              {t('common.cancel')}
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmRegenerate}
+              className="px-4 py-2 text-sm font-medium text-white bg-black rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
+            >
+              {t('common.ok')}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
