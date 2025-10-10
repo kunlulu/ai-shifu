@@ -76,6 +76,7 @@ export interface ShifuState {
   profileItemDefinations: ProfileItem[];
   currentNode: Outline | null;
   models: string[];
+  mdflow: string;
 }
 
 export interface ApiResponse<T> {
@@ -156,6 +157,7 @@ export interface ShifuActions {
   clearBlockErrors: () => void;
   reorderOutlineTree: (outlines: ReorderOutlineItemDto[]) => Promise<void>;
   updateBlockProperties: (bid: string, properties: any) => Promise<void>;
+  loadMdflow: (outlineId: string, shifuId: string) => Promise<void>;
 }
 
 export interface ShifuContextType extends ShifuState {
