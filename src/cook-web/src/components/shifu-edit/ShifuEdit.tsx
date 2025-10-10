@@ -428,7 +428,6 @@ const ScriptEditor = ({ id }: { id: string }) => {
             ) : (
               <>
                 <div className='flex align-center'>
-                  
                     <h2 className='text-base font-semibold text-foreground'>
                       {t('shifu.creationArea.title')}
                     </h2>
