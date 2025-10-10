@@ -114,11 +114,19 @@
   "chapterSetting": {
     "chapterType": "Chapter Type",
     "formalChapter": "Formal Chapter",
-    "hideChapter": "Hidden Chapter",
-    "isHidden": "Is Hidden",
-    "systemPrompt": "System Prompt",
-    "title": "Chapter Settings",
-    "trialChapter": "Trial Chapter"
+    "freeChapter": "Free",
+    "hideChapter": "Hidden",
+    "isHidden": "Hidden?",
+    "isPaid": "Paid?",
+    "loginNotRequired": "No Login",
+    "loginRequired": "Login",
+    "promptHint": "Within 1000 characters",
+    "requireLogin": "Login Required?",
+    "systemPrompt": "Prompt",
+    "title": "Section Settings",
+    "trialChapter": "Trial Chapter",
+    "paidChapter": "Paid",
+    "visibleChapter": "Visible"
   },
   "chat": {
     "ask": "Ask",
