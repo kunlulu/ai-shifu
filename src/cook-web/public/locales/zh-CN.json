@@ -124,6 +124,7 @@
     "requireLogin": "是否登录",
     "systemPrompt": "提示词",
     "title": "节设置",
+    "chapterTitle": "章设置",
     "trialChapter": "试用章节",
     "paidChapter": "付费",
     "visibleChapter": "可见"

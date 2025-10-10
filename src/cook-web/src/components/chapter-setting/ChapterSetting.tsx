@@ -30,7 +30,7 @@ const ChapterSettingsDialog = ({
   const { currentShifu } = useShifu();
   const { t } = useTranslation();
   const [paymentSetting, setPaymentSetting] = useState<PaymentSetting>('paid');
-  const [loginSetting, setLoginSetting] = useState<LoginSetting>('guest');
+  const [loginSetting, setLoginSetting] = useState<LoginSetting>('login');
   const [systemPrompt, setSystemPrompt] = useState('');
   const [hideChapter, setHideChapter] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -49,26 +49,13 @@ const ChapterSettingsDialog = ({
         return;
       }
 
-      const resolvedPayment: PaymentSetting =
-        typeof result.is_paid === 'boolean'
-          ? result.is_paid
-            ? 'paid'
-            : 'free'
-          : result.type === 'trial'
-            ? 'free'
-            : 'paid';
-
-      const requireLoginValue =
-        result.require_login ??
-        result.need_login ??
-        result.login_required ??
-        result.is_login_required;
-      const resolvedLogin: LoginSetting = requireLoginValue ? 'login' : 'guest';
-
+      const resolvedPayment: PaymentSetting = result.is_paid ?? 'paid';
+      const resolvedLogin: LoginSetting =  result.is_login ?? 'login';
       setPaymentSetting(resolvedPayment);
       setLoginSetting(resolvedLogin);
       setSystemPrompt(result.system_prompt ?? '');
-      setHideChapter(Boolean(result.is_hidden));
+      const normalizedHidden = result.is_hidden ?? false
+      setHideChapter(normalizedHidden);
     } finally {
       setLoading(false);
     }
@@ -95,7 +82,7 @@ const ChapterSettingsDialog = ({
   useEffect(() => {
     if (!open) {
       setPaymentSetting('paid');
-      setLoginSetting('guest');
+      setLoginSetting('login');
       setSystemPrompt('');
       setHideChapter(false);
     } else {

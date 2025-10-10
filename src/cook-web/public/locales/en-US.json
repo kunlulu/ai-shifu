@@ -124,6 +124,7 @@
     "requireLogin": "Login Required?",
     "systemPrompt": "Prompt",
     "title": "Section Settings",
+    "chapterTitle": "Chapter Settings",
     "trialChapter": "Trial Chapter",
     "paidChapter": "Paid",
     "visibleChapter": "Visible"
