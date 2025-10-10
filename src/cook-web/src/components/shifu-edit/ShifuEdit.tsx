@@ -375,6 +375,12 @@ const ScriptEditor = ({ id }: { id: string }) => {
     }
   }, [id]);
 
+
+  const onChangeMdflow = (value: string) => {
+    actions.setCurrentMdflow(value);
+    actions.autoSaveBlocks();
+  };
+
   return (
     <div className='flex flex-col h-screen bg-gray-50'>
       <Header />
@@ -421,7 +427,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
               </div>
             ) : (
               <>
-                <MarkdownFlowEditor value={mdflow} />
+                <MarkdownFlowEditor value={mdflow} onChange={onChangeMdflow}/>
               </>
               // <>
               //   <DndProvider backend={HTML5Backend}>

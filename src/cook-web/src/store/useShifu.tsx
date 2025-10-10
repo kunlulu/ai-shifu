@@ -86,6 +86,7 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
   >([]);
   const [models, setModels] = useState<string[]>([]);
   const [mdflow, setMdflow] = useState<string>('');
+  const currentMdflow = useRef<string>('');
 
   // Ensure UI types and content types are fetched only in the client environment
   // const UITypes = useUITypes()
@@ -589,31 +590,21 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
 
   const autoSaveBlocks = useCallback(
     debounce(
-      async (
-        outline: string,
-        blocks: Block[],
-        blockTypes: Record<string, any>,
-        blockContentProperties: Record<string, any>,
-        shifu_id: string,
-      ) => {
-        return await saveCurrentBlocks(
-          outline,
-          blocks,
-          blockTypes,
-          blockContentProperties,
-          shifu_id,
-        );
+      async () => {
+        console.log('自动保存...');
+        return await saveMdflow(currentMdflow.current);
+        // return await saveCurrentBlocks(
+        //   outline,
+        //   blocks,
+        //   blockTypes,
+        //   blockContentProperties,
+        //   shifu_id,
+        // );
       },
       3000,
     ),
-    [saveCurrentBlocks],
-  ) as (
-    outline: string,
-    blocks: Block[],
-    blockTypes: Record<string, any>,
-    blockProperties: Record<string, any>,
-    shifu_id: string,
-  ) => Promise<ApiResponse<SaveBlockListResult> | null>;
+    [],
+  ) as () => Promise<ApiResponse<SaveBlockListResult> | null>;
 
   const addSiblingOutline = async (item: Outline, name = '') => {
     const id = 'new_chapter';
@@ -996,6 +987,20 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
     });
   };
 
+  const saveMdflow = async (value: string) => {
+    await api.saveMdflow({
+      shifu_bid: currentShifu?.bid || '',
+      outline_bid: currentNode?.bid || '',
+      data: value,
+    });
+  };
+  
+
+  const setCurrentMdflow = (value: string) => {
+    currentMdflow.current = value;
+    console.log('currentMdflow', currentMdflow.current);
+  };
+
   const value: ShifuContextType = {
     currentShifu,
     chapters,
@@ -1053,6 +1058,8 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
       clearBlockErrors,
       reorderOutlineTree,
       loadMdflow,
+      saveMdflow,
+      setCurrentMdflow,
     },
   };
 
