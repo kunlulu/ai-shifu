@@ -40,7 +40,7 @@ const api = {
   reorderOutlineTree: 'PATCH /shifu/shifus/{shifu_bid}/outlines/reorder',
 
   getMdflow: 'GET /shifu/shifus/{shifu_bid}/outlines/{outline_bid}/mdflow',
-  saveMdflow: 'POST /shifu/shifus/{shifu_bid}/outlines/{outline_bid}/mdflow/save',
+  saveMdflow: 'POST /shifu/shifus/{shifu_bid}/outlines/{outline_bid}/mdflow',
   parseMdflow: 'POST /shifu/shifus/{shifu_bid}/outlines/{outline_bid}/mdflow/parse',
   runMdflow: 'POST /shifu/shifus/{shifu_bid}/outlines/{outline_bid}/mdflow/run',
   // outline api end
