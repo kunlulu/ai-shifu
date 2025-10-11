@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';
 import { Label } from '@/components/ui/Label';
-import { Editor } from '@/components/cm-editor';
+import { Textarea } from '@/components/ui/Textarea';
 import api from '@/api';
 import Loading from '../loading';
 import { useTranslation } from 'react-i18next';
@@ -245,14 +245,16 @@ const ChapterSettingsDialog = ({
                 <div className='text-xs text-muted-foreground'>
                   {t('chapterSetting.promptHint')}
                 </div>
-                <div className='rounded-lg border border-input bg-muted/30 px-3 py-2'>
-                  <div className='max-h-[480px] min-h-[220px] overflow-y-auto rounded-md bg-background'>
-                    <Editor
-                      content={systemPrompt}
-                      onChange={value => setSystemPrompt(value)}
-                      isEdit
-                    />
-                  </div>
+                <Textarea
+                  value={systemPrompt}
+                  onChange={event => setSystemPrompt(event.target.value)}
+                  maxLength={1000}
+                  rows={6}
+                  placeholder={t('chapterSetting.promptHint')}
+                  className='min-h-[220px]'
+                />
+                <div className='text-xs text-muted-foreground text-right'>
+                  {systemPrompt.length}/1000
                 </div>
               </div>
             </div>

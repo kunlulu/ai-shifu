@@ -603,7 +603,7 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
       },
       3000,
     ),
-    [],
+    [currentShifu?.bid, currentNode?.bid],
   ) as () => Promise<ApiResponse<SaveBlockListResult> | null>;
 
   const addSiblingOutline = async (item: Outline, name = '') => {
@@ -988,6 +988,7 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const saveMdflow = async (value: string) => {
+    console.log('saveMdflow', currentShifu?.bid, currentNode?.bid, value);
     await api.saveMdflow({
       shifu_bid: currentShifu?.bid || '',
       outline_bid: currentNode?.bid || '',
@@ -998,7 +999,6 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
 
   const setCurrentMdflow = (value: string) => {
     currentMdflow.current = value;
-    console.log('currentMdflow', currentMdflow.current);
   };
 
   const value: ShifuContextType = {
