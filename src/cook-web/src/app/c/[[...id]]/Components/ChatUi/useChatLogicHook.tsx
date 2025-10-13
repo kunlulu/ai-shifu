@@ -442,88 +442,91 @@ function useChatLogicHook({
   /**
    * Transforms persisted study records into chat-friendly content items.
    */
-  const mapRecordsToContent = useCallback((records: StudyRecordItem[]) => {
-    const result: ChatContentItem[] = [];
-    let buffer: StudyRecordItem[] = []; // 缓存连续 ask
-    let lastContentId: string | null = null;
+  const mapRecordsToContent = useCallback(
+    (records: StudyRecordItem[]) => {
+      const result: ChatContentItem[] = [];
+      let buffer: StudyRecordItem[] = []; // 缓存连续 ask
+      let lastContentId: string | null = null;
 
-    const flushBuffer = () => {
-      if (buffer.length > 0) {
-        const parentId = lastContentId || '';
-        result.push({
-          generated_block_bid: '',
-          type: BLOCK_TYPE.ASK,
-          isAskExpanded: false,
-          parent_block_bid: parentId,
-          ask_list: buffer.map(item => ({
-            ...item,
-            type: item.block_type,
-          })), // 保留原始 ask 列表
-          readonly: false,
-          isHistory: true,
-          customRenderBar: () => null,
-          defaultButtonText: '',
-          defaultInputText: '',
-        });
-        buffer = [];
-      }
-    };
-
-    records.forEach((item: StudyRecordItem) => {
-      if (item.block_type === BLOCK_TYPE.CONTENT) {
-        // flush 之前缓存的 ask
-        flushBuffer();
-        result.push({
-          generated_block_bid: item.generated_block_bid,
-          content:
-            item.content +
-            (!mobileStyle
-              ? ``
-              : `<custom-button-after-content><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></custom-button-after-content>`),
-          customRenderBar: () => null,
-          defaultButtonText: item.user_input || '',
-          defaultInputText: item.user_input || '',
-          readonly: false,
-          isHistory: true,
-          type: item.block_type,
-        });
-        lastContentId = item.generated_block_bid;
-
-        if (item.like_status) {
+      const flushBuffer = () => {
+        if (buffer.length > 0) {
+          const parentId = lastContentId || '';
           result.push({
             generated_block_bid: '',
-            parent_block_bid: item.generated_block_bid,
-            like_status: item.like_status,
-            type: ChatContentItemType.LIKE_STATUS,
+            type: BLOCK_TYPE.ASK,
+            isAskExpanded: false,
+            parent_block_bid: parentId,
+            ask_list: buffer.map(item => ({
+              ...item,
+              type: item.block_type,
+            })), // 保留原始 ask 列表
+            readonly: false,
+            isHistory: true,
+            customRenderBar: () => null,
+            defaultButtonText: '',
+            defaultInputText: '',
+          });
+          buffer = [];
+        }
+      };
+
+      records.forEach((item: StudyRecordItem) => {
+        if (item.block_type === BLOCK_TYPE.CONTENT) {
+          // flush 之前缓存的 ask
+          flushBuffer();
+          result.push({
+            generated_block_bid: item.generated_block_bid,
+            content:
+              item.content +
+              (!mobileStyle
+                ? ``
+                : `<custom-button-after-content><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></custom-button-after-content>`),
+            customRenderBar: () => null,
+            defaultButtonText: item.user_input || '',
+            defaultInputText: item.user_input || '',
+            readonly: false,
+            isHistory: true,
+            type: item.block_type,
+          });
+          lastContentId = item.generated_block_bid;
+
+          if (item.like_status) {
+            result.push({
+              generated_block_bid: '',
+              parent_block_bid: item.generated_block_bid,
+              like_status: item.like_status,
+              type: ChatContentItemType.LIKE_STATUS,
+            });
+          }
+        } else if (
+          item.block_type === BLOCK_TYPE.ASK ||
+          item.block_type === BLOCK_TYPE.ANSWER
+        ) {
+          // 累积 ask
+          buffer.push(item);
+        } else {
+          // flush 并处理其他类型
+          flushBuffer();
+          result.push({
+            generated_block_bid: item.generated_block_bid,
+            content: item.content,
+            customRenderBar: () => null,
+            defaultButtonText: item.user_input || '',
+            defaultInputText: item.user_input || '',
+            readonly: false,
+            isHistory: true,
+            type: item.block_type,
           });
         }
-      } else if (
-        item.block_type === BLOCK_TYPE.ASK ||
-        item.block_type === BLOCK_TYPE.ANSWER
-      ) {
-        // 累积 ask
-        buffer.push(item);
-      } else {
-        // flush 并处理其他类型
-        flushBuffer();
-        result.push({
-          generated_block_bid: item.generated_block_bid,
-          content: item.content,
-          customRenderBar: () => null,
-          defaultButtonText: item.user_input || '',
-          defaultInputText: item.user_input || '',
-          readonly: false,
-          isHistory: true,
-          type: item.block_type,
-        });
-      }
-    });
+      });
 
-    // 最后 flush
-    flushBuffer();
-    console.log('result:', result);
-    return result;
-  }, [mobileStyle]);
+      // 最后 flush
+      flushBuffer();
+      console.log('result:', result);
+      return result;
+    },
+    [mobileStyle],
+  );
 
   /**
    * Loads the persisted lesson records and primes the chat stream.
