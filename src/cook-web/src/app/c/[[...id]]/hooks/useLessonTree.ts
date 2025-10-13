@@ -311,9 +311,15 @@ export const useLessonTree = () => {
         return null;
       }
 
-      for (let catalogIndex = 0; catalogIndex < tree.catalogs.length; catalogIndex += 1) {
+      for (
+        let catalogIndex = 0;
+        catalogIndex < tree.catalogs.length;
+        catalogIndex += 1
+      ) {
         const catalog = tree.catalogs[catalogIndex];
-        const lessonIndex = catalog.lessons.findIndex(ls => ls.id === targetLessonId);
+        const lessonIndex = catalog.lessons.findIndex(
+          ls => ls.id === targetLessonId,
+        );
         if (lessonIndex === -1) {
           continue;
         }

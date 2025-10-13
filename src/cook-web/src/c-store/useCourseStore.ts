@@ -26,16 +26,14 @@ export const useCourseStore = create<
     // Used for resetting a chapter
     resetedChapterId: null,
     resetedLessonId: '',
-    updateResetedLessonId: resetedLessonId =>
-      set(() => ({ resetedLessonId })),
+    updateResetedLessonId: resetedLessonId => set(() => ({ resetedLessonId })),
     updateResetedChapterId: resetedChapterId =>
       set(() => ({ resetedChapterId })),
     resetChapter: async resetedChapterId => {
       await apiResetChapter({ chapterId: resetedChapterId });
       // set({ chapterId: resetedChapterId });
       set({ resetedLessonId: resetedChapterId });
-      set({lessonId: resetedChapterId});
-
+      set({ lessonId: resetedChapterId });
     },
   })),
 );

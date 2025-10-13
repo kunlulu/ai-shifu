@@ -13,7 +13,7 @@ export const BLOCK_TYPE = {
   INTERACTION: 'interaction',
   ASK: 'ask',
   ANSWER: 'answer',
-  ERROR: 'error_message'
+  ERROR: 'error_message',
 } as const;
 export type BlockType = (typeof BLOCK_TYPE)[keyof typeof BLOCK_TYPE];
 

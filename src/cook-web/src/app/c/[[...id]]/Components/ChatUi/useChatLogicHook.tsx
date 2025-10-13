@@ -45,7 +45,6 @@ export enum ChatContentItemType {
   LIKE_STATUS = 'likeStatus',
 }
 
-
 export interface ChatContentItem {
   content?: string;
   customRenderBar?: (() => JSX.Element | null) | ComponentType<any>;
@@ -127,13 +126,14 @@ function useChatLogicHook({
       updateUserInfo: state.updateUserInfo,
     })),
   );
-  const { updateResetedChapterId, updateResetedLessonId, resetedLessonId } = useCourseStore(
-    useShallow(state => ({
-      resetedLessonId: state.resetedLessonId,
-      updateResetedChapterId: state.updateResetedChapterId,
-      updateResetedLessonId: state.updateResetedLessonId,
-    })),
-  );
+  const { updateResetedChapterId, updateResetedLessonId, resetedLessonId } =
+    useCourseStore(
+      useShallow(state => ({
+        resetedLessonId: state.resetedLessonId,
+        updateResetedChapterId: state.updateResetedChapterId,
+        updateResetedLessonId: state.updateResetedLessonId,
+      })),
+    );
 
   const [contentList, setContentList] = useState<ChatContentItem[]>([]);
   const [isTypeFinished, setIsTypeFinished] = useState(false);
@@ -185,7 +185,13 @@ function useChatLogicHook({
 
       return () => clearTimeout(timer);
     }
-  }, [isLoading, contentList.length, loadedChapterId, isMounted, chatBoxBottomRefLatest]);
+  }, [
+    isLoading,
+    contentList.length,
+    loadedChapterId,
+    isMounted,
+    chatBoxBottomRefLatest,
+  ]);
 
   /**
    * Keeps the React state and mutable ref of the content list in sync.
@@ -238,7 +244,6 @@ function useChatLogicHook({
     [lessonUpdate, updateSelectedLesson],
   );
 
-
   /**
    * Starts the SSE request and streams content into the chat list.
    */
@@ -271,15 +276,20 @@ function useChatLogicHook({
         async response => {
           try {
             const nid = response.generated_block_bid;
-            if(currentBlockIdRef.current === 'loading' && response.type !== SSE_OUTPUT_TYPE.VARIABLE_UPDATE) {
+            if (
+              currentBlockIdRef.current === 'loading' &&
+              response.type !== SSE_OUTPUT_TYPE.VARIABLE_UPDATE
+            ) {
               // close loading
-              setTrackedContentList((pre) => {
-                const newList = pre.filter(item => item.generated_block_bid !== 'loading');
+              setTrackedContentList(pre => {
+                const newList = pre.filter(
+                  item => item.generated_block_bid !== 'loading',
+                );
                 return newList;
               });
               currentBlockIdRef.current = nid;
             }
-            
+
             const blockId = currentBlockIdRef.current;
 
             if (nid && [SSE_OUTPUT_TYPE.BREAK].includes(response.type)) {
@@ -311,19 +321,19 @@ function useChatLogicHook({
               currentContentRef.current = nextText;
               if (blockId) {
                 setTrackedContentList(prevState => {
-                  let hasItem = false
+                  let hasItem = false;
                   const updatedList = prevState.map(item => {
-                    if(item.generated_block_bid === blockId) {
-                      hasItem = true
+                    if (item.generated_block_bid === blockId) {
+                      hasItem = true;
                       return {
                         ...item,
                         content: nextText,
                         customRenderBar: () => null,
-                      }
+                      };
                     }
                     return item;
                   });
-                  if(!hasItem) {
+                  if (!hasItem) {
                     updatedList.push({
                       generated_block_bid: blockId,
                       content: nextText,
@@ -350,7 +360,7 @@ function useChatLogicHook({
                 }
               } else {
                 // current lesson loading
-                if(lessonId === response.content.outline_bid) {
+                if (lessonId === response.content.outline_bid) {
                   currentBlockIdRef.current = 'loading';
                   currentContentRef.current = '';
                   // setLastInteractionBlock(null);
@@ -363,7 +373,7 @@ function useChatLogicHook({
                       type: ChatContentItemType.CONTENT,
                     };
                     return [...prev, placeholderItem];
-                  });            
+                  });
                 }
                 lessonUpdateResp(response, isEnd);
               }
@@ -377,7 +387,12 @@ function useChatLogicHook({
                 setTrackedContentList(prevState => {
                   const updatedList = prevState.map(item =>
                     item.generated_block_bid === blockId
-                      ? { ...item, readonly: true, customRenderBar: () => null, isHistory: false }
+                      ? {
+                          ...item,
+                          readonly: true,
+                          customRenderBar: () => null,
+                          isHistory: false,
+                        }
                       : item,
                   );
                   return updatedList;
@@ -431,12 +446,12 @@ function useChatLogicHook({
     const result: ChatContentItem[] = [];
     let buffer: StudyRecordItem[] = []; // 缓存连续 ask
     let lastContentId: string | null = null;
-  
+
     const flushBuffer = () => {
       if (buffer.length > 0) {
         const parentId = lastContentId || '';
         result.push({
-          generated_block_bid: '', 
+          generated_block_bid: '',
           type: BLOCK_TYPE.ASK,
           isAskExpanded: false,
           parent_block_bid: parentId,
@@ -453,14 +468,18 @@ function useChatLogicHook({
         buffer = [];
       }
     };
-  
+
     records.forEach((item: StudyRecordItem) => {
       if (item.block_type === BLOCK_TYPE.CONTENT) {
         // flush 之前缓存的 ask
         flushBuffer();
         result.push({
           generated_block_bid: item.generated_block_bid,
-          content: item.content+ (!mobileStyle ? `` : `<custom-button-after-content><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></custom-button-after-content>`),
+          content:
+            item.content +
+            (!mobileStyle
+              ? ``
+              : `<custom-button-after-content><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></custom-button-after-content>`),
           customRenderBar: () => null,
           defaultButtonText: item.user_input || '',
           defaultInputText: item.user_input || '',
@@ -469,7 +488,7 @@ function useChatLogicHook({
           type: item.block_type,
         });
         lastContentId = item.generated_block_bid;
-  
+
         if (item.like_status) {
           result.push({
             generated_block_bid: '',
@@ -478,7 +497,10 @@ function useChatLogicHook({
             type: ChatContentItemType.LIKE_STATUS,
           });
         }
-      } else if (item.block_type === BLOCK_TYPE.ASK || item.block_type === BLOCK_TYPE.ANSWER) {
+      } else if (
+        item.block_type === BLOCK_TYPE.ASK ||
+        item.block_type === BLOCK_TYPE.ANSWER
+      ) {
         // 累积 ask
         buffer.push(item);
       } else {
@@ -496,26 +518,24 @@ function useChatLogicHook({
         });
       }
     });
-  
+
     // 最后 flush
     flushBuffer();
     console.log('result:', result);
     return result;
   }, []);
-  
 
   /**
    * Loads the persisted lesson records and primes the chat stream.
    */
   const refreshData = useCallback(async () => {
-
     setTrackedContentList(() => []);
 
     setIsTypeFinished(true);
     lastInteractionBlockRef.current = null;
     setIsLoading(true);
     hasScrolledToBottomRef.current = false;
-   
+
     try {
       const recordResp = await getLessonStudyRecord({
         shifu_bid: shifuBid,
@@ -531,10 +551,10 @@ function useChatLogicHook({
           setLoadedChapterId(chapterId);
         }
         if (
-          (recordResp.records[recordResp.records.length - 1].block_type ===
-          BLOCK_TYPE.CONTENT) || 
-          (recordResp.records[recordResp.records.length - 1].block_type ===
-          BLOCK_TYPE.ERROR)
+          recordResp.records[recordResp.records.length - 1].block_type ===
+            BLOCK_TYPE.CONTENT ||
+          recordResp.records[recordResp.records.length - 1].block_type ===
+            BLOCK_TYPE.ERROR
         ) {
           runRef.current?.({
             input: '',
@@ -560,9 +580,8 @@ function useChatLogicHook({
     setTrackedContentList,
     shifuBid,
     lessonId,
-    effectivePreviewMode
+    effectivePreviewMode,
   ]);
-  
 
   useEffect(() => {
     if (!chapterId) {
@@ -596,7 +615,13 @@ function useChatLogicHook({
     return () => {
       unsubscribe();
     };
-  }, [loadedChapterId, refreshData, updateResetedLessonId, resetedLessonId, lessonId]);
+  }, [
+    loadedChapterId,
+    refreshData,
+    updateResetedLessonId,
+    resetedLessonId,
+    lessonId,
+  ]);
 
   useEffect(() => {
     const unsubscribe = useUserStore.subscribe(
@@ -616,15 +641,14 @@ function useChatLogicHook({
   }, [chapterId, refreshData]);
 
   useEffect(() => {
-
     sseRef.current?.close();
 
-    if (!lessonId || (resetedLessonId === lessonId)) {
+    if (!lessonId || resetedLessonId === lessonId) {
       return;
     }
     refreshData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lessonId,resetedLessonId]);
+  }, [lessonId, resetedLessonId]);
 
   useEffect(() => {
     const onGoToNavigationNode = (
@@ -814,10 +838,15 @@ function useChatLogicHook({
         // Set isHistory=true to prevent triggering typewriter effect for AskButton
         if (mobileStyle) {
           for (let i = updatedList.length - 1; i >= 0; i--) {
-            if (updatedList[i].type === ChatContentItemType.CONTENT && !updatedList[i].content?.includes(`<custom-button-after-content>`)) {
+            if (
+              updatedList[i].type === ChatContentItemType.CONTENT &&
+              !updatedList[i].content?.includes(`<custom-button-after-content>`)
+            ) {
               updatedList[i] = {
                 ...updatedList[i],
-                content: (updatedList[i].content || '') + `<custom-button-after-content><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></custom-button-after-content>`,
+                content:
+                  (updatedList[i].content || '') +
+                  `<custom-button-after-content><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></custom-button-after-content>`,
                 isHistory: true, // Prevent AskButton from triggering typewriter
               };
               break;
@@ -836,7 +865,7 @@ function useChatLogicHook({
             like_status: LIKE_STATUS.NONE,
             type: ChatContentItemType.LIKE_STATUS,
           },
-          interactionBlockToAdd
+          interactionBlockToAdd,
         );
 
         return updatedList;
@@ -850,45 +879,54 @@ function useChatLogicHook({
   /**
    * toggleAskExpanded toggles the expanded state of the ask panel for a specific block
    */
-  const toggleAskExpanded = useCallback((parentBlockBid: string) => {
-    setTrackedContentList(prev => {
-      // Check if ASK block already exists
-      const hasAskBlock = prev.some(
-        item => item.parent_block_bid === parentBlockBid && item.type === ChatContentItemType.ASK
-      );
-
-      if (hasAskBlock) {
-        // Toggle existing ASK block's expanded state
-        return prev.map(item =>
-          item.parent_block_bid === parentBlockBid && item.type === ChatContentItemType.ASK
-            ? { ...item, isAskExpanded: !item.isAskExpanded }
-            : item
+  const toggleAskExpanded = useCallback(
+    (parentBlockBid: string) => {
+      setTrackedContentList(prev => {
+        // Check if ASK block already exists
+        const hasAskBlock = prev.some(
+          item =>
+            item.parent_block_bid === parentBlockBid &&
+            item.type === ChatContentItemType.ASK,
         );
-      } else {
-        // Create new ASK block after LIKE_STATUS block
-        return prev.flatMap(item => {
-          if (item.parent_block_bid === parentBlockBid && item.type === ChatContentItemType.LIKE_STATUS) {
-            return [
-              item,
-              {
-                generated_block_bid: '',
-                parent_block_bid: parentBlockBid,
-                type: BLOCK_TYPE.ASK,
-                content: '',
-                isAskExpanded: true,
-                ask_list: [],
-                readonly: false,
-                customRenderBar: () => null,
-                defaultButtonText: '',
-                defaultInputText: '',
-              },
-            ];
-          }
-          return [item];
-        });
-      }
-    });
-  }, [setTrackedContentList]);
+
+        if (hasAskBlock) {
+          // Toggle existing ASK block's expanded state
+          return prev.map(item =>
+            item.parent_block_bid === parentBlockBid &&
+            item.type === ChatContentItemType.ASK
+              ? { ...item, isAskExpanded: !item.isAskExpanded }
+              : item,
+          );
+        } else {
+          // Create new ASK block after LIKE_STATUS block
+          return prev.flatMap(item => {
+            if (
+              item.parent_block_bid === parentBlockBid &&
+              item.type === ChatContentItemType.LIKE_STATUS
+            ) {
+              return [
+                item,
+                {
+                  generated_block_bid: '',
+                  parent_block_bid: parentBlockBid,
+                  type: BLOCK_TYPE.ASK,
+                  content: '',
+                  isAskExpanded: true,
+                  ask_list: [],
+                  readonly: false,
+                  customRenderBar: () => null,
+                  defaultButtonText: '',
+                  defaultInputText: '',
+                },
+              ];
+            }
+            return [item];
+          });
+        }
+      });
+    },
+    [setTrackedContentList],
+  );
 
   // Create a stable null render bar function
   const nullRenderBar = useCallback(() => null, []);

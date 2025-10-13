@@ -29,7 +29,6 @@ export interface InteractionBlockProps {
   onRefresh?: (generated_block_bid: string) => void;
 }
 
-
 /**
  * InteractionBlock
  * Self-contained like/dislike icon buttons with internal state.
@@ -44,8 +43,7 @@ export default function InteractionBlock({
   onRefresh,
   onToggleAskExpanded,
 }: InteractionBlockProps) {
-
-  const {t } = useTranslation();
+  const { t } = useTranslation();
   const [status, setStatus] = useState<LikeStatus>(
     (like_status as LikeStatus) ?? LIKE_STATUS.NONE,
   );
@@ -133,20 +131,20 @@ export default function InteractionBlock({
     onRefresh?.(generated_block_bid);
   };
 
-
   return (
     <div
       className={cn(['interaction-block'], className)}
       style={{ paddingLeft: 20 }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px',  }}>
-        <button onClick={handleChangeAskPanel}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <button
+          onClick={handleChangeAskPanel}
           type='button'
           className={cn(
             'inline-flex items-center justify-center',
             'bg-[#1A68EB] text-white font-medium',
             'hover:bg-[#1557D0] transition-colors',
-            'disabled:opacity-50 disabled:cursor-not-allowed'
+            'disabled:opacity-50 disabled:cursor-not-allowed',
           )}
           style={{
             width: '54px',
@@ -159,7 +157,12 @@ export default function InteractionBlock({
           }}
           disabled={disabled || readonly}
         >
-          <Image src={AskIcon.src} alt="ask" width={14} height={14} />
+          <Image
+            src={AskIcon.src}
+            alt='ask'
+            width={14}
+            height={14}
+          />
           <span>{t('chat.ask')}</span>
         </button>
         <button
@@ -214,26 +217,29 @@ export default function InteractionBlock({
         </button>
       </div>
 
-      <Dialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog
+        open={showRegenerateDialog}
+        onOpenChange={setShowRegenerateDialog}
+      >
+        <DialogContent className='sm:max-w-md'>
           <DialogHeader>
             <DialogTitle>{t('chat.regenerateConfirmTitle')}</DialogTitle>
             <DialogDescription>
               {t('chat.regenerateConfirmDescription')}
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex gap-2 sm:gap-2">
+          <DialogFooter className='flex gap-2 sm:gap-2'>
             <button
-              type="button"
+              type='button'
               onClick={() => setShowRegenerateDialog(false)}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className='px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50'
             >
               {t('common.cancel')}
             </button>
             <button
-              type="button"
+              type='button'
               onClick={handleConfirmRegenerate}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-lighter"
+              className='px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-lighter'
             >
               {t('common.ok')}
             </button>

@@ -195,7 +195,7 @@ export const PayModalM = ({
         onOpenChange={handleCancel}
       >
         <DialogContent className='w-full'>
-          <DialogHeader className="sr-only">
+          <DialogHeader className='sr-only'>
             <DialogTitle>{t('pay.title')}</DialogTitle>
           </DialogHeader>
           <div className={styles.payModalContent}>
@@ -205,7 +205,9 @@ export const PayModalM = ({
               <>
                 {!initLoading ? (
                   <>
-                    <div className={styles.payInfoTitle}>{t('pay.finalPrice')}</div>
+                    <div className={styles.payInfoTitle}>
+                      {t('pay.finalPrice')}
+                    </div>
                     <div className={styles.priceWrapper}>
                       <div className={cn(styles.price)}>
                         <span className={styles.priceSign}>￥</span>

@@ -1,9 +1,21 @@
-import React, { useState, useRef, useCallback, useContext, useEffect } from 'react';
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useContext,
+  useEffect,
+} from 'react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { Send, Maximize2, Minimize2, X } from 'lucide-react';
 import { ContentRender } from 'markdown-flow-ui';
-import { getRunMessage, SSE_INPUT_TYPE, SSE_OUTPUT_TYPE, PREVIEW_MODE, type PreviewMode } from '@/c-api/studyV2';
+import {
+  getRunMessage,
+  SSE_INPUT_TYPE,
+  SSE_OUTPUT_TYPE,
+  PREVIEW_MODE,
+  type PreviewMode,
+} from '@/c-api/studyV2';
 import { fixMarkdownStream } from '@/c-utils/markdownUtils';
 import LoadingBar from './LoadingBar';
 import styles from './AskBlock.module.scss';
@@ -13,21 +25,20 @@ import Image from 'next/image';
 import ShifuIcon from '@/c-assets/newchat/light/icon_shifu.svg';
 import { BLOCK_TYPE } from '@/c-api/studyV2';
 
-
 export interface AskMessage {
   type: typeof BLOCK_TYPE.ASK | typeof BLOCK_TYPE.ANSWER;
   content: string;
-  isStreaming?: boolean; 
+  isStreaming?: boolean;
 }
 
 export interface AskBlockProps {
   askList?: AskMessage[];
   className?: string;
-  isExpanded?: boolean; 
+  isExpanded?: boolean;
   shifu_bid: string;
   outline_bid: string;
   preview_mode?: PreviewMode;
-  generated_block_bid: string; 
+  generated_block_bid: string;
   onToggleAskExpanded?: (generated_block_bid: string) => void;
 }
 
@@ -47,15 +58,13 @@ export default function AskBlock({
 }: AskBlockProps) {
   const { t } = useTranslation();
   const { mobileStyle } = useContext(AppContext);
-  
 
   const [displayList, setDisplayList] = useState<AskMessage[]>(() => {
-    return askList.map((item) => ({
+    return askList.map(item => ({
       content: item.content || '',
       type: item.type,
     }));
   });
-
 
   const inputRef = useRef<HTMLInputElement>(null);
   const sseRef = useRef<any>(null);
@@ -73,7 +82,7 @@ export default function AskBlock({
 
   const handleSendCustomQuestion = useCallback(() => {
     const question = inputRef.current?.value.trim() || '';
-    if(isStreamingRef.current) {
+    if (isStreamingRef.current) {
       showOutputInProgressToast();
       return;
     }
@@ -129,7 +138,7 @@ export default function AskBlock({
         input_type: SSE_INPUT_TYPE.ASK,
         reload_generated_block_bid: generated_block_bid,
       },
-      async (response) => {
+      async response => {
         try {
           setIsTypeFinished(false);
           console.log('SSE response:', response);
@@ -145,7 +154,10 @@ export default function AskBlock({
             setDisplayList(prev => {
               const newList = [...prev];
               const lastIndex = newList.length - 1;
-              if (lastIndex >= 0 && newList[lastIndex].type === BLOCK_TYPE.ANSWER) {
+              if (
+                lastIndex >= 0 &&
+                newList[lastIndex].type === BLOCK_TYPE.ANSWER
+              ) {
                 newList[lastIndex] = {
                   ...newList[lastIndex],
                   content: nextText,
@@ -154,20 +166,23 @@ export default function AskBlock({
               }
               return newList;
             });
-          } else 
+          }
           // if (
           //   response.type === SSE_OUTPUT_TYPE.BREAK ||
           //   response.type === SSE_OUTPUT_TYPE.TEXT_END ||
           //   response.type === SSE_OUTPUT_TYPE.INTERACTION
           // )
-           {
+          else {
             // 流式结束
             console.log('SSE end, close sse:', response);
             isStreamingRef.current = false;
             setDisplayList(prev => {
               const newList = [...prev];
               const lastIndex = newList.length - 1;
-              if (lastIndex >= 0 && newList[lastIndex].type === BLOCK_TYPE.ANSWER) {
+              if (
+                lastIndex >= 0 &&
+                newList[lastIndex].type === BLOCK_TYPE.ANSWER
+              ) {
                 newList[lastIndex] = {
                   ...newList[lastIndex],
                   isStreaming: false,
@@ -181,7 +196,7 @@ export default function AskBlock({
           console.warn('SSE handling error:', error);
           isStreamingRef.current = false;
         }
-      }
+      },
     );
 
     // 添加错误和连接关闭的监听，确保状态被重置
@@ -221,8 +236,14 @@ export default function AskBlock({
     });
 
     sseRef.current = source;
-  }, [shifu_bid, outline_bid, preview_mode, generated_block_bid, isTypeFinished, showOutputInProgressToast]);
-
+  }, [
+    shifu_bid,
+    outline_bid,
+    preview_mode,
+    generated_block_bid,
+    isTypeFinished,
+    showOutputInProgressToast,
+  ]);
 
   // 决定显示哪些消息
   const messagesToShow = isExpanded ? displayList : displayList.slice(0, 1);
@@ -286,12 +307,15 @@ export default function AskBlock({
     setIsFullscreen(prev => !prev);
   }, []);
 
-  const handleClickTitle = useCallback((index: number) => {
-    if(index !== 0 || isExpanded || !mobileStyle) {
-      return;
-    }
-    onToggleAskExpanded?.(generated_block_bid);
-  }, [onToggleAskExpanded, generated_block_bid, isExpanded, mobileStyle]);
+  const handleClickTitle = useCallback(
+    (index: number) => {
+      if (index !== 0 || isExpanded || !mobileStyle) {
+        return;
+      }
+      onToggleAskExpanded?.(generated_block_bid);
+    },
+    [onToggleAskExpanded, generated_block_bid, isExpanded, mobileStyle],
+  );
 
   const renderMessages = ({
     extraClass,
@@ -317,13 +341,21 @@ export default function AskBlock({
           <div
             key={index}
             className={cn(styles.messageWrapper)}
-            onClick={() => handleClickTitle(index)} 
+            onClick={() => handleClickTitle(index)}
             style={{
-              justifyContent: message.type === BLOCK_TYPE.ASK ? 'flex-end' : 'flex-start',
+              justifyContent:
+                message.type === BLOCK_TYPE.ASK ? 'flex-end' : 'flex-start',
             }}
           >
             {message.type === BLOCK_TYPE.ASK ? (
-              <div className={cn(styles.userMessage, isExpanded && styles.isExpanded)}>{message.content}</div>
+              <div
+                className={cn(
+                  styles.userMessage,
+                  isExpanded && styles.isExpanded,
+                )}
+              >
+                {message.content}
+              </div>
             ) : (
               <div className={cn(styles.assistantMessage)}>
                 <ContentRender
@@ -387,7 +419,10 @@ export default function AskBlock({
         {!isExpanded && renderMessages()}
         {isExpanded && (
           <>
-            <div className={styles.mobileOverlay} onClick={handleClose} />
+            <div
+              className={styles.mobileOverlay}
+              onClick={handleClose}
+            />
             <div
               className={cn(
                 styles.mobilePanel,
@@ -412,7 +447,11 @@ export default function AskBlock({
                     onClick={handleToggleFullscreen}
                     aria-label={isFullscreen ? 'Collapse' : 'Expand'}
                   >
-                    {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                    {isFullscreen ? (
+                      <Minimize2 size={18} />
+                    ) : (
+                      <Maximize2 size={18} />
+                    )}
                   </button>
                   <button
                     type='button'
@@ -424,7 +463,10 @@ export default function AskBlock({
                   </button>
                 </div>
               </div>
-              <div className={styles.mobileContent} ref={mobileContentRef}>
+              <div
+                className={styles.mobileContent}
+                ref={mobileContentRef}
+              >
                 {renderMessages({
                   extraClass: styles.mobileMessageList,
                 })}
@@ -439,7 +481,11 @@ export default function AskBlock({
 
   return (
     <div
-      className={cn(styles.askBlock, className, mobileStyle ? styles.mobile : '')}
+      className={cn(
+        styles.askBlock,
+        className,
+        mobileStyle ? styles.mobile : '',
+      )}
       style={{
         marginTop: isExpanded || messagesToShow.length > 0 ? '8px' : '0',
         padding: isExpanded || messagesToShow.length > 0 ? '16px' : '0',

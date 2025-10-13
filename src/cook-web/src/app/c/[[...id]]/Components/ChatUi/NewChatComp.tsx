@@ -1,7 +1,15 @@
 import './ForkChatUI/styles/index.scss';
 import 'markdown-flow-ui/dist/markdown-flow-ui.css';
 import styles from './ChatComponents.module.scss';
-import { useContext, useRef, memo, useCallback, useState, useEffect, useMemo } from 'react';
+import {
+  useContext,
+  useRef,
+  memo,
+  useCallback,
+  useState,
+  useEffect,
+  useMemo,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { cn } from '@/lib/utils';
@@ -17,7 +25,10 @@ import PayModal from '../Pay/PayModal';
 import PayModalM from '../Pay/PayModalM';
 import { PREVIEW_MODE } from '@/c-api/studyV2';
 import InteractionBlock from './InteractionBlock';
-import useChatLogicHook, { ChatContentItem, ChatContentItemType } from './useChatLogicHook';
+import useChatLogicHook, {
+  ChatContentItem,
+  ChatContentItemType,
+} from './useChatLogicHook';
 import AskBlock from './AskBlock';
 import InteractionBlockM from './InteractionBlockM';
 import ContentBlock from './ContentBlock';
@@ -82,50 +93,61 @@ export const NewChatComponents = ({
   });
   const [longPressedBlockBid, setLongPressedBlockBid] = useState<string>('');
 
-  const { items, isLoading, onSend, onRefresh, onTypeFinished, toggleAskExpanded } =
-    useChatLogicHook({
-      onGoChapter,
-      shifuBid,
-      outlineBid: lessonId,
-      lessonId,
-      chapterId,
-      previewMode: preview_mode,
-      trackEvent,
-      chatBoxBottomRef,
-      trackTrailProgress,
-      lessonUpdate,
-      chapterUpdate,
-      updateSelectedLesson,
-      getNextLessonId,
-      scrollToLesson,
-      scrollToBottom,
-      showOutputInProgressToast,
-      onPayModalOpen,
-    });
+  const {
+    items,
+    isLoading,
+    onSend,
+    onRefresh,
+    onTypeFinished,
+    toggleAskExpanded,
+  } = useChatLogicHook({
+    onGoChapter,
+    shifuBid,
+    outlineBid: lessonId,
+    lessonId,
+    chapterId,
+    previewMode: preview_mode,
+    trackEvent,
+    chatBoxBottomRef,
+    trackTrailProgress,
+    lessonUpdate,
+    chapterUpdate,
+    updateSelectedLesson,
+    getNextLessonId,
+    scrollToLesson,
+    scrollToBottom,
+    showOutputInProgressToast,
+    onPayModalOpen,
+  });
 
-
-
-  const handleLongPress = useCallback((event: any, currentBlock: ChatContentItem) => {
-    if(currentBlock.type !== ChatContentItemType.CONTENT) {
-      return;
-    }
-    const target = event.target as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    const interactionItem = items.find(item => item.type === ChatContentItemType.LIKE_STATUS && item.parent_block_bid === currentBlock.generated_block_bid);
-    // Use requestAnimationFrame to avoid blocking rendering
-    requestAnimationFrame(() => {
-      setLongPressedBlockBid(currentBlock.generated_block_bid);
-      setMobileInteraction({
-        open: true,
-        position: {
-          x: rect.left + rect.width / 2,
-          y: rect.top + rect.height / 2,
-        },
-        generatedBlockBid: interactionItem?.parent_block_bid || '',
-        likeStatus: interactionItem?.like_status,
+  const handleLongPress = useCallback(
+    (event: any, currentBlock: ChatContentItem) => {
+      if (currentBlock.type !== ChatContentItemType.CONTENT) {
+        return;
+      }
+      const target = event.target as HTMLElement;
+      const rect = target.getBoundingClientRect();
+      const interactionItem = items.find(
+        item =>
+          item.type === ChatContentItemType.LIKE_STATUS &&
+          item.parent_block_bid === currentBlock.generated_block_bid,
+      );
+      // Use requestAnimationFrame to avoid blocking rendering
+      requestAnimationFrame(() => {
+        setLongPressedBlockBid(currentBlock.generated_block_bid);
+        setMobileInteraction({
+          open: true,
+          position: {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+          },
+          generatedBlockBid: interactionItem?.parent_block_bid || '',
+          likeStatus: interactionItem?.like_status,
+        });
       });
-    });
-  }, [items]);
+    },
+    [items],
+  );
 
   // Close interaction popover when scrolling
   useEffect(() => {
@@ -145,12 +167,16 @@ export const NewChatComponents = ({
     const parentContainer = chatContainer?.parentElement;
 
     // Add listeners to multiple possible scroll containers
-    const listeners: Array<{ element: EventTarget; handler: typeof handleScroll }> = [];
-
+    const listeners: Array<{
+      element: EventTarget;
+      handler: typeof handleScroll;
+    }> = [];
 
     // Listen to parent container
     if (parentContainer) {
-      parentContainer.addEventListener('scroll', handleScroll, { passive: true });
+      parentContainer.addEventListener('scroll', handleScroll, {
+        passive: true,
+      });
       listeners.push({ element: parentContainer, handler: handleScroll });
     }
 
@@ -163,9 +189,12 @@ export const NewChatComponents = ({
   }, [mobileStyle, mobileInteraction.open]);
 
   // Memoize callbacks to prevent unnecessary re-renders
-  const handleClickAskButton = useCallback((blockBid: string) => {
-    toggleAskExpanded(blockBid);
-  }, [toggleAskExpanded]);
+  const handleClickAskButton = useCallback(
+    (blockBid: string) => {
+      toggleAskExpanded(blockBid);
+    },
+    [toggleAskExpanded],
+  );
 
   // Memoize onSend and onTypeFinished to prevent new function references
   const memoizedOnSend = useCallback(onSend, [onSend]);
@@ -184,7 +213,8 @@ export const NewChatComponents = ({
         <></>
       ) : (
         items.map((item, idx) => {
-          const isLongPressed = longPressedBlockBid === item.generated_block_bid;
+          const isLongPressed =
+            longPressedBlockBid === item.generated_block_bid;
 
           if (item.type === ChatContentItemType.ASK) {
             return (
@@ -221,7 +251,7 @@ export const NewChatComponents = ({
               style={{ position: 'relative' }}
             >
               {isLongPressed && mobileStyle && (
-                <div className="long-press-overlay" />
+                <div className='long-press-overlay' />
               )}
               <ContentBlock
                 item={item}
@@ -243,7 +273,7 @@ export const NewChatComponents = ({
       {mobileStyle && mobileInteraction?.generatedBlockBid && (
         <InteractionBlockM
           open={mobileInteraction.open}
-          onOpenChange={(open) => {
+          onOpenChange={open => {
             setMobileInteraction(prev => ({ ...prev, open }));
             if (!open) {
               setLongPressedBlockBid('');

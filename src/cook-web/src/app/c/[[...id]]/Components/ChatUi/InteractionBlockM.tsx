@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshCcw, ThumbsUp, ThumbsDown } from 'lucide-react';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/Popover';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/components/ui/Popover';
 import type { LikeStatus } from '@/c-api/studyV2';
 import { postGeneratedContentAction, LIKE_STATUS } from '@/c-api/studyV2';
 import { cn } from '@/lib/utils';
@@ -99,7 +103,10 @@ export default function InteractionBlockM({
 
   return (
     <>
-      <Popover open={open} onOpenChange={onOpenChange}>
+      <Popover
+        open={open}
+        onOpenChange={onOpenChange}
+      >
         <PopoverTrigger asChild>
           <div
             style={{
@@ -113,41 +120,40 @@ export default function InteractionBlockM({
           />
         </PopoverTrigger>
         <PopoverContent
-          className="w-auto p-2 bg-white shadow-lg rounded-lg border border-gray-200"
-          align="start"
+          className='w-auto p-2 bg-white shadow-lg rounded-lg border border-gray-200'
+          align='start'
         >
-          <div className="flex flex-col">
+          <div className='flex flex-col'>
             <button
               onClick={handleRefresh}
               disabled={disabled || readonly}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className='flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed'
             >
-              <RefreshCcw size={16} className="text-gray-500" />
+              <RefreshCcw
+                size={16}
+                className='text-gray-500'
+              />
               <span>{t('chat.regenerate')}</span>
             </button>
             <button
               onClick={handleLike}
               disabled={disabled || readonly}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className='flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed'
             >
               <ThumbsUp
                 size={16}
-                className={cn(
-                  isLike ? 'text-blue-500' : 'text-gray-500',
-                )}
+                className={cn(isLike ? 'text-blue-500' : 'text-gray-500')}
               />
               <span>{t('chat.like')}</span>
             </button>
             <button
               onClick={handleDislike}
               disabled={disabled || readonly}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className='flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed'
             >
               <ThumbsDown
                 size={16}
-                className={cn(
-                  isDislike ? 'text-blue-500' : 'text-gray-500',
-                )}
+                className={cn(isDislike ? 'text-blue-500' : 'text-gray-500')}
               />
               <span>{t('chat.dislike')}</span>
             </button>
@@ -155,26 +161,29 @@ export default function InteractionBlockM({
         </PopoverContent>
       </Popover>
 
-      <Dialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog
+        open={showRegenerateDialog}
+        onOpenChange={setShowRegenerateDialog}
+      >
+        <DialogContent className='sm:max-w-md'>
           <DialogHeader>
             <DialogTitle>{t('chat.regenerateConfirmTitle')}</DialogTitle>
             <DialogDescription>
               {t('chat.regenerateConfirmDescription')}
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex gap-2 sm:gap-2">
+          <DialogFooter className='flex gap-2 sm:gap-2'>
             <button
-              type="button"
+              type='button'
               onClick={() => setShowRegenerateDialog(false)}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className='px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50'
             >
               {t('common.cancel')}
             </button>
             <button
-              type="button"
+              type='button'
               onClick={handleConfirmRegenerate}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-lighter"
+              className='px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-lighter'
             >
               {t('common.ok')}
             </button>

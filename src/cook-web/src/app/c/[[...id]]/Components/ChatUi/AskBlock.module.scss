@@ -41,43 +41,45 @@
     display: flex;
     justify-content: flex-start;
     color: rgba(0, 0, 0, 0.65);
-    font-family: "PingFang SC";
+    font-family: 'PingFang SC';
     font-size: 16px;
     font-style: normal;
     font-weight: var(--font-weight-normal, 400);
     line-height: 24px; /* 150% */
     :global(.content-render) {
       padding: 0;
-      margin:0;
+      margin: 0;
     }
   }
-  .userInput{
-      display: flex;  
-      align-items: center;
-      gap: 8px;
-      padding: 3px 12px;
-      border-radius: var(--border-radius-rounded-md, 8px);
-      border: var(--border-width-border, 1px) solid var(--base-input, #E5E5E5);
-      background: var(--custom-background-dark-input-30, #FFF);
-      box-shadow: var(--shadow-xs-offset-x, 0) var(--shadow-xs-offset-y, 1px) var(--shadow-xs-blur-radius, 2px) var(--shadow-xs-spread-radius, 0) var(--shadow-xs-color, rgba(0, 0, 0, 0.05));
-  
-    >input{
+  .userInput {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 12px;
+    border-radius: var(--border-radius-rounded-md, 8px);
+    border: var(--border-width-border, 1px) solid var(--base-input, #e5e5e5);
+    background: var(--custom-background-dark-input-30, #fff);
+    box-shadow: var(--shadow-xs-offset-x, 0) var(--shadow-xs-offset-y, 1px)
+      var(--shadow-xs-blur-radius, 2px) var(--shadow-xs-spread-radius, 0)
+      var(--shadow-xs-color, rgba(0, 0, 0, 0.05));
+
+    > input {
       font-size: 16px;
       color: #333333;
     }
-    >button{
+    > button {
       border: none;
       outline: none;
       border-radius: 50%;
       width: 20px;
       height: 20px;
-      &.isSending{
-        background-color: #E5E5E5;
+      &.isSending {
+        background-color: #e5e5e5;
       }
-      :global(.lucide-send){
+      :global(.lucide-send) {
         width: 12.7px;
         height: 12.7px;
-        color:#0A0A0A;
+        color: #0a0a0a;
       }
     }
   }
@@ -89,35 +91,34 @@
   margin: 0;
   border-radius: 0;
   padding: 0;
-  
 
-  >.messageList {
+  > .messageList {
     margin: 0;
-    .messageWrapper{
+    .messageWrapper {
       justify-content: flex-start !important;
       border-radius: 4px;
-      background: #E5E5E5;
-      .userMessage{
+      background: #e5e5e5;
+      .userMessage {
         background: transparent;
         color: rgba(0, 0, 0, 0.65);
-        font-family: "PingFang SC";
+        font-family: 'PingFang SC';
         font-size: 12px;
         font-style: normal;
         font-weight: var(--font-weight-normal, 400);
         line-height: 20px; /* 166.667% */
         padding: 3px 12px;
       }
-      .userMessageExpanded{
+      .userMessageExpanded {
         white-space: normal;
         -webkit-line-clamp: none;
       }
     }
   }
-  .userInput{
+  .userInput {
     border: none;
     padding: 20px 20px 40px 20px;
   }
-  >.userInput{
+  > .userInput {
     border: var(--border-width-border, 1px) solid var(--base-input, #e5e5e5);
     padding: 3px 12px;
   }
@@ -250,8 +251,8 @@
     padding: 14px 12px;
     color: #0a0a0a;
     border-radius: var(--border-radius-rounded-md, 8px);
-    border: var(--border-width-border, 1px) solid var(--base-input, #E5E5E5);
-    background: var(--base-background, #FFF);
+    border: var(--border-width-border, 1px) solid var(--base-input, #e5e5e5);
+    background: var(--base-background, #fff);
     font-size: var(--text-sm-font-size, 14px);
     font-weight: var(--font-weight-normal, 400);
     line-height: var(--text-sm-line-height, 20px); /* 142.857% */
@@ -264,7 +265,7 @@
   }
 
   > button.isSending {
-    background: #E5E5E5;
+    background: #e5e5e5;
   }
 
   > button :global(.lucide-send) {
