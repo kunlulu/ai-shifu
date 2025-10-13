@@ -523,7 +523,7 @@ function useChatLogicHook({
     flushBuffer();
     console.log('result:', result);
     return result;
-  }, []);
+  }, [mobileStyle]);
 
   /**
    * Loads the persisted lesson records and primes the chat stream.
