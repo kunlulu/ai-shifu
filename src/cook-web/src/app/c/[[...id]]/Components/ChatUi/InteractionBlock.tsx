@@ -134,7 +134,7 @@ export default function InteractionBlock({
   return (
     <div
       className={cn(['interaction-block'], className)}
-      style={{ paddingLeft: 20 }}
+      style={{ paddingLeft: 20, paddingBottom: 5 }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <button
