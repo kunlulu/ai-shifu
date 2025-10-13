@@ -7,6 +7,7 @@ import { RefreshCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import AskIcon from '@/c-assets/newchat/light/icon_ask.svg';
+import './InteractionBlock.scss';
 import {
   Dialog,
   DialogContent,
@@ -134,27 +135,17 @@ export default function InteractionBlock({
   return (
     <div
       className={cn(['interaction-block'], className)}
-      style={{ paddingLeft: 20, paddingBottom: 5 }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <button
           onClick={handleChangeAskPanel}
           type='button'
-          className={cn(
+          className={cn('ask-button',
             'inline-flex items-center justify-center',
-            'bg-[#1A68EB] text-white font-medium',
-            'hover:bg-[#1557D0] transition-colors',
+            'text-white font-medium',
+            'transition-colors',
             'disabled:opacity-50 disabled:cursor-not-allowed',
           )}
-          style={{
-            width: '54px',
-            height: '22px',
-            gap: '4px',
-            fontSize: '10px',
-            lineHeight: '1',
-            borderRadius: '24px',
-            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-          }}
           disabled={disabled || readonly}
         >
           <Image
