@@ -55,7 +55,7 @@ export type SSE_OUTPUT_TYPE =
 export const SYS_INTERACTION_TYPE = {
   PAY: '_sys_pay',
   LOGIN: '_sys_login',
-  NEXT_CHAPTER: '_sys_next_chatper',
+  NEXT_CHAPTER: '_sys_next_chapter',
 } as const;
 export type SysInteractionType =
   (typeof SYS_INTERACTION_TYPE)[keyof typeof SYS_INTERACTION_TYPE];
@@ -150,7 +150,7 @@ export const getRunMessage = (
     console.log('[SSE connection opened]');
   });
 
-  // sse.js 可能不支持 'close' 事件，使用 readystatechange 代替
+  // sse.js may not support 'close' event, use readystatechange instead
   source.addEventListener('readystatechange', () => {
     console.log('[SSE readystatechange]', source.readyState);
     // readyState: 0=CONNECTING, 1=OPEN, 2=CLOSED
@@ -159,12 +159,12 @@ export const getRunMessage = (
     }
   });
 
-  // 尝试标准的 close 事件（可能不会触发）
+  // Attempt standard close event (may not trigger)
   source.addEventListener('close', () => {
     console.log('[SSE connection closed via close event]');
   });
 
-  // 添加 abort 事件监听（如果支持）
+  // Add abort event listener (if supported)
   source.addEventListener('abort', () => {
     console.log('[SSE connection aborted]');
   });

@@ -256,6 +256,12 @@ export default function AskBlock({
   }, [isExpanded]);
 
   useEffect(() => {
+    return () => {
+      sseRef.current?.close();
+    };
+  }, []);
+
+  useEffect(() => {
     if (askList.length > 0) {
       setShowMobileDialog(true);
     }

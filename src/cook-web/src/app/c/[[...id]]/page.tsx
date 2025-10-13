@@ -331,7 +331,6 @@ export default function ChatPage() {
   // listen global event
   useEffect(() => {
     const resetChapterEventHandler = async e => {
-      // console.log('resetChapterEventHandler', e.detail.chapter_id);
       await reloadTree(e.detail.chapter_id);
       onGoChapter(e.detail.chapter_id);
     };

@@ -176,7 +176,7 @@ function useChatLogicHook({
         if (bottomEl) {
           // Use instant scroll to avoid blocking user interaction
           bottomEl.scrollIntoView({
-            behavior: 'instant',
+            behavior: 'auto',
             block: 'end',
           });
           hasScrolledToBottomRef.current = true;
