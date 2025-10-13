@@ -133,14 +133,13 @@ export default function InteractionBlock({
   };
 
   return (
-    <div
-      className={cn(['interaction-block'], className)}
-    >
+    <div className={cn(['interaction-block'], className)}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <button
           onClick={handleChangeAskPanel}
           type='button'
-          className={cn('ask-button',
+          className={cn(
+            'ask-button',
             'inline-flex items-center justify-center',
             'text-white font-medium',
             'transition-colors',
