@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
       },
     },
   },
-
+  images: { unoptimized: true },
   // 若 pages/ 目录里有 MDX 页面，需要这行；纯 app/ 可删
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
 };
