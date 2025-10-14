@@ -427,7 +427,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
               </div>
             ) : (
               <>
-                <div className='flex align-center'>
+                <div className='flex items-center'>
                     <h2 className='text-base font-semibold text-foreground'>
                       {t('shifu.creationArea.title')}
                     </h2>
@@ -435,7 +435,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
                       {t('shifu.creationArea.description')}
                     </p>
                 </div>
-                <MarkdownFlowEditor value={mdflow} onChange={onChangeMdflow}/>
+                <MarkdownFlowEditor locale={profile?.language as "en-US" | "zh-CN"} content={mdflow} onChange={onChangeMdflow}/>
               </>
               // <>
               //   <DndProvider backend={HTML5Backend}>

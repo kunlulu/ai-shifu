@@ -11,12 +11,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';
 import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
 import api from '@/api';
+import { LEARNING_PERMISSION, LearningPermission } from '@/c-api/studyV2';
 import Loading from '../loading';
 import { useTranslation } from 'react-i18next';
 import { useShifu } from '@/store';
-
-type PaymentSetting = 'paid' | 'free';
-type LoginSetting = 'login' | 'guest';
 
 const ChapterSettingsDialog = ({
   outlineBid,
@@ -29,8 +27,8 @@ const ChapterSettingsDialog = ({
 }) => {
   const { currentShifu } = useShifu();
   const { t } = useTranslation();
-  const [paymentSetting, setPaymentSetting] = useState<PaymentSetting>('paid');
-  const [loginSetting, setLoginSetting] = useState<LoginSetting>('login');
+  const [learningPermission, setLearningPermission] =
+    useState<LearningPermission>(LEARNING_PERMISSION.NORMAL);
   const [systemPrompt, setSystemPrompt] = useState('');
   const [hideChapter, setHideChapter] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -49,12 +47,9 @@ const ChapterSettingsDialog = ({
         return;
       }
 
-      const resolvedPayment: PaymentSetting = result.is_paid ?? 'paid';
-      const resolvedLogin: LoginSetting =  result.is_login ?? 'login';
-      setPaymentSetting(resolvedPayment);
-      setLoginSetting(resolvedLogin);
+      setLearningPermission(result.type || LEARNING_PERMISSION.NORMAL);
       setSystemPrompt(result.system_prompt ?? '');
-      const normalizedHidden = result.is_hidden ?? false
+      const normalizedHidden = result.is_hidden ?? false;
       setHideChapter(normalizedHidden);
     } finally {
       setLoading(false);
@@ -62,13 +57,13 @@ const ChapterSettingsDialog = ({
   }, [outlineBid, currentShifu?.bid]);
 
   const onConfirm = async () => {
-    const isPaid = paymentSetting === 'paid';
-    const requiresLogin = loginSetting === 'login';
+    const isPaid = learningPermission === LEARNING_PERMISSION.NORMAL;
+    const requiresLogin = learningPermission !== LEARNING_PERMISSION.GUEST;
 
     await api.modifyOutline({
       outline_bid: outlineBid,
       shifu_bid: currentShifu?.bid,
-      type: isPaid ? 'formal' : 'trial',
+      type: learningPermission,
       is_hidden: hideChapter,
       system_prompt: systemPrompt,
       is_paid: isPaid,
@@ -81,8 +76,7 @@ const ChapterSettingsDialog = ({
 
   useEffect(() => {
     if (!open) {
-      setPaymentSetting('paid');
-      setLoginSetting('login');
+      setLearningPermission(LEARNING_PERMISSION.NORMAL);
       setSystemPrompt('');
       setHideChapter(false);
     } else {
@@ -128,22 +122,22 @@ const ChapterSettingsDialog = ({
             <div className='space-y-8'>
               <div className='space-y-3'>
                 <div className='text-sm font-medium text-foreground'>
-                  {t('chapterSetting.isPaid')}
+                  {t('chapterSetting.learningPermission')}
                 </div>
                 <RadioGroup
-                  value={paymentSetting}
+                  value={learningPermission}
                   onValueChange={value =>
-                    setPaymentSetting(value as PaymentSetting)
+                    setLearningPermission(value as LearningPermission)
                   }
                   className='flex flex-row flex-wrap gap-x-10 gap-y-2'
                 >
                   <div className='flex items-center gap-2'>
                     <RadioGroupItem
-                      value='paid'
-                      id='chapter-paid'
+                      value={LEARNING_PERMISSION.NORMAL}
+                      id='chapter-normal'
                     />
                     <Label
-                      htmlFor='chapter-paid'
+                      htmlFor='chapter-normal'
                       className='text-sm font-normal text-foreground'
                     >
                       {t('chapterSetting.paidChapter')}
@@ -151,52 +145,26 @@ const ChapterSettingsDialog = ({
                   </div>
                   <div className='flex items-center gap-2'>
                     <RadioGroupItem
-                      value='free'
-                      id='chapter-free'
+                      value={LEARNING_PERMISSION.TRIAL}
+                      id='chapter-trial'
                     />
                     <Label
-                      htmlFor='chapter-free'
+                      htmlFor='chapter-trial'
                       className='text-sm font-normal text-foreground'
                     >
                       {t('chapterSetting.freeChapter')}
                     </Label>
                   </div>
-                </RadioGroup>
-              </div>
-
-              <div className='space-y-3'>
-                <div className='text-sm font-medium text-foreground'>
-                  {t('chapterSetting.requireLogin')}
-                </div>
-                <RadioGroup
-                  value={loginSetting}
-                  onValueChange={value =>
-                    setLoginSetting(value as LoginSetting)
-                  }
-                  className='flex flex-row flex-wrap gap-x-10 gap-y-2'
-                >
                   <div className='flex items-center gap-2'>
                     <RadioGroupItem
-                      value='login'
-                      id='chapter-login'
-                    />
-                    <Label
-                      htmlFor='chapter-login'
-                      className='text-sm font-normal text-foreground'
-                    >
-                      {t('chapterSetting.loginRequired')}
-                    </Label>
-                  </div>
-                  <div className='flex items-center gap-2'>
-                    <RadioGroupItem
-                      value='guest'
+                      value={LEARNING_PERMISSION.GUEST}
                       id='chapter-guest'
                     />
                     <Label
                       htmlFor='chapter-guest'
                       className='text-sm font-normal text-foreground'
                     >
-                      {t('chapterSetting.loginNotRequired')}
+                      {t('chapterSetting.guestChapter')}
                     </Label>
                   </div>
                 </RadioGroup>
