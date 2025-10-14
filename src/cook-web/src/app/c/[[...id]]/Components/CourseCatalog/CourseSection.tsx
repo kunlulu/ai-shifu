@@ -11,10 +11,13 @@ import imgLearningSelected from '@/c-assets/newchat/light/icon16-learning-select
 import imgLearning from '@/c-assets/newchat/light/icon16-learning.png';
 import imgLearningCompletedSelected from '@/c-assets/newchat/light/icon16-learning-completed-selected.png';
 import imgLearningCompleted from '@/c-assets/newchat/light/icon16-learning-completed.png';
+import { LEARNING_PERMISSION } from '@/c-api/studyV2';
+import { useUserStore } from '@/store';
 
 export const CourseSection = ({
   id,
   name = '',
+  type,
   status_value = LESSON_STATUS_VALUE.LEARNING,
   selected,
   canLearning = false,
@@ -23,6 +26,7 @@ export const CourseSection = ({
   onTrySelect,
 }) => {
   const { mobileStyle } = useContext(AppContext);
+  const isLoggedIn = useUserStore(state => state.isLoggedIn);
   const genIconClassName = () => {
     switch (status_value) {
       // @ts-expect-error EXPECT
@@ -40,12 +44,24 @@ export const CourseSection = ({
 
   const onSectionClick = useCallback(() => {
     onTrySelect?.({ id });
+
+    console.log('onSectionClick', id, type);
     if (status_value === LESSON_STATUS_VALUE.LOCKED) {
       return;
     }
 
+    if (type === LEARNING_PERMISSION.TRIAL && !isLoggedIn) {
+      window.location.href = `/login?redirect=${encodeURIComponent(location.pathname)}`;
+      return;
+    }
+
+    if(type === LEARNING_PERMISSION.NORMAL) {
+      // window.location.href = `/login?redirect=${encodeURIComponent(location.pathname)}`;
+      return;
+    }
+
     onSelect?.({ id });
-  }, [onTrySelect, id, status_value, onSelect]);
+  }, [onTrySelect, id, status_value, onSelect, type, isLoggedIn]);
 
   const onResetButtonClick = useCallback(e => {
     e.stopPropagation();
@@ -119,7 +135,7 @@ export const CourseSection = ({
             // @ts-expect-error EXPECT
             <ResetChapterButton
               onClick={onResetButtonClick}
-              chapterId={chapterId}
+              chapterId={id}
               chapterName={name}
               className={styles.resetButton}
               lessonId={id}
