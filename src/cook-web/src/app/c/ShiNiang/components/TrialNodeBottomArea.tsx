@@ -27,7 +27,6 @@ const TrialNodeBottomArea = ({ payload }) => {
   const { trackEvent, EVENT_NAMES } = shifu.hooks.useTracking();
 
   const onClick = useCallback(() => {
-    // @ts-expect-error EXPECT
     openPayModal();
     trackEvent(EVENT_NAMES.POP_PAY, { from: 'left-nav-banner' });
   }, [EVENT_NAMES.POP_PAY, openPayModal, trackEvent]);
