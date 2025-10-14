@@ -14,7 +14,7 @@ RUN npm config set fetch-retries 5 && \
 
 COPY . .
 
-RUN npm run build  --ignore-scripts
+RUN npm run build
 
 FROM node:20.11.1-alpine AS runner
 WORKDIR /app
@@ -29,7 +29,7 @@ COPY --from=builder /app/package-lock.json ./
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 
-RUN npm ci --only=production  --ignore-scripts   && \
+RUN npm ci --only=production  && \
     npm cache clean --force && \
     rm -rf /root/.cache && \
     rm -rf /root/.npm && \
