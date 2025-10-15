@@ -21,6 +21,7 @@ import Header from '../header';
 import { BlockDTO, BlockType, ContentDTO } from '@/types/shifu';
 import RenderBlockUI from '../render-ui';
 import { MarkdownFlowEditor } from 'markdown-flow-ui'
+import 'markdown-flow-ui/dist/markdown-flow-ui.css';
 import AIDebugDialog from '@/components/ai-debug';
 
 import {
