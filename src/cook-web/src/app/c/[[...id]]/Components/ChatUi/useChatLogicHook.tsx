@@ -745,7 +745,7 @@ function useChatLogicHook({
    * onSend processes user interactions and continues streaming responses.
    */
   const onSend = useCallback(
-    (content: OnSendContentParams) => {
+    (content: OnSendContentParams, blockBid: string) => {
       if (!isTypeFinished) {
         showOutputInProgressToast();
         return;
@@ -774,6 +774,13 @@ function useChatLogicHook({
         return;
       }
 
+
+      let isReGenerate = false;
+      const currentList = contentListRef.current;
+      if(currentList.length > 0) {
+        isReGenerate = blockBid !== currentList[currentList.length - 1 ].generated_block_bid;
+      }
+
       const { newList, needChangeItemIndex } =
         updateContentListWithUserOperate(content);
 
@@ -789,7 +796,7 @@ function useChatLogicHook({
         },
         input_type: SSE_INPUT_TYPE.NORMAL,
         reload_generated_block_bid:
-          needChangeItemIndex !== -1
+          isReGenerate && needChangeItemIndex !== -1
             ? newList[needChangeItemIndex].generated_block_bid
             : undefined,
       });
