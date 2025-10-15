@@ -60,6 +60,7 @@ export const ChatUi = ({
             styles.chatComponents,
             showUserSettings ? styles.chatComponentsHidden : '',
           )}
+          previewMode={previewMode}
           onPurchased={onPurchased}
           chapterUpdate={chapterUpdate}
           updateSelectedLesson={updateSelectedLesson}

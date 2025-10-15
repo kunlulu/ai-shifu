@@ -72,7 +72,7 @@ export interface UseChatSessionParams {
   outlineBid: string;
   lessonId: string;
   chapterId?: string;
-  previewMode?: (typeof PREVIEW_MODE)[keyof typeof PREVIEW_MODE];
+  previewMode?: boolean;
   trackEvent: (name: string, payload?: Record<string, any>) => void;
   trackTrailProgress: (generatedBlockBid: string) => void;
   lessonUpdate?: (params: Record<string, any>) => void;
@@ -150,7 +150,7 @@ function useChatLogicHook({
   const lastInteractionBlockRef = useRef<ChatContentItem | null>(null);
   const hasScrolledToBottomRef = useRef<boolean>(false);
 
-  const effectivePreviewMode = previewMode ?? PREVIEW_MODE.NORMAL;
+  const effectivePreviewMode = previewMode ?? false;
 
   // Use react-use hooks for safer state management
   const isMounted = useMountedState();
