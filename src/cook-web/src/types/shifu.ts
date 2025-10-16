@@ -77,6 +77,7 @@ export interface ShifuState {
   currentNode: Outline | null;
   models: string[];
   mdflow: string;
+  variables: string[];
 }
 
 export interface ApiResponse<T> {
@@ -154,6 +155,7 @@ export interface ShifuActions {
   loadMdflow: (outlineId: string, shifuId: string) => Promise<void>;
   saveMdflow: (value: string) => Promise<void>;
   setCurrentMdflow: (value: string) => void;
+  parseMdflow: (value: string) => Promise<void>;
 }
 
 export interface ShifuContextType extends ShifuState {

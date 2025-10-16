@@ -187,9 +187,9 @@
       "key": {
         "/": "/",
         "a": "A",
-        "cmd": "⌘",
+        "cmd": "\u2318",
         "ctrl": "Ctrl",
-        "shift": "⇧",
+        "shift": "\u21e7",
         "space": "Space"
       },
       "title": {
@@ -442,7 +442,9 @@
     "creationArea": {
       "description": "Describe the chapter you want, or leave it blank and let AI take the lead.",
       "hint": "Default prompt goes here. Type / to discover more options.",
-      "title": "Creation Area"
+      "title": "Creation Area",
+      "modeText": "Standard",
+      "modeCode": "Text"
     },
     "debug": "Debug",
     "delete": "Delete",

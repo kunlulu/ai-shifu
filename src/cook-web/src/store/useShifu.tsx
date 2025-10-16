@@ -87,6 +87,7 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
   >([]);
   const [models, setModels] = useState<string[]>([]);
   const [mdflow, setMdflow] = useState<string>('');
+  const [variables, setVariables] = useState<string[]>([]);
   const currentMdflow = useRef<string>('');
 
   // Ensure UI types and content types are fetched only in the client environment
@@ -320,6 +321,11 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
     });
     console.log('mdflow', mdflow);
     setMdflow(mdflow);
+    if (mdflow) {
+      await parseMdflow(mdflow);
+    } else {
+      setVariables([]);
+    }
     setIsLoading(false);
   };
 
@@ -988,6 +994,21 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
     });
   };
 
+  const parseMdflow = async (value: string) => {  
+    try {
+      const result = await api.parseMdflow({
+        shifu_bid: currentShifu?.bid || '',
+        outline_bid: currentNode?.bid || '',
+        data: value,
+      });
+      console.log('parseMdflow', result);
+      setVariables(result.variables || []);
+    } catch (error) {
+      console.error(error);
+      setVariables([]);
+    }
+  };
+
   const saveMdflow = async (value: string) => {
     console.log('saveMdflow', currentShifu?.bid, currentNode?.bid, value);
     await api.saveMdflow({
@@ -1024,6 +1045,7 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
     blockUITypes,
     blockContentTypes,
     mdflow,
+    variables,
     actions: {
       setFocusId,
       addChapter,
@@ -1060,6 +1082,7 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
       reorderOutlineTree,
       loadMdflow,
       saveMdflow,
+      parseMdflow,
       setCurrentMdflow,
     },
   };
