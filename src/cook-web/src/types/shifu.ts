@@ -155,7 +155,7 @@ export interface ShifuActions {
   loadMdflow: (outlineId: string, shifuId: string) => Promise<void>;
   saveMdflow: (value: string) => Promise<void>;
   setCurrentMdflow: (value: string) => void;
-  parseMdflow: (value: string) => Promise<void>;
+  parseMdflow: (value: string, shifuId: string, outlineId: string) => Promise<void>;
 }
 
 export interface ShifuContextType extends ShifuState {

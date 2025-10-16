@@ -103,6 +103,7 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
       const shifu = await api.getShifuDetail({
         shifu_bid: shifuId,
       });
+      console.log('获取currentShifu', shifu);
       setCurrentShifu(shifu);
     } catch (error) {
       console.error(error);
@@ -322,7 +323,7 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
     console.log('mdflow', mdflow);
     setMdflow(mdflow);
     if (mdflow) {
-      await parseMdflow(mdflow);
+      await parseMdflow(mdflow, shifuId, outlineId);
     } else {
       setVariables([]);
     }
@@ -346,6 +347,7 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
             ...list[0].children[0],
             depth: 1,
           });
+          console.log('获取currentNode', list[0].children[0].bid);
           await loadMdflow(list[0].children[0].bid, shifuId);
           // await loadBlocks(list[0].children[0].bid, shifuId);
         }
@@ -994,11 +996,13 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
     });
   };
 
-  const parseMdflow = async (value: string) => {  
+
+  const parseMdflow = async (value: string, shifuId: string, outlineId: string) => {  
+    console.log('解析Mdflow', shifuId, outlineId, value);
     try {
       const result = await api.parseMdflow({
-        shifu_bid: currentShifu?.bid || '',
-        outline_bid: currentNode?.bid || '',
+        shifu_bid: shifuId || currentShifu?.bid || '',
+        outline_bid: outlineId || currentNode?.bid || '',
         data: value,
       });
       console.log('parseMdflow', result);
