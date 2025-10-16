@@ -21,8 +21,10 @@ import Header from '../header';
 import { BlockDTO, BlockType, ContentDTO } from '@/types/shifu';
 import RenderBlockUI from '../render-ui';
 import { MarkdownFlowEditor, EditMode, UploadProps} from 'markdown-flow-ui'
-import 'markdown-flow-ui/dist/markdown-flow-ui.css';
+// import MarkdownFlowEditor, { EditMode } from '../../../../../../markdown-flow-ui/src/components/MarkdownFlowEditor/MarkdownFlowEditor';
+// import type { UploadProps } from 'markdown-flow-ui/src/components/MarkdownFlowEditor/uploadTypes';
 import AIDebugDialog from '@/components/ai-debug';
+import 'markdown-flow-ui/dist/markdown-flow-ui.css';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import './shifuEdit.scss';
@@ -84,6 +86,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
     isLoading,
     currentShifu,
     variables,
+    systemVariables,
     blockErrors,
   } = useShifu();
 
@@ -183,6 +186,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
   useEffect(() => {
     actions.loadModels();
     if (id) {
+      console.log('loadChapters', id);
       actions.loadChapters(id);
     }
   }, [id]);
@@ -193,6 +197,13 @@ const ScriptEditor = ({ id }: { id: string }) => {
     }));
   }, [variables]);
 
+  const systemVariablesList = useMemo(() => {
+    return systemVariables.map((variable: Record<string, string>) => ({
+      name: variable.name,
+      label: variable.label,
+    }));
+  }, [systemVariables]);
+  
   const onChangeMdflow = (value: string) => {
     actions.setCurrentMdflow(value);
     actions.autoSaveBlocks();
@@ -285,6 +296,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
                   locale={profile?.language as "en-US" | "zh-CN"} 
                   content={mdflow} 
                   variables={variablesList}
+                  systemVariables={systemVariablesList as any[]}
                   onChange={onChangeMdflow}
                   editMode={editMode}
                   uploadProps={uploadProps}

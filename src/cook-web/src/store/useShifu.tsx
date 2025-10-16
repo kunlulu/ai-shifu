@@ -89,6 +89,7 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
   const [mdflow, setMdflow] = useState<string>('');
   const [variables, setVariables] = useState<string[]>([]);
   const currentMdflow = useRef<string>('');
+  const [systemVariables, setSystemVariables] = useState<Record<string, string>[]>([]);
 
   // Ensure UI types and content types are fetched only in the client environment
   // const UITypes = useUITypes()
@@ -103,7 +104,6 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
       const shifu = await api.getShifuDetail({
         shifu_bid: shifuId,
       });
-      console.log('获取currentShifu', shifu);
       setCurrentShifu(shifu);
     } catch (error) {
       console.error(error);
@@ -313,6 +313,7 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
     });
   };
 
+
   const loadMdflow = async (outlineId: string, shifuId: string) => {
     setIsLoading(true);
     setError(null);
@@ -323,9 +324,10 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
     console.log('mdflow', mdflow);
     setMdflow(mdflow);
     if (mdflow) {
-      await parseMdflow(mdflow, shifuId, outlineId);
+        parseMdflow(mdflow, shifuId, outlineId)
     } else {
       setVariables([]);
+      setSystemVariables([]);
     }
     setIsLoading(false);
   };
@@ -339,7 +341,6 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
       const chaptersData = await api.getShifuOutlineTree({
         shifu_bid: shifuId,
       });
-
       const list = remapOutlineTree(chaptersData);
       if (list.length > 0) {
         if (list[0].children && list[0].children.length > 0) {
@@ -347,14 +348,13 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
             ...list[0].children[0],
             depth: 1,
           });
-          console.log('获取currentNode', list[0].children[0].bid);
           await loadMdflow(list[0].children[0].bid, shifuId);
           // await loadBlocks(list[0].children[0].bid, shifuId);
         }
       }
       setChapters(list);
       buildOutlineTree(list);
-      loadProfileItemDefinations(shifuId);
+      // loadProfileItemDefinations(shifuId);
     } catch (error) {
       console.error(error);
       setError('Failed to load chapters');
@@ -998,18 +998,34 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
 
 
   const parseMdflow = async (value: string, shifuId: string, outlineId: string) => {  
-    console.log('解析Mdflow', shifuId, outlineId, value);
+    setIsLoading(true);
     try {
+      const list = await api.getProfileItemDefinitions({
+        parent_id: shifuId,
+        type: 'all',
+      });
+      const sysVariables = list.filter(item => item.profile_scope === 'system').map(item => ({
+        name: item.profile_key,
+        label: item.profile_remark,
+      }));
+
+      setSystemVariables(sysVariables);
+
       const result = await api.parseMdflow({
         shifu_bid: shifuId || currentShifu?.bid || '',
         outline_bid: outlineId || currentNode?.bid || '',
         data: value,
       });
-      console.log('parseMdflow', result);
-      setVariables(result.variables || []);
+
+      const customVariables = result.variables.filter(item => !sysVariables.some(sysItem => sysItem.name === item));
+
+      setVariables(customVariables || []);
     } catch (error) {
       console.error(error);
+      setSystemVariables([]);
       setVariables([]);
+    }finally{
+      setIsLoading(false);
     }
   };
 
@@ -1050,6 +1066,7 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
     blockContentTypes,
     mdflow,
     variables,
+    systemVariables,
     actions: {
       setFocusId,
       addChapter,

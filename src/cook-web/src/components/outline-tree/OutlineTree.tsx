@@ -159,6 +159,7 @@ const MinimalTreeItemComponent = React.forwardRef<
     }
 
     await actions.setCurrentNode(props.item);
+    console.log('loadMdflow')
     await actions.loadMdflow(props.item.bid || '', currentShifu?.bid || '');
     // await actions.loadBlocks(props.item.bid || '', currentShifu?.bid || '');
   };

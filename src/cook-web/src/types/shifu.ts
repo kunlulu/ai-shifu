@@ -78,6 +78,7 @@ export interface ShifuState {
   models: string[];
   mdflow: string;
   variables: string[];
+  systemVariables: Record<string, string>[];
 }
 
 export interface ApiResponse<T> {
