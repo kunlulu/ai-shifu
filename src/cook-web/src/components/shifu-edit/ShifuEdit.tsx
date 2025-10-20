@@ -1,16 +1,8 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import type { DropTargetMonitor } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Button } from '@/components/ui/Button';
 import {
   Plus,
-  GripVertical,
-  Trash2,
-  SquarePen,
-  BugPlay,
-  Settings2,
   ListCollapse,
 } from 'lucide-react';
 import { useShifu } from '@/store';
@@ -18,27 +10,12 @@ import { useUserStore } from '@/store';
 import OutlineTree from '@/components/outline-tree';
 import '@mdxeditor/editor/style.css';
 import Header from '../header';
-import { BlockDTO, BlockType, ContentDTO } from '@/types/shifu';
-import RenderBlockUI from '../render-ui';
-import { UploadProps} from 'markdown-flow-ui'
-import MarkdownFlowEditor, { EditMode } from '../../../../../../markdown-flow-ui/src/components/MarkdownFlowEditor/MarkdownFlowEditor';
-import AIDebugDialog from '@/components/ai-debug';
+import { UploadProps, MarkdownFlowEditor, EditMode } from 'markdown-flow-ui'
+// import MarkdownFlowEditor, { EditMode } from '../../../../../../markdown-flow-ui/src/components/MarkdownFlowEditor/MarkdownFlowEditor';
 import 'markdown-flow-ui/dist/markdown-flow-ui.css';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import './shifuEdit.scss';
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../ui/AlertDialog';
-import AddBlock from '@/components/add-block';
 import Loading from '../loading';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
@@ -48,9 +25,6 @@ import { getStringEnv } from '@/c-utils/envUtils';
 const ScriptEditor = ({ id }: { id: string }) => {
   const { t } = useTranslation();
   const profile = useUserStore(state => state.userInfo);
-  const [expandedBlocks, setExpandedBlocks] = useState<Record<string, boolean>>(
-    {},
-  );
   const [foldOutlineTree, setFoldOutlineTree] = useState(false);
   const [editMode, setEditMode] = useState<EditMode>('quickEdit' as EditMode);
   const editModeOptions = useMemo(
@@ -72,34 +46,15 @@ const ScriptEditor = ({ id }: { id: string }) => {
       i18n.changeLanguage(profile.language);
     }
   }, [profile]);
+  
   const {
-    blocks,
     mdflow,
     chapters,
     actions,
-    blockContentTypes,
-    blockProperties,
-    // blockUIProperties,
-    // blockUITypes,
-    currentNode,
     isLoading,
-    currentShifu,
     variables,
     systemVariables,
-    blockErrors,
   } = useShifu();
-
-  const [debugBlockInfo, setDebugBlockInfo] = useState({
-    blockId: '',
-    visible: false,
-  });
-
-  const [removeBlockInfo, setRemoveBlockInfo] = useState({
-    blockId: '',
-    visible: false,
-  });
-
-  const [newBlockId, setNewBlockId] = useState('');
 
   const token = useUserStore(state => state.getToken());
 
@@ -120,72 +75,10 @@ const ScriptEditor = ({ id }: { id: string }) => {
     }, 800);
   };
 
-  const onDebugBlock = (id: string) => {
-    setDebugBlockInfo({ blockId: id, visible: true });
-  };
-
-  const onDebugBlockClose = () => {
-    setDebugBlockInfo({ blockId: '', visible: false });
-  };
-
-  const onRemove = async (id: string) => {
-    setRemoveBlockInfo({ blockId: id, visible: true });
-  };
-
-  const handleConfirmDelete = async (id: string | undefined) => {
-    if (!id) return;
-    try {
-      await actions.removeBlock(id, currentShifu?.bid || '');
-      setRemoveBlockInfo({ blockId: '', visible: false });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const onAddBlock = async (index: number, type: BlockType, bid: string) => {
-    const blockId = await actions.addBlock(index, type, bid);
-    if (blockId && ['content', 'input', 'goto', 'options'].includes(type)) {
-      setNewBlockId(blockId);
-      setExpandedBlocks(prev => ({
-        ...prev,
-        [blockId]: true,
-      }));
-    }
-  };
-
-  useEffect(() => {
-    console.log('newBlockId', newBlockId);
-    if (newBlockId && expandedBlocks[newBlockId] === false) {
-      console.log('setExpandedBlocks', newBlockId);
-      setExpandedBlocks(prev => ({
-        ...prev,
-        [newBlockId]: true,
-      }));
-      setNewBlockId('');
-    }
-  }, [newBlockId, expandedBlocks]);
-
-  useEffect(() => {
-    console.log('expandedBlocks', expandedBlocks);
-  }, [expandedBlocks]);
-
-  const onChangeBlockType = async (id: string, llm_enabled: boolean) => {
-    const p = blockProperties[id].properties as ContentDTO;
-    await actions.updateBlockProperties(id, {
-      ...blockProperties[id],
-      properties: {
-        ...p,
-        llm_enabled: llm_enabled,
-      },
-    });
-
-    actions.saveBlocks(currentShifu?.bid || '');
-  };
 
   useEffect(() => {
     actions.loadModels();
     if (id) {
-      console.log('loadChapters', id);
       actions.loadChapters(id);
     }
   }, [id]);
@@ -301,110 +194,10 @@ const ScriptEditor = ({ id }: { id: string }) => {
                   uploadProps={uploadProps}
                 />
               </>
-              // <>
-              //   <DndProvider backend={HTML5Backend}>
-              //     {blocks.map((block, index) => (
-              //       <DraggableBlock
-              //         key={block.bid}
-              //         id={block.bid}
-              //         block={block}
-              //         type={block.type as BlockType}
-              //         index={index}
-              //         moveBlock={(dragIndex: number, hoverIndex: number) => {
-              //           const dragBlock = blocks[dragIndex];
-              //           const newBlocks = [...blocks];
-              //           newBlocks.splice(dragIndex, 1);
-              //           newBlocks.splice(hoverIndex, 0, dragBlock);
-              //           actions.setBlocks(newBlocks);
-              //           actions.autoSaveBlocks(
-              //             currentNode!.bid,
-              //             newBlocks,
-              //             blockContentTypes,
-              //             blockProperties,
-              //             currentShifu?.bid || '',
-              //           );
-              //         }}
-              //         onClickChangeType={onChangeBlockType}
-              //         onClickDebug={onDebugBlock}
-              //         onClickRemove={onRemove}
-              //         disabled={expandedBlocks[block.bid]}
-              //         error={blockErrors[block.bid]}
-              //       >
-              //         <div
-              //           id={block.bid}
-              //           className='relative flex flex-col gap-2 '
-              //         >
-              //           <RenderBlockUI
-              //             block={block}
-              //             onExpandChange={expanded => {
-              //               setExpandedBlocks(prev => ({
-              //                 ...prev,
-              //                 [block.bid]: expanded,
-              //               }));
-              //             }}
-              //             expanded={expandedBlocks[block.bid]}
-              //           />
-              //           <div>
-              //             <AddBlock
-              //               onAdd={(type: BlockType) => {
-              //                 onAddBlock(index + 1, type, id);
-              //               }}
-              //             />
-              //           </div>
-              //         </div>
-              //       </DraggableBlock>
-              //     ))}
-              //   </DndProvider>
-              //   {(currentNode?.depth || 0) > 0 && blocks.length === 0 && (
-              //     <div className='flex flex-row items-center justify-start h-6'>
-              //       <AddBlock
-              //         onAdd={(type: BlockType) => {
-              //           onAddBlock(1, type, id);
-              //         }}
-              //       />
-              //     </div>
-              //   )}
-              // </>
             )}
           </div>
         </div>
       </div>
-      {debugBlockInfo.visible && (
-        <AIDebugDialog
-          blockId={debugBlockInfo.blockId}
-          open={true}
-          onOpenChange={onDebugBlockClose}
-        />
-      )}
-
-      <AlertDialog
-        open={removeBlockInfo.visible}
-        onOpenChange={(visible: boolean) => {
-          setRemoveBlockInfo({
-            ...removeBlockInfo,
-            visible,
-          });
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('renderBlock.confirmDelete')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('renderBlock.confirmDeleteDescription')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('renderBlock.cancel')}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => handleConfirmDelete(removeBlockInfo.blockId)}
-            >
-              {t('renderBlock.confirm')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
