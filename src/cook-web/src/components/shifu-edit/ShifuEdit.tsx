@@ -20,9 +20,8 @@ import '@mdxeditor/editor/style.css';
 import Header from '../header';
 import { BlockDTO, BlockType, ContentDTO } from '@/types/shifu';
 import RenderBlockUI from '../render-ui';
-import { MarkdownFlowEditor, EditMode, UploadProps} from 'markdown-flow-ui'
-// import MarkdownFlowEditor, { EditMode } from '../../../../../../markdown-flow-ui/src/components/MarkdownFlowEditor/MarkdownFlowEditor';
-// import type { UploadProps } from 'markdown-flow-ui/src/components/MarkdownFlowEditor/uploadTypes';
+import { UploadProps} from 'markdown-flow-ui'
+import MarkdownFlowEditor, { EditMode } from '../../../../../../markdown-flow-ui/src/components/MarkdownFlowEditor/MarkdownFlowEditor';
 import AIDebugDialog from '@/components/ai-debug';
 import 'markdown-flow-ui/dist/markdown-flow-ui.css';
 import { cn } from '@/lib/utils';
