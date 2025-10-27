@@ -159,15 +159,14 @@ const MinimalTreeItemComponent = React.forwardRef<
     }
 
     await actions.setCurrentNode(props.item);
-    console.log('loadMdflow')
     await actions.loadMdflow(props.item.bid || '', currentShifu?.bid || '');
     // await actions.loadBlocks(props.item.bid || '', currentShifu?.bid || '');
   };
 
   const handleConfirmDelete = async () => {
     await actions.removeOutline({
-      parent_bid: props.item.parentId,
       ...props.item,
+      parent_bid: props.item.parentId,
     });
     setShowDeleteDialog(false);
   };

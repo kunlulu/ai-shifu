@@ -23,6 +23,7 @@ import {
   LIKE_STATUS,
   BLOCK_TYPE,
   BlockType,
+  checkIsRunning,
 } from '@/c-api/studyV2';
 import { LESSON_STATUS_VALUE } from '@/c-constants/courseConstants';
 import {
@@ -124,6 +125,7 @@ function useChatLogicHook({
       updateUserInfo: state.updateUserInfo,
     })),
   );
+  const isStreamingRef = useRef(false);
   const { updateResetedChapterId, updateResetedLessonId, resetedLessonId } =
     useCourseStore(
       useShallow(state => ({
@@ -134,8 +136,10 @@ function useChatLogicHook({
     );
 
   const [contentList, setContentList] = useState<ChatContentItem[]>([]);
-  const [isTypeFinished, setIsTypeFinished] = useState(false);
+  // const [isTypeFinished, setIsTypeFinished] = useState(false);
+  const isTypeFinishedRef = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
+  const isInitHistoryRef = useRef(true);
   // const [lastInteractionBlock, setLastInteractionBlock] =
   //   useState<ChatContentItem | null>(null);
   const [loadedChapterId, setLoadedChapterId] = useState('');
@@ -247,9 +251,9 @@ function useChatLogicHook({
    */
   const run = useCallback(
     (sseParams: SSEParams) => {
-      sseRef.current?.close();
-      setIsTypeFinished(false);
-
+      // setIsTypeFinished(false);
+      isTypeFinishedRef.current = false;
+      isInitHistoryRef.current = false;
       currentBlockIdRef.current = 'loading';
       currentContentRef.current = '';
       // setLastInteractionBlock(null);
@@ -272,6 +276,27 @@ function useChatLogicHook({
         effectivePreviewMode,
         sseParams,
         async response => {
+          if (response.type === SSE_OUTPUT_TYPE.HEARTBEAT) {
+            if (!isEnd) {
+              currentBlockIdRef.current = 'loading';
+              setTrackedContentList(prev => {
+                const hasLoading = prev.some(
+                  item => item.generated_block_bid === 'loading',
+                );
+                if (hasLoading) {
+                  return prev;
+                }
+                const placeholderItem: ChatContentItem = {
+                  generated_block_bid: 'loading',
+                  content: '',
+                  customRenderBar: () => <LoadingBar />,
+                  type: ChatContentItemType.CONTENT,
+                };
+                return [...prev, placeholderItem];
+              });
+            }
+            return;
+          }
           try {
             const nid = response.generated_block_bid;
             if (
@@ -398,11 +423,12 @@ function useChatLogicHook({
 
                 // Set finished state if no interaction block pending
                 if (!lastInteractionBlockRef.current) {
-                  setIsTypeFinished(true);
+                  // setIsTypeFinished(true);
+                  isTypeFinishedRef.current = true;
                 }
               }
-              currentBlockIdRef.current = null;
-              currentContentRef.current = '';
+              // currentBlockIdRef.current = null;
+              // currentContentRef.current = '';
             } else if (response.type === SSE_OUTPUT_TYPE.PROFILE_UPDATE) {
               updateUserInfo({
                 [response.content.key]: response.content.value,
@@ -413,6 +439,25 @@ function useChatLogicHook({
           }
         },
       );
+      source.addEventListener('readystatechange', () => {
+        // readyState: 0=CONNECTING, 1=OPEN, 2=CLOSED
+        if (source.readyState === 1) {
+          isStreamingRef.current = true;
+        }
+        if (source.readyState === 2) {
+          isStreamingRef.current = false;
+          // when sse close and only one interaction block in current connection, it won't onTypeFinished and append the interaction UI
+          // if(isTypeFinished && lastInteractionBlockRef.current) {
+          //   const item = lastInteractionBlockRef.current
+          //   lastInteractionBlockRef.current = null
+          //   setTrackedContentList(prev => {
+          //     const updatedList = [...prev];
+          //     updatedList.push(item as ChatContentItem);
+          //     return updatedList;
+          //   });
+          // }
+        }
+      });
       sseRef.current = source;
     },
     [
@@ -420,8 +465,10 @@ function useChatLogicHook({
       effectivePreviewMode,
       lessonUpdateResp,
       outlineBid,
+      isTypeFinishedRef,
       setTrackedContentList,
       shifuBid,
+      lessonId,
       trackTrailProgress,
       updateUserInfo,
     ],
@@ -520,7 +567,7 @@ function useChatLogicHook({
 
       // final flush
       flushBuffer();
-      console.log('result:', result);
+      // console.log('result:', result);
       return result;
     },
     [mobileStyle],
@@ -532,10 +579,12 @@ function useChatLogicHook({
   const refreshData = useCallback(async () => {
     setTrackedContentList(() => []);
 
-    setIsTypeFinished(true);
+    // setIsTypeFinished(true);
+    isTypeFinishedRef.current = true;
     lastInteractionBlockRef.current = null;
     setIsLoading(true);
     hasScrolledToBottomRef.current = false;
+    isInitHistoryRef.current = true;
 
     try {
       const recordResp = await getLessonStudyRecord({
@@ -547,7 +596,8 @@ function useChatLogicHook({
       if (recordResp?.records?.length > 0) {
         const contentRecords = mapRecordsToContent(recordResp.records);
         setTrackedContentList(contentRecords);
-        setIsTypeFinished(true);
+        // setIsTypeFinished(true);
+        isTypeFinishedRef.current = true;
         if (chapterId) {
           setLoadedChapterId(chapterId);
         }
@@ -580,7 +630,7 @@ function useChatLogicHook({
     // scrollToBottom,
     setTrackedContentList,
     shifuBid,
-    lessonId,
+    // lessonId,
     effectivePreviewMode,
   ]);
 
@@ -604,7 +654,8 @@ function useChatLogicHook({
         setIsLoading(true);
         if (curr === lessonId) {
           sseRef.current?.close();
-          await refreshData();
+          console.log('resetedLessonId close sse', curr);
+          // await refreshData();
           // updateResetedChapterId(null);
           // @ts-expect-error resetedLessonId can be null per store design
           updateResetedLessonId(null);
@@ -642,8 +693,8 @@ function useChatLogicHook({
   }, [chapterId, refreshData]);
 
   useEffect(() => {
+    console.log('lessonId change close sse', lessonId);
     sseRef.current?.close();
-
     if (!lessonId || resetedLessonId === lessonId) {
       return;
     }
@@ -660,7 +711,8 @@ function useChatLogicHook({
       if (targetChapterId !== loadedChapterId) {
         return;
       }
-      setIsTypeFinished(true);
+      // setIsTypeFinished(true);
+      isTypeFinishedRef.current = true;
       // setLastInteractionBlock(null);
       lastInteractionBlockRef.current = null;
       scrollToLesson(targetLessonId);
@@ -686,11 +738,23 @@ function useChatLogicHook({
   const updateContentListWithUserOperate = useCallback(
     (
       params: OnSendContentParams,
+      blockBid: string,
     ): { newList: ChatContentItem[]; needChangeItemIndex: number } => {
       const newList = [...contentListRef.current];
-      const needChangeItemIndex = newList.findIndex(item =>
+      // first find the item with the same variable value
+      let needChangeItemIndex = newList.findIndex(item =>
         item.content?.includes(params.variableName || ''),
       );
+      // if has multiple items with the same variable value, we need to find the item with the same blockBid
+      const sameVariableValueItems =
+        newList.filter(item =>
+          item.content?.includes(params.variableName || ''),
+        ) || [];
+      if (sameVariableValueItems.length > 1) {
+        needChangeItemIndex = newList.findIndex(
+          item => item.generated_block_bid === blockBid,
+        );
+      }
       if (needChangeItemIndex !== -1) {
         newList[needChangeItemIndex] = {
           ...newList[needChangeItemIndex],
@@ -711,8 +775,14 @@ function useChatLogicHook({
    * onRefresh replays a block from the server using the original inputs.
    */
   const onRefresh = useCallback(
-    (generatedBlockBid: string) => {
-      if (!isTypeFinished) {
+    async (generatedBlockBid: string) => {
+      if (!isTypeFinishedRef.current || isStreamingRef.current) {
+        showOutputInProgressToast();
+        return;
+      }
+
+      const runningRes = await checkIsRunning(shifuBid, outlineBid);
+      if (runningRes.is_running) {
         showOutputInProgressToast();
         return;
       }
@@ -729,14 +799,22 @@ function useChatLogicHook({
       newList.length = needChangeItemIndex;
       setTrackedContentList(newList);
 
-      setIsTypeFinished(false);
+      // setIsTypeFinished(false);
+      isTypeFinishedRef.current = false;
       runRef.current?.({
         input: '',
         input_type: SSE_INPUT_TYPE.NORMAL,
         reload_generated_block_bid: generatedBlockBid,
       });
     },
-    [isTypeFinished, setTrackedContentList, showOutputInProgressToast],
+    [
+      isTypeFinishedRef,
+      outlineBid,
+      shifuBid,
+      isStreamingRef,
+      setTrackedContentList,
+      showOutputInProgressToast,
+    ],
   );
 
   /**
@@ -744,7 +822,7 @@ function useChatLogicHook({
    */
   const onSend = useCallback(
     (content: OnSendContentParams, blockBid: string) => {
-      if (!isTypeFinished) {
+      if (!isTypeFinishedRef.current || isStreamingRef.current) {
         showOutputInProgressToast();
         return;
       }
@@ -772,21 +850,24 @@ function useChatLogicHook({
         return;
       }
 
-
       let isReGenerate = false;
       const currentList = contentListRef.current;
-      if(currentList.length > 0) {
-        isReGenerate = blockBid !== currentList[currentList.length - 1 ].generated_block_bid;
+      if (currentList.length > 0) {
+        isReGenerate =
+          blockBid !== currentList[currentList.length - 1].generated_block_bid;
       }
 
-      const { newList, needChangeItemIndex } =
-        updateContentListWithUserOperate(content);
+      const { newList, needChangeItemIndex } = updateContentListWithUserOperate(
+        content,
+        blockBid,
+      );
 
       if (needChangeItemIndex === -1) {
         setTrackedContentList(newList);
       }
 
-      setIsTypeFinished(false);
+      // setIsTypeFinished(false);
+      isTypeFinishedRef.current = false;
       // scrollToBottom();
       runRef.current?.({
         input: {
@@ -801,7 +882,7 @@ function useChatLogicHook({
     },
     [
       getNextLessonId,
-      isTypeFinished,
+      isTypeFinishedRef,
       lessonId,
       onGoChapter,
       onPayModalOpen,
@@ -820,28 +901,54 @@ function useChatLogicHook({
   const onTypeFinished = useCallback(() => {
     // console.log('🟢 onTypeFinished called', {
     //   hasInteractionBlock: !!lastInteractionBlockRef.current,
-    //   contentListLength: contentListRef.current.length,
-    //   isTypeFinished,
+    //   contentListLength: contentListRef.current,
+    //   isTypeFinishedRef: isTypeFinishedRef.current,
+    //   isStreamingRef: isStreamingRef.current,
+    //   lastInteractionBlockRef: lastInteractionBlockRef.current,
+    //   isInitHistoryRef: isInitHistoryRef.current,
     // });
+    if (isTypeFinishedRef.current && isStreamingRef.current) {
+      // setIsTypeFinished(false);
+      isTypeFinishedRef.current = false;
+
+      currentBlockIdRef.current = 'loading';
+      currentContentRef.current = '';
+      // setLastInteractionBlock(null);
+      lastInteractionBlockRef.current = null;
+      setTrackedContentList(prev => {
+        const placeholderItem: ChatContentItem = {
+          generated_block_bid: currentBlockIdRef.current || '',
+          content: '',
+          customRenderBar: () => <LoadingBar />,
+          type: ChatContentItemType.CONTENT,
+        };
+        return [...prev, placeholderItem];
+      });
+      return;
+    }
 
     // Only process if:
     // 1. There's a pending interaction block
     // 2. Currently in typing state (not already finished)
-    if (!lastInteractionBlockRef.current || !isTypeFinished) {
+    if (
+      !isTypeFinishedRef.current ||
+      isStreamingRef.current ||
+      isInitHistoryRef.current
+    ) {
+      // if (!lastInteractionBlockRef.current || !isTypeFinished || isStreamingRef.current) {
       // console.log('🟢 onTypeFinished skipped - no pending interaction or already finished');
       return;
     }
 
     if (contentListRef.current.length > 0) {
       // Capture the interaction block value before async operations
-      const interactionBlockToAdd = lastInteractionBlockRef.current;
+      const interactionBlockToAdd = lastInteractionBlockRef.current || null;
 
       // Clear the ref immediately to prevent reuse
       lastInteractionBlockRef.current = null;
 
       setTrackedContentList(prev => {
         const updatedList = [...prev];
-
         // Find the last CONTENT type item and append AskButton to its content
         // Set isHistory=true to prevent triggering typewriter effect for AskButton
         if (mobileStyle) {
@@ -865,24 +972,42 @@ function useChatLogicHook({
         // Add interaction blocks - use captured value instead of ref
         const lastItem = updatedList[updatedList.length - 1];
         const gid = lastItem.generated_block_bid;
-        updatedList.push(
-          {
+        if (lastItem.type !== ChatContentItemType.INTERACTION) {
+          updatedList.push({
             parent_block_bid: gid,
             generated_block_bid: '',
             content: '',
             like_status: LIKE_STATUS.NONE,
             type: ChatContentItemType.LIKE_STATUS,
-          },
-          interactionBlockToAdd,
-        );
+          });
+        }
+        if (interactionBlockToAdd) {
+          updatedList.push(interactionBlockToAdd);
+        } else {
+          if (lastItem.type !== ChatContentItemType.INTERACTION) {
+            sseRef.current?.close();
+            runRef.current?.({
+              input: '',
+              input_type: SSE_INPUT_TYPE.NORMAL,
+            });
+          }
+        }
 
         return updatedList;
       });
 
-      setIsTypeFinished(true);
+      // setIsTypeFinished(true);
+      isTypeFinishedRef.current = true;
       // console.log('🟢 onTypeFinished processed - interaction block added');
     }
-  }, [isTypeFinished, mobileStyle, setTrackedContentList, t]);
+  }, [
+    isTypeFinishedRef,
+    mobileStyle,
+    setTrackedContentList,
+    t,
+    // sseRef,
+    // runRef,
+  ]);
 
   /**
    * toggleAskExpanded toggles the expanded state of the ask panel for a specific block

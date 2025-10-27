@@ -54,6 +54,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
     isLoading,
     variables,
     systemVariables,
+    currentNode,
   } = useShifu();
 
   const token = useUserStore(state => state.getToken());
@@ -149,13 +150,13 @@ const ScriptEditor = ({ id }: { id: string }) => {
         </div>
         <div className='flex-1 overflow-auto relative text-sm'>
           <div className='p-8 gap-4 flex flex-col max-w-[900px] mx-auto h-full w-full'>
-            {isLoading ? (
-              <div className='h-40 flex items-center justify-center'>
-                <Loading />
-              </div>
-            ) : (
-              <>
-                <div className='flex items-center justify-between gap-4'>
+            {
+              isLoading ? (
+                <div className='h-40 flex items-center justify-center'>
+                  <Loading />
+                </div>
+              ) : currentNode?.depth && currentNode.depth > 0 ? (
+                <>
                   <div className='flex items-center'>
                     <h2 className='text-base font-semibold text-foreground'>
                       {t('shifu.creationArea.title')}
@@ -183,7 +184,6 @@ const ScriptEditor = ({ id }: { id: string }) => {
                       ))}
                     </TabsList>
                   </Tabs>
-                </div>
                 <MarkdownFlowEditor 
                   locale={profile?.language as "en-US" | "zh-CN"} 
                   content={mdflow} 
@@ -194,7 +194,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
                   uploadProps={uploadProps}
                 />
               </>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

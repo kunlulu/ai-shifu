@@ -29,7 +29,6 @@ export const CourseSection = ({
 }) => {
   const { mobileStyle } = useContext(AppContext);
   const isLoggedIn = useUserStore(state => state.isLoggedIn);
-  const userInfo = useUserStore(state => state.userInfo);
   const { openPayModal } = useCourseStore(
     useShallow(state => ({
       openPayModal: state.openPayModal,
@@ -57,11 +56,15 @@ export const CourseSection = ({
       return;
     }
 
-    if (type === LEARNING_PERMISSION.TRIAL && !isLoggedIn) {
+    if (
+      (type === LEARNING_PERMISSION.TRIAL ||
+        type === LEARNING_PERMISSION.NORMAL) &&
+      !isLoggedIn
+    ) {
       window.location.href = `/login?redirect=${encodeURIComponent(location.pathname)}`;
       return;
     }
-    console.log('type', type, is_paid);
+
     if (type === LEARNING_PERMISSION.NORMAL && !is_paid) {
       openPayModal({
         type,
@@ -77,11 +80,11 @@ export const CourseSection = ({
   }, [
     onTrySelect,
     id,
+    is_paid,
     status_value,
     onSelect,
     type,
     isLoggedIn,
-    userInfo,
     openPayModal,
     chapterId,
   ]);

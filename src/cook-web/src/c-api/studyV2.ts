@@ -54,6 +54,7 @@ export const SSE_OUTPUT_TYPE = {
   TEXT_END: 'text_end',
   INTERACTION: 'interaction',
   OUTLINE_ITEM_UPDATE: 'outline_item_update',
+  HEARTBEAT: 'heartbeat',
   VARIABLE_UPDATE: 'variable_update',
   PROFILE_UPDATE: 'update_user_info', // TODO: update user_info
 } as const;
@@ -107,6 +108,11 @@ export interface PostGeneratedContentActionData {
   action: LikeStatus;
 }
 
+export interface RunningResult {
+  is_running: boolean;
+  running_time: number;
+}
+
 export const getRunMessage = (
   shifu_bid: string,
   outline_bid: string,
@@ -154,27 +160,15 @@ export const getRunMessage = (
     console.error('[SSE error]', e);
   });
 
-  source.addEventListener('open', () => {
-    console.log('[SSE connection opened]');
-  });
-
   // sse.js may not support 'close' event, use readystatechange instead
   source.addEventListener('readystatechange', () => {
     console.log('[SSE readystatechange]', source.readyState);
     // readyState: 0=CONNECTING, 1=OPEN, 2=CLOSED
     if (source.readyState === 2) {
-      console.log('[SSE connection closed via readystatechange]');
+      console.log('[SSE connection close]');
+    } else if (source.readyState === 1) {
+      console.log('[SSE connection open]');
     }
-  });
-
-  // Attempt standard close event (may not trigger)
-  source.addEventListener('close', () => {
-    console.log('[SSE connection closed via close event]');
-  });
-
-  // Add abort event listener (if supported)
-  source.addEventListener('abort', () => {
-    console.log('[SSE connection aborted]');
   });
 
   source.stream();
@@ -223,3 +217,11 @@ export async function postGeneratedContentAction(
   // Use standard request wrapper; it will return response.data when code===0
   return request.post(url, params);
 }
+
+export const checkIsRunning = async (
+  shifu_bid: string,
+  outline_bid: string,
+): Promise<RunningResult> => {
+  const url = `/api/learn/shifu/${shifu_bid}/run/${outline_bid}`;
+  return request.get(url);
+};

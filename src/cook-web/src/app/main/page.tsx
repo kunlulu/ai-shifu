@@ -47,7 +47,7 @@ const ShifuCard = ({
     >
       <CardContent className='p-4 cursor-pointer'>
         <div className='flex flex-row items-center justify-between'>
-          <div className='flex flex-row items-center mb-2'>
+          <div className='flex flex-row items-center mb-2 w-full'>
             <div className='p-2 h-10 w-10 rounded-lg bg-primary/10 mr-4 flex items-center justify-center shrink-0'>
               {image && (
                 <img
@@ -59,12 +59,14 @@ const ShifuCard = ({
               {!image && <TrophyIcon className='w-6 h-6 text-primary' />}
             </div>
 
-            <h3 className='font-medium text-gray-900 leading-5'>{title}</h3>
+            <h3 className='font-medium text-gray-900 leading-5 whitespace-nowrap overflow-hidden text-ellipsis'>
+              {title}
+            </h3>
           </div>
           {isFavorite && <StarIcon className='w-5 h-5 text-yellow-400' />}
         </div>
         <div>
-          <p className='mt-1 text-sm text-gray-500 line-clamp-3'>
+          <p className='mt-1 text-sm text-gray-500 line-clamp-3 break-words break-all'>
             {description}
           </p>
         </div>
@@ -77,7 +79,7 @@ const ScriptManagementPage = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const isInitialized = useUserStore(state => state.isInitialized);
-  const isLoggedIn = useUserStore(state => state.isLoggedIn);
+  const isGuest = useUserStore(state => state.isGuest);
   const [activeTab, setActiveTab] = useState('all');
   const [shifus, setShifus] = useState<Shifu[]>([]);
   const [loading, setLoading] = useState(false);
@@ -182,14 +184,14 @@ const ScriptManagementPage = () => {
 
   // Centralized login check - redirect if not logged in after initialization
   useEffect(() => {
-    if (isInitialized && !isLoggedIn) {
+    if (isInitialized && isGuest) {
       const currentPath = encodeURIComponent(
         window.location.pathname + window.location.search,
       );
       window.location.href = `/login?redirect=${currentPath}`;
       return;
     }
-  }, [isInitialized, isLoggedIn]);
+  }, [isInitialized, isGuest]);
 
   // Fetch data when user is initialized
   useEffect(() => {

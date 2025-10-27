@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { Send, Maximize2, Minimize2, X } from 'lucide-react';
 import { ContentRender } from 'markdown-flow-ui';
 import {
+  checkIsRunning,
   getRunMessage,
   SSE_INPUT_TYPE,
   SSE_OUTPUT_TYPE,
@@ -78,7 +79,7 @@ export default function AskBlock({
     });
   }, [t]);
 
-  const handleSendCustomQuestion = useCallback(() => {
+  const handleSendCustomQuestion = useCallback(async () => {
     const question = inputRef.current?.value.trim() || '';
     if (isStreamingRef.current) {
       showOutputInProgressToast();
@@ -90,6 +91,11 @@ export default function AskBlock({
       return;
     }
     if (!question) {
+      return;
+    }
+    const runningRes = await checkIsRunning(shifu_bid, outline_bid);
+    if (runningRes.is_running) {
+      showOutputInProgressToast();
       return;
     }
 
@@ -138,8 +144,11 @@ export default function AskBlock({
       },
       async response => {
         try {
-          setIsTypeFinished(false);
           console.log('SSE response:', response);
+          if (response.type === SSE_OUTPUT_TYPE.HEARTBEAT) {
+            return;
+          }
+          setIsTypeFinished(false);
 
           if (response.type === SSE_OUTPUT_TYPE.CONTENT) {
             // Streaming content
@@ -373,7 +382,7 @@ export default function AskBlock({
                   defaultButtonText={''}
                   defaultInputText={''}
                   enableTypewriter={message.isStreaming === true}
-                  typingSpeed={60}
+                  typingSpeed={20}
                   readonly={true}
                   onTypeFinished={() => setIsTypeFinished(true)}
                 />

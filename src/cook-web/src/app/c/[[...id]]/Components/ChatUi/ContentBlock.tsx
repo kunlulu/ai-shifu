@@ -42,9 +42,12 @@ const ContentBlock = memo(
       delay: 600,
     });
 
-    const _onSend = useCallback((content: OnSendContentParams) => {
-      onSend(content, blockBid);
-    }, [onSend, blockBid]);
+    const _onSend = useCallback(
+      (content: OnSendContentParams) => {
+        onSend(content, blockBid);
+      },
+      [onSend, blockBid],
+    );
 
     return (
       <div
@@ -52,7 +55,7 @@ const ContentBlock = memo(
         {...(mobileStyle ? longPressEvent : {})}
       >
         <ContentRender
-          typingSpeed={60}
+          typingSpeed={20}
           enableTypewriter={!item.isHistory}
           content={item.content || ''}
           onClickCustomButtonAfterContent={handleClick}
