@@ -19,7 +19,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import './shifuEdit.scss';
 import Loading from '../loading';
 import { useTranslation } from 'react-i18next';
-import i18n from '@/i18n';
+import i18n, { normalizeLanguage } from '@/i18n';
 import { getStringEnv } from '@/c-utils/envUtils';
 
 
@@ -31,11 +31,11 @@ const ScriptEditor = ({ id }: { id: string }) => {
   const editModeOptions = useMemo(
     () => [
       {
-        label: t('shifu.creationArea.modeText'),
+        label: t('module.shifu.creationArea.modeText'),
         value: 'quickEdit' as EditMode,
       },
       {
-        label: t('shifu.creationArea.modeCode'),
+        label: t('module.shifu.creationArea.modeCode'),
         value: 'codeEdit' as EditMode,
       },
     ],
@@ -163,39 +163,43 @@ const ScriptEditor = ({ id }: { id: string }) => {
                       {t('shifu.creationArea.title')}
                     </h2>
                     <p className='px-2 text-xs leading-3 text-[rgba(0,0,0,0.45)]'>
-                      {t('shifu.creationArea.description')}
+                      {t('module.shifu.creationArea.description')}
                     </p>
-                  </div>
-                  <Tabs
+                    <Tabs
                     value={editMode}
                     onValueChange={value => setEditMode(value as EditMode)}
                     className='ml-auto'
                   >
                     <TabsList className='h-8 rounded-full bg-muted/60 p-0 text-xs'>
-                      {editModeOptions.map(option => (
-                        <TabsTrigger
-                          key={option.value}
-                          value={option.value}
-                          className={cn(
-                            'mode-btn rounded-full px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground',
-                          )}
-                        >
-                          {option.label}
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
-                  </Tabs>
-                <MarkdownFlowEditor 
-                  locale={profile?.language as "en-US" | "zh-CN"} 
-                  content={mdflow} 
-                  variables={variablesList}
-                  systemVariables={systemVariablesList as any[]}
-                  onChange={onChangeMdflow}
-                  editMode={editMode}
-                  uploadProps={uploadProps}
-                />
-              </>
-            ) : null}
+                        {editModeOptions.map(option => (
+                          <TabsTrigger
+                            key={option.value}
+                            value={option.value}
+                            className={cn(
+                              'mode-btn rounded-full px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground',
+                            )}
+                          >
+                            {option.label}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </Tabs>
+                  </div>
+                  <MarkdownFlowEditor 
+                  locale={
+                      normalizeLanguage(
+                        (i18n.resolvedLanguage ?? i18n.language) as string,
+                      ) as 'en-US' | 'zh-CN'
+                    }
+                    content={mdflow} 
+                    variables={variablesList}
+                    systemVariables={systemVariablesList as any[]}
+                    onChange={onChangeMdflow}
+                    editMode={editMode}
+                    uploadProps={uploadProps}
+                  />
+                </>
+              ) : null}
           </div>
         </div>
       </div>
