@@ -433,6 +433,8 @@ function useChatLogicHook({
                   isTypeFinishedRef.current = true;
                 }
               }
+              // if break, means the block is finished,
+              // maybe sse is not closed, it will let prevText not null, so we need to clear it
               if(response.type === SSE_OUTPUT_TYPE.BREAK){
                 // console.log('=====BREAK=====', response)
                 // currentBlockIdRef.current = null;
