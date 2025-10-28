@@ -284,6 +284,7 @@ function useChatLogicHook({
                   item => item.generated_block_bid === 'loading',
                 );
                 if (hasLoading) {
+                  console.log('接收到心跳，但是不增加loading', prev)
                   return prev;
                 }
                 const placeholderItem: ChatContentItem = {
@@ -292,6 +293,7 @@ function useChatLogicHook({
                   customRenderBar: () => <LoadingBar />,
                   type: ChatContentItemType.CONTENT,
                 };
+                console.log('接收到心跳，增加loading', [...prev, placeholderItem])
                 return [...prev, placeholderItem];
               });
             }
@@ -907,20 +909,28 @@ function useChatLogicHook({
     //   isInitHistoryRef: isInitHistoryRef.current,
     // });
     if (isTypeFinishedRef.current && isStreamingRef.current) {
+      console.log('打字结束', contentListRef.current)
       // setIsTypeFinished(false);
       isTypeFinishedRef.current = false;
-
       currentBlockIdRef.current = 'loading';
       currentContentRef.current = '';
       // setLastInteractionBlock(null);
       lastInteractionBlockRef.current = null;
       setTrackedContentList(prev => {
+        const hasLoading = prev.some(
+          item => item.generated_block_bid === 'loading',
+        );
+        if (hasLoading) {
+          console.log('打字结束，但是不增加loading', prev)
+          return prev;
+        }
         const placeholderItem: ChatContentItem = {
-          generated_block_bid: currentBlockIdRef.current || '',
+          generated_block_bid: 'loading',
           content: '',
           customRenderBar: () => <LoadingBar />,
           type: ChatContentItemType.CONTENT,
         };
+        console.log('打字结束，增加loading', [...prev, placeholderItem])
         return [...prev, placeholderItem];
       });
       return;
@@ -991,7 +1001,7 @@ function useChatLogicHook({
             });
           }
         }
-
+        console.log('updateList', updatedList)
         return updatedList;
       });
 
