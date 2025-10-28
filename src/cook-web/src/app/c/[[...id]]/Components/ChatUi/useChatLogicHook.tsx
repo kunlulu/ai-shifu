@@ -359,9 +359,9 @@ function useChatLogicHook({
                     }
                     return item;
                   });
-                  console.log('接收content hasItem', hasItem, blockId)
+                  // console.log('接收content hasItem', hasItem, blockId)
                   if (!hasItem) {
-                    console.log('增加content', nextText)
+                    // console.log('增加content', nextText)
                     updatedList.push({
                       generated_block_bid: blockId,
                       content: nextText,
@@ -372,7 +372,7 @@ function useChatLogicHook({
                       type: ChatContentItemType.CONTENT,
                     });
                   }
-                  console.log('updatedList', updatedList)
+                  // console.log('updatedList', updatedList)
                   return updatedList;
                 });
               }
@@ -1010,7 +1010,7 @@ function useChatLogicHook({
             });
           }
         }
-        console.log('updateList', updatedList)
+        // console.log('updateList', updatedList)
         return updatedList;
       });
 
