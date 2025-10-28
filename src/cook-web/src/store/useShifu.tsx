@@ -272,7 +272,6 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
       : null;
 
     try {
-
       removeOutlineFromTree(outline);
       cleanupCatalogData(outline);
       await deleteOutlineAPI(outline);
