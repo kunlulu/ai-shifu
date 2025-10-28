@@ -693,7 +693,6 @@ function useChatLogicHook({
   }, [chapterId, refreshData]);
 
   useEffect(() => {
-    console.log('lessonId change close sse', lessonId);
     sseRef.current?.close();
     if (!lessonId || resetedLessonId === lessonId) {
       return;
