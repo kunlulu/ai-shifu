@@ -395,12 +395,6 @@
     "searchVariable": "Search variable...",
     "text": "String"
   },
-  "renderBlock": {
-    "cancel": "Cancel",
-    "confirm": "Confirm",
-    "confirmDelete": "Confirm Delete",
-    "confirmDeleteDescription": "This operation will cause the current content to be lost. Are you sure?"
-  },
   "renderUi": {
     "button": "Button",
     "buttonKey": "Button Key",
@@ -444,20 +438,13 @@
     "settingTitle": "Personal Info"
   },
   "shifu": {
-    "aiBlock": "AI Block",
     "creationArea": {
       "description": "Describe the chapter you want, or leave it blank and let AI take the lead.",
-      "hint": "Default prompt goes here. Type / to discover more options.",
-      "modeCode": "Raw",
-      "modeText": "Visual",
+      "modeCode": "Text",
+      "modeText": "Raw",
       "title": "Creation Area"
     },
-    "debug": "Debug",
-    "delete": "Delete",
-    "newChapter": "Add Chapter",
-    "regularBlock": "Regular Block",
-    "setAsAiBlock": "Set as AI Block",
-    "setAsRegularBlock": "Set as Regular Block"
+    "newChapter": "Add Chapter"
   },
   "shifuSetting": {
     "addKeyword": "Add Keyword",

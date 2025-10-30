@@ -395,12 +395,6 @@
     "searchVariable": "搜索变量...",
     "text": "字符串"
   },
-  "renderBlock": {
-    "cancel": "取消",
-    "confirm": "确认",
-    "confirmDelete": "确认删除",
-    "confirmDeleteDescription": "您的操作将会造成当前内容的丢失，是否确认？"
-  },
   "renderUi": {
     "button": "按钮",
     "buttonKey": "按钮key",
@@ -444,20 +438,13 @@
     "settingTitle": "个人信息"
   },
   "shifu": {
-    "aiBlock": "AI模块",
     "creationArea": {
       "description": "写清想要的章节，也可留白，让 AI 自己演绎",
-      "hint": "默认输入 AI 提示词，输入 / 唤起更多",
       "modeCode": "文本",
       "modeText": "可视",
       "title": "创作区"
     },
-    "debug": "调试",
-    "delete": "删除",
-    "newChapter": "添加章",
-    "regularBlock": "固定模块",
-    "setAsAiBlock": "设为AI模块",
-    "setAsRegularBlock": "设为固定模块"
+    "newChapter": "添加章"
   },
   "shifuSetting": {
     "addKeyword": "添加关键词",
