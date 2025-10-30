@@ -1,16 +1,13 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/Button';
-import {
-  Plus,
-  ListCollapse,
-} from 'lucide-react';
+import { Plus, ListCollapse } from 'lucide-react';
 import { useShifu } from '@/store';
 import { useUserStore } from '@/store';
 import OutlineTree from '@/components/outline-tree';
 import '@mdxeditor/editor/style.css';
 import Header from '../header';
-import { UploadProps, MarkdownFlowEditor, EditMode } from 'markdown-flow-ui'
+import { UploadProps, MarkdownFlowEditor, EditMode } from 'markdown-flow-ui';
 // import { UploadProps } from '../../../../../../markdown-flow-ui/src/components/MarkdownFlowEditor/uploadTypes';
 // import MarkdownFlowEditor, { EditMode } from '../../../../../../markdown-flow-ui/src/components/MarkdownFlowEditor/MarkdownFlowEditor';
 import 'markdown-flow-ui/dist/markdown-flow-ui.css';
@@ -23,7 +20,6 @@ import i18n, { normalizeLanguage } from '@/i18n';
 import { useEnvStore } from '@/c-store';
 import { EnvStoreState } from '@/c-types/store';
 import { getBoolEnv } from '@/c-utils/envUtils';
-
 
 const initializeEnvData = async (): Promise<void> => {
   const {
@@ -90,7 +86,6 @@ const initializeEnvData = async (): Promise<void> => {
   await fetchEnvData();
 };
 
-
 const ScriptEditor = ({ id }: { id: string }) => {
   const { t } = useTranslation();
   const profile = useUserStore(state => state.userInfo);
@@ -118,7 +113,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
       }
     }
   }, [profile]);
-  
+
   const {
     mdflow,
     chapters,
@@ -129,7 +124,6 @@ const ScriptEditor = ({ id }: { id: string }) => {
     currentShifu,
     currentNode,
   } = useShifu();
-
 
   const token = useUserStore(state => state.getToken());
   const baseURL = useEnvStore((state: EnvStoreState) => state.baseURL);
@@ -155,7 +149,6 @@ const ScriptEditor = ({ id }: { id: string }) => {
     }, 800);
   };
 
-
   useEffect(() => {
     actions.loadModels();
     if (id) {
@@ -175,7 +168,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
       label: variable.label,
     }));
   }, [systemVariables]);
-  
+
   const onChangeMdflow = (value: string) => {
     actions.setCurrentMdflow(value);
     // Pass snapshot so autosave persists pre-switch content + chapter id
@@ -237,55 +230,54 @@ const ScriptEditor = ({ id }: { id: string }) => {
         </div>
         <div className='flex-1 overflow-auto relative text-sm'>
           <div className='p-8 gap-4 flex flex-col max-w-[900px] mx-auto h-full w-full'>
-            {
-              isLoading ? (
-                <div className='h-40 flex items-center justify-center'>
-                  <Loading />
-                </div>
-              ) : currentNode?.depth && currentNode.depth > 0 ? (
-                <>
-                  <div className='flex items-center'>
-                    <h2 className='text-base font-semibold text-foreground'>
-                      {t('module.shifu.creationArea.title')}
-                    </h2>
-                    <p className='px-2 text-xs leading-3 text-[rgba(0,0,0,0.45)]'>
-                      {t('module.shifu.creationArea.description')}
-                    </p>
-                    <Tabs
+            {isLoading ? (
+              <div className='h-40 flex items-center justify-center'>
+                <Loading />
+              </div>
+            ) : currentNode?.depth && currentNode.depth > 0 ? (
+              <>
+                <div className='flex items-center'>
+                  <h2 className='text-base font-semibold text-foreground'>
+                    {t('module.shifu.creationArea.title')}
+                  </h2>
+                  <p className='px-2 text-xs leading-3 text-[rgba(0,0,0,0.45)]'>
+                    {t('module.shifu.creationArea.description')}
+                  </p>
+                  <Tabs
                     value={editMode}
                     onValueChange={value => setEditMode(value as EditMode)}
                     className='ml-auto'
                   >
                     <TabsList className='h-8 rounded-full bg-muted/60 p-0 text-xs'>
-                        {editModeOptions.map(option => (
-                          <TabsTrigger
-                            key={option.value}
-                            value={option.value}
-                            className={cn(
-                              'mode-btn rounded-full px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground',
-                            )}
-                          >
-                            {option.label}
-                          </TabsTrigger>
-                        ))}
-                      </TabsList>
-                    </Tabs>
-                  </div>
-                  <MarkdownFlowEditor
-                    locale={
-                      normalizeLanguage(
-                        (i18n.resolvedLanguage ?? i18n.language) as string,
-                      ) as 'en-US' | 'zh-CN'
-                    }
-                    content={mdflow} 
-                    variables={variablesList}
-                    systemVariables={systemVariablesList as any[]}
-                    onChange={onChangeMdflow}
-                    editMode={editMode}
-                    uploadProps={uploadProps}
-                  />
-                </>
-              ) : null}
+                      {editModeOptions.map(option => (
+                        <TabsTrigger
+                          key={option.value}
+                          value={option.value}
+                          className={cn(
+                            'mode-btn rounded-full px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground',
+                          )}
+                        >
+                          {option.label}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </Tabs>
+                </div>
+                <MarkdownFlowEditor
+                  locale={
+                    normalizeLanguage(
+                      (i18n.resolvedLanguage ?? i18n.language) as string,
+                    ) as 'en-US' | 'zh-CN'
+                  }
+                  content={mdflow}
+                  variables={variablesList}
+                  systemVariables={systemVariablesList as any[]}
+                  onChange={onChangeMdflow}
+                  editMode={editMode}
+                  uploadProps={uploadProps}
+                />
+              </>
+            ) : null}
           </div>
         </div>
       </div>

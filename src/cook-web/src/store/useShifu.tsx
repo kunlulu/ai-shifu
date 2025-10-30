@@ -90,7 +90,9 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
   const [mdflow, setMdflow] = useState<string>('');
   const [variables, setVariables] = useState<string[]>([]);
   const currentMdflow = useRef<string>('');
-  const [systemVariables, setSystemVariables] = useState<Record<string, string>[]>([]);
+  const [systemVariables, setSystemVariables] = useState<
+    Record<string, string>[]
+  >([]);
   // Debounced autosave for mdflow; kept stable via ref
   const debouncedAutoSaveRef = useRef(
     debounce(async (payload?: SaveMdflowPayload) => {
@@ -329,7 +331,7 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
     setMdflow(mdflow);
     setCurrentMdflow(mdflow);
     if (mdflow) {
-        parseMdflow(mdflow, shifuId, outlineId)
+      parseMdflow(mdflow, shifuId, outlineId);
     } else {
       setVariables([]);
       setSystemVariables([]);
@@ -1001,18 +1003,23 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
     });
   };
 
-
-  const parseMdflow = async (value: string, shifuId: string, outlineId: string) => {  
+  const parseMdflow = async (
+    value: string,
+    shifuId: string,
+    outlineId: string,
+  ) => {
     setIsLoading(true);
     try {
       const list = await api.getProfileItemDefinitions({
         parent_id: shifuId,
         type: 'all',
       });
-      const sysVariables = list.filter(item => item.profile_scope === 'system').map(item => ({
-        name: item.profile_key,
-        label: item.profile_remark,
-      }));
+      const sysVariables = list
+        .filter(item => item.profile_scope === 'system')
+        .map(item => ({
+          name: item.profile_key,
+          label: item.profile_remark,
+        }));
 
       setSystemVariables(sysVariables);
 
@@ -1022,14 +1029,16 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
         data: value,
       });
 
-      const customVariables = result.variables.filter(item => !sysVariables.some(sysItem => sysItem.name === item));
+      const customVariables = result.variables.filter(
+        item => !sysVariables.some(sysItem => sysItem.name === item),
+      );
 
       setVariables(customVariables || []);
     } catch (error) {
       console.error(error);
       setSystemVariables([]);
       setVariables([]);
-    }finally{
+    } finally {
       setIsLoading(false);
     }
   };
@@ -1046,7 +1055,6 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
     });
     setLastSaveTime(new Date());
   };
-  
 
   const setCurrentMdflow = (value: string) => {
     currentMdflow.current = value;

@@ -448,9 +448,9 @@
     "creationArea": {
       "description": "写清想要的章节，也可留白，让 AI 自己演绎",
       "hint": "默认输入 AI 提示词，输入 / 唤起更多",
-      "title": "创作区",
+      "modeCode": "文本",
       "modeText": "可视",
-      "modeCode": "文本"
+      "title": "创作区"
     },
     "debug": "调试",
     "delete": "删除",
@@ -487,11 +487,6 @@
     "shifuTemperatureFormat": "温度必须为有效数字格式",
     "shifuTemperatureMax": "温度不能超过2",
     "shifuTemperatureMin": "温度不能小于0",
-    "temperatureHint": "建议在 0-2 范围内调整，数值越高越有创意",
-    "systemPrompt": "系统提示词",
-    "systemPromptHint": "对象、语气、风格，注意衔接整体内容",
-    "systemPromptPlaceholder": "300字以内",
-    "systemPromptMaxLength": "系统提示词不能超过300个字符",
     "supportedFormats": "只支持jpg和png格式",
     "systemPrompt": "系统提示词",
     "systemPromptHint": "对象、语气、风格，注意衔接整体内容",
