@@ -327,7 +327,6 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
       shifu_bid: shifuId,
       outline_bid: outlineId,
     });
-    console.log('mdflow', mdflow);
     setMdflow(mdflow);
     setCurrentMdflow(mdflow);
     if (mdflow) {
@@ -1047,7 +1046,6 @@ export const ShifuProvider: React.FC<{ children: ReactNode }> = ({
     const shifu_bid = payload?.shifu_bid ?? currentShifu?.bid ?? '';
     const outline_bid = payload?.outline_bid ?? (currentNode?.bid || '');
     const data = payload?.data ?? currentMdflow.current;
-    console.log('saveMdflow', outline_bid, data);
     await api.saveMdflow({
       shifu_bid,
       outline_bid,
