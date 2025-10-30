@@ -257,7 +257,6 @@ function useChatLogicHook({
       currentContentRef.current = '';
       // setLastInteractionBlock(null);
       lastInteractionBlockRef.current = null;
-      console.log('===========run！！！！！！！！！！====================')
       setTrackedContentList(prev => {
         const hasLoading = prev.some(
           item => item.generated_block_bid === 'loading',
@@ -265,7 +264,6 @@ function useChatLogicHook({
         if (hasLoading) {
           return prev;
         }
-        console.log("=====❤️run插入loading=====")
         const placeholderItem: ChatContentItem = {
           generated_block_bid: 'loading',
           content: '',
@@ -318,7 +316,6 @@ function useChatLogicHook({
                     const newList = pre.filter(
                       item => item.generated_block_bid !== 'loading',
                     );
-                    console.log('=======❎关闭loading newList=====', newList)
                     return newList;
                   });
                   currentBlockIdRef.current = nid;
@@ -460,7 +457,6 @@ function useChatLogicHook({
                 // Add interaction blocks - use captured value instead of ref
                 const lastItem = updatedList[updatedList.length - 1];
                 const gid = lastItem?.generated_block_bid || '';
-                console.log('lastItem', updatedList,lastItem)
                 if (lastItem&&lastItem.type === ChatContentItemType.CONTENT) {
                   updatedList.push({
                     parent_block_bid: gid,
