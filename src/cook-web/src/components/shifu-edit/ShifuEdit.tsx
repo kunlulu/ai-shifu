@@ -22,6 +22,73 @@ import { useTranslation } from 'react-i18next';
 import i18n, { normalizeLanguage } from '@/i18n';
 import { useEnvStore } from '@/c-store';
 import { EnvStoreState } from '@/c-types/store';
+import { getBoolEnv } from '@/c-utils/envUtils';
+
+
+const initializeEnvData = async (): Promise<void> => {
+  const {
+    updateAppId,
+    updateCourseId,
+    updateAlwaysShowLessonTree,
+    updateUmamiWebsiteId,
+    updateUmamiScriptSrc,
+    updateEruda,
+    updateBaseURL,
+    updateLogoHorizontal,
+    updateLogoVertical,
+    updateEnableWxcode,
+    updateSiteUrl,
+  } = useEnvStore.getState() as EnvStoreState;
+
+  const fetchEnvData = async (): Promise<void> => {
+    try {
+      const res = await fetch('/api/config', {
+        method: 'GET',
+        referrer: 'no-referrer',
+      });
+      if (res.ok) {
+        const data = await res.json();
+
+        // await updateCourseId(data?.courseId || '');
+        await updateAppId(data?.wechatAppId || '');
+        await updateAlwaysShowLessonTree(data?.alwaysShowLessonTree || 'false');
+        await updateUmamiWebsiteId(data?.umamiWebsiteId || '');
+        await updateUmamiScriptSrc(data?.umamiScriptSrc || '');
+        await updateEruda(data?.enableEruda || 'false');
+        await updateBaseURL(data?.apiBaseUrl || '');
+        await updateLogoHorizontal(data?.logoHorizontal || '');
+        await updateLogoVertical(data?.logoVertical || '');
+        await updateEnableWxcode(data?.enableWechatCode?.toString() || 'true');
+        await updateSiteUrl(data?.siteHost || '');
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      const { umamiWebsiteId, umamiScriptSrc } =
+        useEnvStore.getState() as EnvStoreState;
+      if (getBoolEnv('eruda')) {
+        import('eruda').then(eruda => eruda.default.init());
+      }
+
+      const loadUmamiScript = (): void => {
+        if (umamiScriptSrc && umamiWebsiteId) {
+          const script = document.createElement('script');
+          script.defer = true;
+          script.src = umamiScriptSrc;
+          script.setAttribute('data-website-id', umamiWebsiteId);
+          document.head.appendChild(script);
+        }
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadUmamiScript);
+      } else {
+        loadUmamiScript();
+      }
+    }
+  };
+  await fetchEnvData();
+};
 
 
 const ScriptEditor = ({ id }: { id: string }) => {
@@ -66,6 +133,10 @@ const ScriptEditor = ({ id }: { id: string }) => {
 
   const token = useUserStore(state => state.getToken());
   const baseURL = useEnvStore((state: EnvStoreState) => state.baseURL);
+
+  useEffect(() => {
+    void initializeEnvData();
+  }, []);
 
   const onAddChapter = () => {
     actions.addChapter({
@@ -115,14 +186,16 @@ const ScriptEditor = ({ id }: { id: string }) => {
     });
   };
 
-  const uploadProps: UploadProps = useMemo(() => ({
-    // TODO: should use baseURL
-    action: `${window.location.origin}/api/shifu/upfile`,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Token: token,
-    },
-  }), [token, baseURL]);
+  const uploadProps: UploadProps = useMemo(() => {
+    const endpoint = baseURL || window.location.origin;
+    return {
+      action: `${endpoint}/api/shifu/upfile`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Token: token,
+      },
+    };
+  }, [token, baseURL]);
 
   return (
     <div className='flex flex-col h-screen bg-gray-50'>
