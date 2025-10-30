@@ -59,6 +59,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
     isLoading,
     variables,
     systemVariables,
+    currentShifu,
     currentNode,
   } = useShifu();
 
