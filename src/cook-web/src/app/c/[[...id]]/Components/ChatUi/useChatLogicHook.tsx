@@ -257,6 +257,7 @@ function useChatLogicHook({
       currentContentRef.current = '';
       // setLastInteractionBlock(null);
       lastInteractionBlockRef.current = null;
+      console.log('===========run！！！！！！！！！！====================')
       setTrackedContentList(prev => {
         const hasLoading = prev.some(
           item => item.generated_block_bid === 'loading',
@@ -266,7 +267,7 @@ function useChatLogicHook({
         }
         console.log("=====❤️run插入loading=====")
         const placeholderItem: ChatContentItem = {
-          generated_block_bid: currentBlockIdRef.current || '',
+          generated_block_bid: 'loading',
           content: '',
           customRenderBar: () => <LoadingBar />,
           type: ChatContentItemType.CONTENT,
@@ -282,44 +283,46 @@ function useChatLogicHook({
         effectivePreviewMode,
         sseParams,
         async response => {
-          if (response.type === SSE_OUTPUT_TYPE.HEARTBEAT) {
-            if (!isEnd) {
-              currentBlockIdRef.current = 'loading';
-              setTrackedContentList(prev => {
-                const hasLoading = prev.some(
-                  item => item.generated_block_bid === 'loading',
-                );
-                if (hasLoading) {
-                  return prev;
-                }
-                console.log("=====❤️HEARTBEAT插入loading=====")
-                const placeholderItem: ChatContentItem = {
-                  generated_block_bid: 'loading',
-                  content: '',
-                  customRenderBar: () => <LoadingBar />,
-                  type: ChatContentItemType.CONTENT,
-                };
-                return [...prev, placeholderItem];
-              });
-            }
-            return;
-          }
+          // if (response.type === SSE_OUTPUT_TYPE.HEARTBEAT) {
+          //   if (!isEnd) {
+          //     currentBlockIdRef.current = 'loading';
+          //     setTrackedContentList(prev => {
+          //       const hasLoading = prev.some(
+          //         item => item.generated_block_bid === 'loading',
+          //       );
+          //       if (hasLoading) {
+          //         return prev;
+          //       }
+          //       console.log("=====❤️HEARTBEAT插入loading=====")
+          //       const placeholderItem: ChatContentItem = {
+          //         generated_block_bid: 'loading',
+          //         content: '',
+          //         customRenderBar: () => <LoadingBar />,
+          //         type: ChatContentItemType.CONTENT,
+          //       };
+          //       return [...prev, placeholderItem];
+          //     });
+          //   }
+          //   return;
+          // }
           try {
             const nid = response.generated_block_bid;
             if (
-              currentBlockIdRef.current === 'loading' &&
-              response.type !== SSE_OUTPUT_TYPE.HEARTBEAT &&
-              response.type !== SSE_OUTPUT_TYPE.VARIABLE_UPDATE
+              // currentBlockIdRef.current === 'loading' &&
+              response.type === SSE_OUTPUT_TYPE.INTERACTION ||
+              response.type === SSE_OUTPUT_TYPE.CONTENT
             ) {
-              // close loading
-              setTrackedContentList(pre => {
-                const newList = pre.filter(
-                  item => item.generated_block_bid !== 'loading',
-                );
-                console.log('=======❎关闭loading newList=====', newList)
-                return newList;
-              });
-              currentBlockIdRef.current = nid;
+                if(contentListRef.current?.some(item => item.generated_block_bid === 'loading')) {
+                  // close loading
+                  setTrackedContentList(pre => {
+                    const newList = pre.filter(
+                      item => item.generated_block_bid !== 'loading',
+                    );
+                    console.log('=======❎关闭loading newList=====', newList)
+                    return newList;
+                  });
+                  currentBlockIdRef.current = nid;
+                }
             }
 
             const blockId = currentBlockIdRef.current;
@@ -456,8 +459,9 @@ function useChatLogicHook({
         
                 // Add interaction blocks - use captured value instead of ref
                 const lastItem = updatedList[updatedList.length - 1];
-                const gid = lastItem.generated_block_bid;
-                if (lastItem.type === ChatContentItemType.CONTENT) {
+                const gid = lastItem?.generated_block_bid || '';
+                console.log('lastItem', updatedList,lastItem)
+                if (lastItem&&lastItem.type === ChatContentItemType.CONTENT) {
                   updatedList.push({
                     parent_block_bid: gid,
                     generated_block_bid: '',
@@ -465,7 +469,7 @@ function useChatLogicHook({
                     like_status: LIKE_STATUS.NONE,
                     type: ChatContentItemType.LIKE_STATUS,
                   });
-                  sseRef.current?.close();
+                  // sseRef.current?.close();
                   runRef.current?.({
                     input: '',
                     input_type: SSE_INPUT_TYPE.NORMAL,
