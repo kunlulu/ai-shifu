@@ -44,8 +44,11 @@ const ScriptEditor = ({ id }: { id: string }) => {
   );
 
   useEffect(() => {
-    if (profile) {
-      i18n.changeLanguage(profile.language);
+    if (profile && profile.language) {
+      const next = normalizeLanguage(profile.language);
+      if ((i18n.resolvedLanguage ?? i18n.language) !== next) {
+        i18n.changeLanguage(next);
+      }
     }
   }, [profile]);
   
@@ -104,7 +107,12 @@ const ScriptEditor = ({ id }: { id: string }) => {
   
   const onChangeMdflow = (value: string) => {
     actions.setCurrentMdflow(value);
-    actions.autoSaveBlocks();
+    // Pass snapshot so autosave persists pre-switch content + chapter id
+    actions.autoSaveBlocks({
+      shifu_bid: currentShifu?.bid || '',
+      outline_bid: currentNode?.bid || '',
+      data: value,
+    });
   };
 
   const uploadProps: UploadProps = useMemo(() => ({
@@ -135,7 +143,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
                 onClick={onAddChapter}
               >
                 <Plus />
-                {t('shifu.newChapter')}
+                {t('module.shifu.newChapter')}
               </Button>
             )}
           </div>
@@ -164,7 +172,7 @@ const ScriptEditor = ({ id }: { id: string }) => {
                 <>
                   <div className='flex items-center'>
                     <h2 className='text-base font-semibold text-foreground'>
-                      {t('shifu.creationArea.title')}
+                      {t('module.shifu.creationArea.title')}
                     </h2>
                     <p className='px-2 text-xs leading-3 text-[rgba(0,0,0,0.45)]'>
                       {t('module.shifu.creationArea.description')}
@@ -189,8 +197,8 @@ const ScriptEditor = ({ id }: { id: string }) => {
                       </TabsList>
                     </Tabs>
                   </div>
-                  <MarkdownFlowEditor 
-                  locale={
+                  <MarkdownFlowEditor
+                    locale={
                       normalizeLanguage(
                         (i18n.resolvedLanguage ?? i18n.language) as string,
                       ) as 'en-US' | 'zh-CN'

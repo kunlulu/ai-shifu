@@ -180,18 +180,6 @@ export default function ChatPage() {
     }
   }, [chapterId, initialized, loadData, loadedChapterId]);
 
-  // TODO: REMOVE
-  // console.log(
-  //   'chapterId: ',
-  //   chapterId,
-  //   'lessonId: ',
-  //   lessonId,
-  //   'initialized: ',
-  //   initialized,
-  //   'loadedChapterId: ',
-  //   loadedChapterId,
-  // );
-
   const onLessonSelect = ({ id }) => {
     const chapter = getChapterByLesson(id);
     if (!chapter) {
@@ -349,8 +337,8 @@ export default function ChatPage() {
   // listen global event
   useEffect(() => {
     const resetChapterEventHandler = async e => {
-      await reloadTree(e.detail.chapter_id);
-      onGoChapter(e.detail.chapter_id);
+      await reloadTree(e.detail.chapter_id, e.detail.lesson_id);
+      onGoChapter(e.detail.lesson_id);
     };
     const eventHandler = () => {
       // setLoginModalOpen(true);
@@ -379,6 +367,7 @@ export default function ChatPage() {
       );
     };
   }, [gotoLogin, onGoChapter, reloadTree]);
+
   return (
     <div className={clsx(styles.newChatPage)}>
       <AppContext.Provider

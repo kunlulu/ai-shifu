@@ -64,7 +64,7 @@ export const NavHeader = ({
             width={16}
             height={16}
             src={imgExpand.src}
-            alt={t('common.expandCollapse')}
+            alt={t('common.core.expandCollapse')}
             className={clsx(styles.icon)}
           />
         </div>

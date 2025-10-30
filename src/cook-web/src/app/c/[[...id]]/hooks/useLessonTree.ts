@@ -160,7 +160,6 @@ export const useLessonTree = () => {
 
   const setSelectedState = useCallback((tree, chapterId, lessonId) => {
     const chapter = tree.catalogs.find(v => v.id === chapterId);
-
     if (!chapter) {
       return false;
     }

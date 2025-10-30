@@ -367,6 +367,7 @@ function useChatLogicHook({
                       type: ChatContentItemType.CONTENT,
                     });
                   }
+                  // console.log('updatedList', updatedList)
                   return updatedList;
                 });
               }
@@ -427,8 +428,13 @@ function useChatLogicHook({
                   isTypeFinishedRef.current = true;
                 }
               }
-              // currentBlockIdRef.current = null;
-              // currentContentRef.current = '';
+              // if break, means the block is finished,
+              // maybe sse is not closed, it will let prevText not null, so we need to clear it
+              if (response.type === SSE_OUTPUT_TYPE.BREAK) {
+                // console.log('=====BREAK=====', response)
+                // currentBlockIdRef.current = null;
+                currentContentRef.current = '';
+              }
             } else if (response.type === SSE_OUTPUT_TYPE.PROFILE_UPDATE) {
               updateUserInfo({
                 [response.content.key]: response.content.value,
@@ -525,7 +531,7 @@ function useChatLogicHook({
               item.content +
               (!mobileStyle
                 ? ``
-                : `<custom-button-after-content><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></custom-button-after-content>`),
+                : `<custom-button-after-content><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('module.chat.ask')}</span></custom-button-after-content>`),
             customRenderBar: () => null,
             defaultButtonText: item.user_input || '',
             defaultInputText: item.user_input || '',
@@ -654,8 +660,7 @@ function useChatLogicHook({
         setIsLoading(true);
         if (curr === lessonId) {
           sseRef.current?.close();
-          console.log('resetedLessonId close sse', curr);
-          // await refreshData();
+          await refreshData();
           // updateResetedChapterId(null);
           // @ts-expect-error resetedLessonId can be null per store design
           updateResetedLessonId(null);
@@ -693,7 +698,6 @@ function useChatLogicHook({
   }, [chapterId, refreshData]);
 
   useEffect(() => {
-    console.log('lessonId change close sse', lessonId);
     sseRef.current?.close();
     if (!lessonId || resetedLessonId === lessonId) {
       return;
@@ -910,14 +914,19 @@ function useChatLogicHook({
     if (isTypeFinishedRef.current && isStreamingRef.current) {
       // setIsTypeFinished(false);
       isTypeFinishedRef.current = false;
-
       currentBlockIdRef.current = 'loading';
       currentContentRef.current = '';
       // setLastInteractionBlock(null);
       lastInteractionBlockRef.current = null;
       setTrackedContentList(prev => {
+        const hasLoading = prev.some(
+          item => item.generated_block_bid === 'loading',
+        );
+        if (hasLoading) {
+          return prev;
+        }
         const placeholderItem: ChatContentItem = {
-          generated_block_bid: currentBlockIdRef.current || '',
+          generated_block_bid: 'loading',
           content: '',
           customRenderBar: () => <LoadingBar />,
           type: ChatContentItemType.CONTENT,
@@ -961,7 +970,7 @@ function useChatLogicHook({
                 ...updatedList[i],
                 content:
                   (updatedList[i].content || '') +
-                  `<custom-button-after-content><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('chat.ask')}</span></custom-button-after-content>`,
+                  `<custom-button-after-content><img src="${AskIcon.src}" alt="ask" width="14" height="14" /><span>${t('module.chat.ask')}</span></custom-button-after-content>`,
                 isHistory: true, // Prevent AskButton from triggering typewriter
               };
               break;
@@ -992,7 +1001,7 @@ function useChatLogicHook({
             });
           }
         }
-
+        // console.log('updateList', updatedList)
         return updatedList;
       });
 

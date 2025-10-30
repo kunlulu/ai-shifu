@@ -51,11 +51,11 @@ def verify_email_code(
 
     check_save = redis.get(app.config["REDIS_KEY_PREFIX_MAIL_CODE"] + email)
     if check_save is None and code != FIX_CHECK_CODE:
-        raise_error("USER.MAIL_SEND_EXPIRED")
+        raise_error("server.user.mailSendExpired")
 
     check_save_str = str(check_save, encoding="utf-8") if check_save else ""
     if code != check_save_str and code != FIX_CHECK_CODE:
-        raise_error("USER.MAIL_CHECK_ERROR")
+        raise_error("server.user.mailCheckError")
 
     redis.delete(app.config["REDIS_KEY_PREFIX_MAIL_CODE"] + email)
 
@@ -116,8 +116,11 @@ def verify_email_code(
             init_first_course(app, user_info.user_id)
             created_new_user = True
         else:
-            if user_info.user_state == USER_STATE_UNREGISTERED:
+            # If this is the first time the user completes verification,
+            # promote state from UNREGISTERED to REGISTERED and run first-course init.
+            if user_info.user_state in (USER_STATE_UNREGISTERED, 0):
                 user_info.user_state = USER_STATE_REGISTERED
+                init_first_course(app, user_info.user_id)
             if language:
                 user_info.user_language = language
             user_info.email = normalized_email
