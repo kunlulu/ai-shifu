@@ -239,10 +239,10 @@ export default function AuthPage() {
   //     return;
   //   }
 
-    // const target = resolveRedirectPath();
-    // if (window.location.pathname !== target) {
-    //   router.replace(target);
-    // }
+  // const target = resolveRedirectPath();
+  // if (window.location.pathname !== target) {
+  //   router.replace(target);
+  // }
   // }, [isInitialized, isLoggedIn, resolveRedirectPath, router]);
 
   const [googleTermsAccepted, setGoogleTermsAccepted] = useState(false);
