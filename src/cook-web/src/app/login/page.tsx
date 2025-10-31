@@ -134,6 +134,7 @@ export default function AuthPage() {
   }, [searchParams]);
 
   const handleAuthSuccess = () => {
+    console.log('handleAuthSuccess')
     router.replace(resolveRedirectPath());
   };
 
@@ -234,16 +235,16 @@ export default function AuthPage() {
     }
   }, [language, ready]);
 
-  useEffect(() => {
-    if (!isInitialized || !isLoggedIn) {
-      return;
-    }
+  // useEffect(() => {
+  //   if (!isInitialized || !isLoggedIn) {
+  //     return;
+  //   }
 
-    const target = resolveRedirectPath();
-    if (window.location.pathname !== target) {
-      router.replace(target);
-    }
-  }, [isInitialized, isLoggedIn, resolveRedirectPath, router]);
+    // const target = resolveRedirectPath();
+    // if (window.location.pathname !== target) {
+    //   router.replace(target);
+    // }
+  // }, [isInitialized, isLoggedIn, resolveRedirectPath, router]);
 
   const [googleTermsAccepted, setGoogleTermsAccepted] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
