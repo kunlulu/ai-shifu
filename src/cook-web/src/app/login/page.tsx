@@ -134,7 +134,6 @@ export default function AuthPage() {
   }, [searchParams]);
 
   const handleAuthSuccess = () => {
-    console.log('handleAuthSuccess')
     router.replace(resolveRedirectPath());
   };
 
