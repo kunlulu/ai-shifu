@@ -11,10 +11,8 @@ import { Columns2, ListCollapse, Loader2, Plus, Sparkles } from 'lucide-react';
 import { useShifu } from '@/store';
 import { useUserStore } from '@/store';
 import OutlineTree from '@/components/outline-tree';
-import ChapterSettingsDialog from '@/components/chapter-setting';
 import Header from '../header';
 import { UploadProps, MarkdownFlowEditor, EditMode } from 'markdown-flow-ui';
-// TODO@XJL
 import 'markdown-flow-ui/dist/markdown-flow-ui.css';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
@@ -28,7 +26,6 @@ import LessonPreview from '@/components/lesson-preview';
 import { usePreviewChat } from '@/components/lesson-preview/usePreviewChat';
 import { Rnd } from 'react-rnd';
 import { useTracking } from '@/c-common/hooks/useTracking';
-import { LessonCreationSettings } from '@/types/shifu';
 
 const OUTLINE_DEFAULT_WIDTH = 256;
 const OUTLINE_COLLAPSED_WIDTH = 60;
@@ -44,7 +41,6 @@ const ScriptEditor = ({ id }: { id: string }) => {
   const [editMode, setEditMode] = useState<EditMode>('quickEdit' as EditMode);
   const [isPreviewPanelOpen, setIsPreviewPanelOpen] = useState(false);
   const [isPreviewPreparing, setIsPreviewPreparing] = useState(false);
-  const [addChapterDialogOpen, setAddChapterDialogOpen] = useState(false);
 
   const {
     items: previewItems,
@@ -135,18 +131,8 @@ const ScriptEditor = ({ id }: { id: string }) => {
       return;
     }
     actions.insertPlaceholderChapter();
-    // setAddChapterDialogOpen(true);
   };
-
-  const handleAddChapterConfirm = async (settings: LessonCreationSettings) => {
-    try {
-      await actions.addRootOutline(settings);
-      setAddChapterDialogOpen(false);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
+  
   useEffect(() => {
     actions.loadModels();
     if (id) {
@@ -397,16 +383,6 @@ const ScriptEditor = ({ id }: { id: string }) => {
             )}
           </div>
         </Rnd>
-
-        <ChapterSettingsDialog
-          outlineBid=''
-          open={addChapterDialogOpen}
-          onOpenChange={setAddChapterDialogOpen}
-          variant='chapter'
-          footerActionLabel={t('module.shifu.newChapter')}
-          onFooterAction={handleAddChapterConfirm}
-        />
-
         <div className='flex flex-1 h-full overflow-hidden text-sm'>
           <div
             className={cn(

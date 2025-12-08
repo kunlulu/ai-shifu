@@ -4,7 +4,7 @@ import {
   TreeItemComponentProps,
 } from '../dnd-kit-sortable-tree';
 import React, { useEffect, useState } from 'react';
-import { LessonCreationSettings, Outline } from '@/types/shifu';
+import { Outline } from '@/types/shifu';
 import { LearningPermission } from '@/c-api/studyV2';
 import guestIcon from '../chapter-setting/icons/svg-guest.svg';
 import trialIcon from '../chapter-setting/icons/svg-trial.svg';
@@ -48,7 +48,6 @@ const MinimalTreeItemComponent = React.forwardRef<
   const { actions, cataData, currentNode, currentShifu } = useShifu();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
-  const [addLessonDialogOpen, setAddLessonDialogOpen] = useState(false);
   const { t } = useTranslation();
   const outlineVariant = (props.item?.depth ?? 0) <= 0 ? 'chapter' : 'lesson';
   const isChapterNode = (props.item?.depth || 0) === 0;
@@ -176,24 +175,6 @@ const MinimalTreeItemComponent = React.forwardRef<
     };
     actions.updateOutline(props.item.id, updatedOutline);
     // props.onChange?.(updatedOutline);
-  };
-  const handleConfirmAddLesson = async (settings: LessonCreationSettings) => {
-    try {
-      await onAddNodeClick(props.item, settings);
-      setAddLessonDialogOpen(false);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  const onAddNodeClick = async (
-    node: Outline,
-    settings: LessonCreationSettings,
-  ) => {
-    if (node.depth && node.depth >= 1) {
-      await actions.addSiblingOutline(node, settings);
-    } else {
-      await actions.addSubOutline(node, settings);
-    }
   };
   const onSelect = async () => {
     if (isPlaceholderNode) {
@@ -343,17 +324,6 @@ const MinimalTreeItemComponent = React.forwardRef<
         deleteButtonLabel={t('component.outlineTree.delete')}
         onChange={handleSettingsChange}
       />
-      {/* add lesson dialog */}
-      {showChapter && (
-        <ChapterSettingsDialog
-          outlineBid=''
-          open={addLessonDialogOpen}
-          onOpenChange={setAddLessonDialogOpen}
-          variant='lesson'
-          footerActionLabel={t('module.chapterSetting.addLesson')}
-          onFooterAction={handleConfirmAddLesson}
-        />
-      )}
       <AlertDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
