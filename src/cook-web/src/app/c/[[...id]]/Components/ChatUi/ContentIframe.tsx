@@ -1,11 +1,10 @@
 import { memo } from 'react';
 import { isEqual } from 'lodash';
 import { IframeSandbox, type RenderSegment } from 'markdown-flow-ui/renderer';
-import { ChatContentItemType, type ChatContentItem } from './useChatLogicHook';
 
 interface ContentIframeProps {
   // item: ChatContentItem;
-  segments: RenderSegment[];
+  slides: RenderSegment[][];
   mobileStyle: boolean;
   blockBid: string;
   confirmButtonText?: string;
@@ -17,49 +16,65 @@ interface ContentIframeProps {
 }
 
 const ContentIframe = memo(
-  ({ segments, blockBid, sectionTitle }: ContentIframeProps) => {
+  ({ slides, blockBid, sectionTitle }: ContentIframeProps) => {
+    const renderSegment = (
+      segment: RenderSegment,
+      key: string,
+      useSandboxEnterEffect: boolean,
+    ) => {
+      if (segment.type === 'text') {
+        return (
+          <div
+            key={`text-${key}`}
+            className='w-full h-full font-bold flex items-center justify-center text-primary'
+          >
+            {sectionTitle}
+          </div>
+        );
+      }
+
+      const iframeNode = (
+        <IframeSandbox
+          type={segment.type}
+          mode='blackboard'
+          hideFullScreen
+          content={segment.value}
+        />
+      );
+
+      if (segment.type === 'sandbox' && useSandboxEnterEffect) {
+        return (
+          <div
+            key={`sandbox-${key}`}
+            className='listen-sandbox-enter flex h-full w-full items-center justify-center'
+          >
+            {iframeNode}
+          </div>
+        );
+      }
+
+      return <div key={`segment-${key}`}>{iframeNode}</div>;
+    };
+
     return (
       <>
-        {segments.map((segment, index) => {
-          if (segment.type === 'text') {
-            return (
-              <section
-                key={'text' + index}
-                data-generated-block-bid={blockBid}
-                //   className='w-full h-full'
-              >
-                <div className='w-full h-full font-bold flex items-center justify-center text-primary'>
-                  {sectionTitle}
-                </div>
-              </section>
-            );
-          }
-
-          const iframeNode = (
-            <IframeSandbox
-              key={'iframe' + index}
-              type={segment.type}
-              mode='blackboard'
-              hideFullScreen
-              content={segment.value}
-            />
-          );
-
+        {slides.map((segments, slideIndex) => {
+          const useSandboxEnterEffect =
+            segments.length === 1 && segments[0]?.type === 'sandbox';
           return (
             <section
-              key={'sandbox' + index}
-              // data-auto-animate
+              key={`slide-${slideIndex}`}
               data-generated-block-bid={blockBid}
-              // className={cn('content-render-theme', mobileStyle ? 'mobile' : '')}
-              //   className='w-full h-full'
             >
-              {segment.type === 'sandbox' ? (
-                <div className='listen-sandbox-enter flex h-full w-full items-center justify-center'>
-                  {iframeNode}
-                </div>
-              ) : (
-                iframeNode
-              )}
+              <div className='flex h-full w-full flex-col gap-4 overflow-y-auto'>
+                {segments.map((segment, segmentIndex) =>
+                  renderSegment(
+                    segment,
+                    `${slideIndex}-${segmentIndex}`,
+                    useSandboxEnterEffect,
+                  ),
+                )}
+              </div>
             </section>
           );
         })}
@@ -69,7 +84,7 @@ const ContentIframe = memo(
   (prevProps, nextProps) => {
     // Only re-render when content, layout, or i18n-driven button texts actually change
     return (
-      isEqual(prevProps.segments, nextProps.segments) &&
+      isEqual(prevProps.slides, nextProps.slides) &&
       prevProps.mobileStyle === nextProps.mobileStyle &&
       prevProps.blockBid === nextProps.blockBid &&
       prevProps.confirmButtonText === nextProps.confirmButtonText &&

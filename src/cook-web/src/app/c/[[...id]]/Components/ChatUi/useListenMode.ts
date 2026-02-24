@@ -6,6 +6,7 @@ import {
 } from 'markdown-flow-ui/renderer';
 import { ChatContentItemType, type ChatContentItem } from './useChatLogicHook';
 import type { AudioPlayerHandle } from '@/components/audio/AudioPlayer';
+import { mergeListenSlideSegmentsByTextBoundary } from './listenSlideUtils';
 
 export type AudioInteractionItem = ChatContentItem & {
   page: number;
@@ -13,7 +14,7 @@ export type AudioInteractionItem = ChatContentItem & {
 
 export type ListenSlideItem = {
   item: ChatContentItem;
-  segments: RenderSegment[];
+  slides: RenderSegment[][];
 };
 
 export const useListenContentData = (items: ChatContentItem[]) => {
@@ -60,16 +61,13 @@ export const useListenContentData = (items: ChatContentItem[]) => {
       const nextAudioAndInteractionList: AudioInteractionItem[] = [];
 
       items.forEach(item => {
-        const segments =
+        const rawSegments =
           item.type === ChatContentItemType.CONTENT && !!item.content
             ? splitContentSegments(item.content || '', true)
             : [];
-        const slideSegments = segments.filter(
-          segment => segment.type === 'markdown' || segment.type === 'sandbox',
-        );
+        const slideGroups = mergeListenSlideSegmentsByTextBoundary(rawSegments);
         const fallbackPage = Math.max(pageCursor - 1, 0);
-        const contentPage =
-          slideSegments.length > 0 ? pageCursor : fallbackPage;
+        const contentPage = slideGroups.length > 0 ? pageCursor : fallbackPage;
         const interactionPage = fallbackPage;
         const hasAudio = Boolean(
           item.audioUrl ||
@@ -92,14 +90,14 @@ export const useListenContentData = (items: ChatContentItem[]) => {
           });
         }
 
-        if (slideSegments.length > 0) {
+        if (slideGroups.length > 0) {
           nextSlideItems.push({
             item,
-            segments: slideSegments,
+            slides: slideGroups,
           });
         }
 
-        pageCursor += slideSegments.length;
+        pageCursor += slideGroups.length;
       });
       // console.log('items', items);
       return {

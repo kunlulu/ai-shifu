@@ -289,14 +289,14 @@ const ListenModeRenderer = ({
       >
         <div className='slides'>
           {!isLoading &&
-            slideItems.map(({ item, segments }, idx) => {
+            slideItems.map(({ item, slides }, idx) => {
               const baseKey = item.generated_block_bid || `${item.type}-${idx}`;
-              // console.log('segments', baseKey, segments);
+              // console.log('slides', baseKey, slides);
               return (
                 <ContentIframe
                   key={baseKey}
                   // item={item}
-                  segments={segments}
+                  slides={slides}
                   mobileStyle={mobileStyle}
                   blockBid={item.generated_block_bid}
                   sectionTitle={sectionTitle}
