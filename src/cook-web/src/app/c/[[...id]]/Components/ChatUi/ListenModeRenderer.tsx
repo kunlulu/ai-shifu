@@ -144,10 +144,10 @@ const ListenModeRenderer = ({
 
       const section =
         (chatRef.current.querySelector(
-          `section[data-generated-block-bid="${blockBid}"]`,
+          `section[data-generated-block-bid="empty-ppt-${blockBid}"]`,
         ) as HTMLElement | null) ||
         (chatRef.current.querySelector(
-          `section[data-generated-block-bid="empty-ppt-${blockBid}"]`,
+          `section[data-generated-block-bid="${blockBid}"]`,
         ) as HTMLElement | null);
       if (!section) {
         return false;
@@ -293,7 +293,10 @@ const ListenModeRenderer = ({
   const onPrev = useCallback(() => {
     const nextPage = goPrev();
     if (typeof nextPage === 'number') {
-      startSequenceFromPage(nextPage);
+      startSequenceFromPage(nextPage, {
+        strictPageMatch: true,
+        pauseWhenMissing: true,
+      });
     }
   }, [goPrev, startSequenceFromPage]);
   const prevControlDisabled = isPrevDisabled;
@@ -302,7 +305,10 @@ const ListenModeRenderer = ({
   const onNext = useCallback(() => {
     const nextPage = goNext();
     if (typeof nextPage === 'number') {
-      startSequenceFromPage(nextPage);
+      startSequenceFromPage(nextPage, {
+        strictPageMatch: true,
+        pauseWhenMissing: true,
+      });
     }
   }, [goNext, startSequenceFromPage]);
 

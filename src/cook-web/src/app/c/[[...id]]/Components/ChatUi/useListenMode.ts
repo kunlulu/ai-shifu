@@ -58,6 +58,59 @@ const sortSegmentsByIndex = (segments: AudioSegment[] = []) =>
     (a, b) => Number(a.segmentIndex ?? 0) - Number(b.segmentIndex ?? 0),
   );
 
+const isSlideContentSegment = (segment: RenderSegment) =>
+  segment.type === 'markdown' || segment.type === 'sandbox';
+
+const buildSlideSegments = (segments: RenderSegment[]) => {
+  const firstContentIndex = segments.findIndex(isSlideContentSegment);
+  const leadingBoundary =
+    firstContentIndex >= 0 ? firstContentIndex : segments.length;
+  const leadingSegments = segments.slice(0, leadingBoundary);
+  const contentSegments =
+    firstContentIndex >= 0
+      ? segments.slice(firstContentIndex).filter(isSlideContentSegment)
+      : [];
+
+  const hasLeadingTitleSlide =
+    leadingSegments.length > 0 &&
+    leadingSegments.every(segment => segment.type === 'text');
+
+  if (!hasLeadingTitleSlide) {
+    return {
+      slideSegments: contentSegments,
+      contentSegments,
+      hasLeadingTitleSlide: false,
+    };
+  }
+
+  const leadingTitleText = leadingSegments
+    .map(segment => segment.value?.trim())
+    .filter(Boolean)
+    .join('\n\n')
+    .trim();
+
+  if (!leadingTitleText) {
+    return {
+      slideSegments: contentSegments,
+      contentSegments,
+      hasLeadingTitleSlide: false,
+    };
+  }
+
+  // Merge consecutive leading text into one title slide segment.
+  const titleSegment: RenderSegment = {
+    ...leadingSegments[0],
+    type: 'text',
+    value: leadingTitleText,
+  };
+
+  return {
+    slideSegments: [titleSegment, ...contentSegments],
+    contentSegments,
+    hasLeadingTitleSlide: true,
+  };
+};
+
 const normalizeAudioTracks = (item: ChatContentItem): AudioTrack[] => {
   const trackByPosition = new Map<number, AudioTrack>();
 
@@ -222,14 +275,19 @@ export const useListenContentData = (items: ChatContentItem[]) => {
           item.type === ChatContentItemType.CONTENT && !!item.content
             ? splitContentSegments(item.content || '', true)
             : [];
-        const slideSegments = segments.filter(
-          segment => segment.type === 'markdown' || segment.type === 'sandbox',
-        );
+        const { slideSegments, contentSegments, hasLeadingTitleSlide } =
+          buildSlideSegments(segments);
         const fallbackPage = Math.max(pageCursor - 1, 0);
         const interactionPage = fallbackPage;
-        const pageIndices = slideSegments.map(
-          (_segment, index) => pageCursor + index,
+        const contentPageOffset = hasLeadingTitleSlide ? 1 : 0;
+        const pageIndices = contentSegments.map(
+          (_segment, index) => pageCursor + contentPageOffset + index,
         );
+        const titleSlidePage = hasLeadingTitleSlide ? pageCursor : null;
+        const lastContentPage =
+          hasLeadingTitleSlide && contentSegments.length > 0
+            ? pageCursor + contentSegments.length
+            : null;
 
         if (item.type === ChatContentItemType.INTERACTION) {
           mapping.set(interactionPage, item);
@@ -245,11 +303,20 @@ export const useListenContentData = (items: ChatContentItem[]) => {
           const { pageBySlideId, resolvePageByPosition } =
             buildSlidePageMapping(item, pageIndices, fallbackPage);
 
-          tracks.forEach(track => {
+          tracks.forEach((track, trackIndex) => {
             const position = Number(track.position ?? 0);
-            const page =
+            const mappedPage =
               (track.slideId ? pageBySlideId.get(track.slideId) : undefined) ??
               resolvePageByPosition(position);
+            // Bind the first audio track to the leading title slide page.
+            const page =
+              titleSlidePage !== null
+                ? trackIndex === 0
+                  ? titleSlidePage
+                  : lastContentPage !== null
+                    ? Math.min(titleSlidePage + trackIndex, lastContentPage)
+                    : titleSlidePage
+                : mappedPage;
             const sequenceBid = buildListenAudioSequenceBid(
               item.generated_block_bid,
               position,
@@ -947,24 +1014,30 @@ export const useListenAudioSequence = ({
     [deckRef],
   );
 
-  const resolveSequenceStartIndex = useCallback((page: number) => {
-    const list = audioSequenceListRef.current;
-    if (!list.length) {
-      return -1;
-    }
-    const audioIndex = list.findIndex(
-      item => item.page === page && item.type === ChatContentItemType.CONTENT,
-    );
-    if (audioIndex >= 0) {
-      return audioIndex;
-    }
-    const pageIndex = list.findIndex(item => item.page === page);
-    if (pageIndex >= 0) {
-      return pageIndex;
-    }
-    const nextIndex = list.findIndex(item => item.page > page);
-    return nextIndex;
-  }, []);
+  const resolveSequenceStartIndex = useCallback(
+    (page: number, strictPageMatch = false) => {
+      const list = audioSequenceListRef.current;
+      if (!list.length) {
+        return -1;
+      }
+      const audioIndex = list.findIndex(
+        item => item.page === page && item.type === ChatContentItemType.CONTENT,
+      );
+      if (audioIndex >= 0) {
+        return audioIndex;
+      }
+      const pageIndex = list.findIndex(item => item.page === page);
+      if (pageIndex >= 0) {
+        return pageIndex;
+      }
+      if (strictPageMatch) {
+        return -1;
+      }
+      const nextIndex = list.findIndex(item => item.page > page);
+      return nextIndex;
+    },
+    [],
+  );
 
   const playAudioSequenceFromIndex = useCallback(
     (index: number) => {
@@ -1328,10 +1401,21 @@ export const useListenAudioSequence = ({
   );
 
   const startSequenceFromPage = useCallback(
-    (page: number) => {
-      const startIndex = resolveSequenceStartIndex(page);
+    (
+      page: number,
+      options?: {
+        strictPageMatch?: boolean;
+        pauseWhenMissing?: boolean;
+      },
+    ) => {
+      const strictPageMatch = Boolean(options?.strictPageMatch);
+      const pauseWhenMissing = Boolean(options?.pauseWhenMissing);
+      const startIndex = resolveSequenceStartIndex(page, strictPageMatch);
       if (startIndex < 0) {
         // console.log('listen-sequence-start-page-miss', { page });
+        if (pauseWhenMissing) {
+          resetSequenceState();
+        }
         return;
       }
       // console.log('listen-sequence-start-page', { page, startIndex });
@@ -1341,7 +1425,12 @@ export const useListenAudioSequence = ({
       });
       startSequenceFromIndex(startIndex);
     },
-    [logAudioInterrupt, resolveSequenceStartIndex, startSequenceFromIndex],
+    [
+      logAudioInterrupt,
+      resolveSequenceStartIndex,
+      resetSequenceState,
+      startSequenceFromIndex,
+    ],
   );
 
   useEffect(() => {

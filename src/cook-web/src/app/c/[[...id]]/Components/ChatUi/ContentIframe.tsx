@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { isEqual } from 'lodash';
 import { IframeSandbox, type RenderSegment } from 'markdown-flow-ui/renderer';
 import { ChatContentItemType, type ChatContentItem } from './useChatLogicHook';
+import { cn } from '@/lib/utils';
 
 interface ContentIframeProps {
   // item: ChatContentItem;
@@ -17,16 +18,17 @@ interface ContentIframeProps {
 }
 
 const ContentIframe = memo(
-  ({ segments, blockBid, sectionTitle }: ContentIframeProps) => {
+  ({ segments, mobileStyle, blockBid, sectionTitle }: ContentIframeProps) => {
     return (
       <>
         {segments.map((segment, index) => {
           if (segment.type === 'text') {
+            const emptyBlockBid = blockBid ? `empty-ppt-${blockBid}` : 'empty-ppt';
             return (
               <section
                 key={'text' + index}
-                data-generated-block-bid={blockBid}
-                //   className='w-full h-full'
+                data-generated-block-bid={emptyBlockBid}
+                className={cn('text-center', mobileStyle ? 'mobile-empty-slide' : '')}
               >
                 <div className='w-full h-full font-bold flex items-center justify-center text-primary'>
                   {sectionTitle}
