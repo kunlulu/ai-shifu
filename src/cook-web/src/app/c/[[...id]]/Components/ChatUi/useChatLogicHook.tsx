@@ -126,6 +126,7 @@ export interface UseChatSessionParams {
   showOutputInProgressToast: () => void;
   onPayModalOpen: () => void;
   chatBoxBottomRef: React.RefObject<HTMLDivElement | null>;
+  getSseViewingContextPayload?: () => Record<string, string>;
   onGoChapter: (lessonId: string) => void;
 }
 
@@ -167,6 +168,7 @@ function useChatLogicHook({
   // scrollToBottom,
   showOutputInProgressToast,
   onPayModalOpen,
+  getSseViewingContextPayload,
 }: UseChatSessionParams): UseChatSessionResult {
   const { t, i18n, ready } = useTranslation();
   const { mobileStyle } = useContext(AppContext);
@@ -590,7 +592,11 @@ function useChatLogicHook({
         shifuBid,
         outlineBid,
         effectivePreviewMode,
-        { ...sseParams, listen: isListenMode },
+        {
+          ...sseParams,
+          listen: isListenMode,
+          ...getSseViewingContextPayload?.(),
+        },
         async response => {
           if (
             sseRef.current !== source ||
@@ -951,8 +957,10 @@ function useChatLogicHook({
       });
     },
     [
+      chapterId,
       chapterUpdate,
       effectivePreviewMode,
+      getSseViewingContextPayload,
       isListenMode,
       lessonUpdateResp,
       outlineBid,

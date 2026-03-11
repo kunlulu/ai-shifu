@@ -43,6 +43,7 @@ import {
   DialogTitle,
 } from '@/components/ui/Dialog';
 import { useSystemStore } from '@/c-store/useSystemStore';
+import { getViewingContextPayload } from '@/c-utils/viewing-context';
 
 export const NewChatComponents = ({
   className,
@@ -78,6 +79,7 @@ export const NewChatComponents = ({
   );
   const { mobileStyle } = useContext(AppContext);
 
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const chatRef = useRef<HTMLDivElement | null>(null);
   const { scrollToLesson } = useChatComponentsScroll({
     chatRef,
@@ -155,6 +157,16 @@ export const NewChatComponents = ({
   const isListenModeActive = isListenMode && isListenModeAvailable;
   const shouldShowAudioAction = previewMode || isListenModeActive;
   const { requestExclusive, releaseExclusive } = useExclusiveAudio();
+
+  const getSseViewingContextPayload = useCallback(
+    () =>
+      getViewingContextPayload({
+        containerElement: chatContainerRef.current,
+        mobileStyle,
+        isListenMode: isListenModeActive,
+      }),
+    [isListenModeActive, mobileStyle],
+  );
 
   const onPayModalOpen = useCallback(() => {
     openPayModal();
@@ -245,6 +257,7 @@ export const NewChatComponents = ({
     // scrollToBottom,
     showOutputInProgressToast,
     onPayModalOpen,
+    getSseViewingContextPayload,
   });
 
   const listenModeItems = useMemo(() => {
@@ -556,6 +569,7 @@ export const NewChatComponents = ({
   // }, [isLoading]);
   return (
     <div
+      ref={chatContainerRef}
       className={containerClassName}
       style={{ position: 'relative', overflow: 'hidden', padding: 0 }}
     >

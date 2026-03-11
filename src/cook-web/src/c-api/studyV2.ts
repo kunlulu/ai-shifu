@@ -174,8 +174,8 @@ export const getRunMessage = (
 ) => {
   const token = useUserStore.getState().getToken();
   const payload = {
-    ...body,
     ...getViewingContextPayload(),
+    ...body,
   };
 
   const baseURL = getResolvedBaseURL();
