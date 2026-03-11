@@ -2,6 +2,7 @@ import { SSE } from 'sse.js';
 import request from '@/lib/request';
 import { v4 as uuid4 } from 'uuid';
 import { getResolvedBaseURL, getStringEnv } from '@/c-utils/envUtils';
+import { getViewingContextPayload } from '@/c-utils/viewing-context';
 
 export const RunScript = (
   course_id,
@@ -20,6 +21,7 @@ export const RunScript = (
       lesson_id,
       input,
       input_type,
+      ...getViewingContextPayload(),
     }),
   });
 

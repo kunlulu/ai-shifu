@@ -2,6 +2,7 @@ import { SSE } from 'sse.js';
 import request from '@/lib/request';
 import { v4 } from 'uuid';
 import { getResolvedBaseURL } from '@/c-utils/envUtils';
+import { getViewingContextPayload } from '@/c-utils/viewing-context';
 import { useUserStore } from '@/store/useUserStore';
 
 // ===== Constants  Types for shared literals =====
@@ -172,7 +173,10 @@ export const getRunMessage = (
   onMessage: (data: any) => void,
 ) => {
   const token = useUserStore.getState().getToken();
-  const payload = { ...body };
+  const payload = {
+    ...body,
+    ...getViewingContextPayload(),
+  };
 
   const baseURL = getResolvedBaseURL();
 
