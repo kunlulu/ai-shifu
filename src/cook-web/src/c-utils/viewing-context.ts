@@ -1,6 +1,6 @@
-const VIEWING_CLIENT_TYPE = {
-  MOBILE: '移动端',
-  DESKTOP: '电脑端',
+const VIEWING_DEVICE_TYPE = {
+  MOBILE: 'mobile',
+  DESKTOP: 'desktop',
 } as const;
 
 const VIEWING_SECTION_SELECTORS = [
@@ -12,7 +12,10 @@ const VIEWING_SECTION_SELECTORS = [
   '.slides section',
 ];
 
-const VIEWING_CONTAINER_SELECTORS = ['.listen-reveal-wrapper', '.listen-reveal'];
+const VIEWING_CONTAINER_SELECTORS = [
+  '.listen-reveal-wrapper',
+  '.listen-reveal',
+];
 
 const MOBILE_USER_AGENT_PATTERN =
   /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i;
@@ -65,7 +68,7 @@ const getContentBoxDimensions = (element: HTMLElement | null) => {
     return dimensions;
   }
 
-  const computedStyle = window.getComputedStyle(element as Element);
+  const computedStyle = window.getComputedStyle(element as HTMLElement);
   const width = normalizeDimension(
     dimensions.width -
       (parseFloat(computedStyle.paddingLeft || '0') +
@@ -168,9 +171,9 @@ export const getViewingContainerSize = (options?: ViewingContextOptions) => {
   );
 };
 
-export const getViewingClientType = () => {
+export const getViewingDeviceType = () => {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') {
-    return VIEWING_CLIENT_TYPE.DESKTOP;
+    return VIEWING_DEVICE_TYPE.DESKTOP;
   }
 
   const userAgent = navigator.userAgent || '';
@@ -180,15 +183,23 @@ export const getViewingClientType = () => {
     window.matchMedia('(max-width: 1024px)').matches;
 
   return MOBILE_USER_AGENT_PATTERN.test(userAgent) || matchesTouchScreen
-    ? VIEWING_CLIENT_TYPE.MOBILE
-    : VIEWING_CLIENT_TYPE.DESKTOP;
+    ? VIEWING_DEVICE_TYPE.MOBILE
+    : VIEWING_DEVICE_TYPE.DESKTOP;
 };
 
 export const getViewingContextPayload = (options?: ViewingContextOptions) => {
+  const containerSize = getViewingContainerSize(options);
+
+  if (!containerSize) {
+    return {};
+  }
+
   return {
-    viewing_container_size: getViewingContainerSize(options),
-    viewing_client_type: getViewingClientType(),
+    viewing_mode: {
+      container_size: containerSize,
+      device_type: getViewingDeviceType(),
+    },
   };
 };
 
-export { VIEWING_CLIENT_TYPE };
+export { VIEWING_DEVICE_TYPE };

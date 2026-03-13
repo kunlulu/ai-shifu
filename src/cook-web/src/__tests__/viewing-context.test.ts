@@ -1,6 +1,6 @@
 import {
-  VIEWING_CLIENT_TYPE,
-  getViewingClientType,
+  VIEWING_DEVICE_TYPE,
+  getViewingDeviceType,
   getViewingContainerSize,
   getViewingContextPayload,
 } from '@/c-utils/viewing-context';
@@ -89,24 +89,24 @@ describe('viewing-context', () => {
     ).toBe('390*844px');
   });
 
-  it('returns mobile client type for mobile user agents', () => {
+  it('returns mobile device type for mobile user agents', () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value:
         'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
     });
 
-    expect(getViewingClientType()).toBe(VIEWING_CLIENT_TYPE.MOBILE);
+    expect(getViewingDeviceType()).toBe(VIEWING_DEVICE_TYPE.MOBILE);
   });
 
-  it('returns desktop client type by default', () => {
+  it('returns desktop device type by default', () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value:
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
     });
 
-    expect(getViewingClientType()).toBe(VIEWING_CLIENT_TYPE.DESKTOP);
+    expect(getViewingDeviceType()).toBe(VIEWING_DEVICE_TYPE.DESKTOP);
   });
 
   it('builds the viewing payload with both fields', () => {
@@ -129,8 +129,10 @@ describe('viewing-context', () => {
     });
 
     expect(getViewingContextPayload()).toEqual({
-      viewing_container_size: '320*180px',
-      viewing_client_type: VIEWING_CLIENT_TYPE.DESKTOP,
+      viewing_mode: {
+        container_size: '320*180px',
+        device_type: VIEWING_DEVICE_TYPE.DESKTOP,
+      },
     });
   });
 });

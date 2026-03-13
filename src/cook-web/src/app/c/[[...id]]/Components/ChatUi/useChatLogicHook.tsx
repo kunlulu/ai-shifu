@@ -126,7 +126,7 @@ export interface UseChatSessionParams {
   showOutputInProgressToast: () => void;
   onPayModalOpen: () => void;
   chatBoxBottomRef: React.RefObject<HTMLDivElement | null>;
-  getSseViewingContextPayload?: () => Record<string, string>;
+  getSseViewingContextPayload?: () => Record<string, unknown>;
   onGoChapter: (lessonId: string) => void;
 }
 
