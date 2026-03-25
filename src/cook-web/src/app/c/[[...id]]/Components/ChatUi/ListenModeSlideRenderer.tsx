@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { lessonFeedbackInteractionDefaultValueOptions } from '@/c-utils/lesson-feedback-interaction-defaults';
 import {
@@ -21,6 +22,7 @@ import { ChatContentItemType, type ChatContentItem } from './useChatLogicHook';
 import { normalizeAudioTracks } from './listenModeUtils';
 import AskBlock from './AskBlock';
 import type { AskMessage } from './AskBlock';
+import AskIcon from '@/c-assets/newchat/light/icon_ask.svg';
 import './ListenModeRenderer.scss';
 import { useListenContentData } from './useListenMode';
 
@@ -500,6 +502,8 @@ const ListenModeSlideRenderer = ({
     [handleCustomAskToggle, isCustomAskOpen, t],
   );
 
+  const shouldRenderMobileAskEntry = mobileStyle && !shouldRenderEmptyPpt;
+
   console.log('elementList', items, elementList);
 
   return (
@@ -514,7 +518,22 @@ const ListenModeSlideRenderer = ({
         className='listen-slide-shell'
         ref={slideShellRef}
       >
-        {isCustomAskOpen && !mobileStyle && !shouldRenderEmptyPpt ? (
+        {shouldRenderMobileAskEntry ? (
+          <button
+            type='button'
+            className='listen-slide-mobile-ask-entry listen-slide-mobile-ask-button'
+            onClick={handleCustomAskToggle}
+          >
+            <Image
+              src={AskIcon.src}
+              alt='ask'
+              width={14}
+              height={14}
+            />
+            <span>{t('module.chat.ask')}</span>
+          </button>
+        ) : null}
+        {isCustomAskOpen && !shouldRenderEmptyPpt ? (
           <div
             className={cn(
               'slide-ask-overlay',

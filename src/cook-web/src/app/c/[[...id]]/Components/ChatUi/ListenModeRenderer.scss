@@ -125,6 +125,34 @@
   background: var(--color-slide-desktop-bg);
 }
 
+.listen-slide-mobile-ask-entry {
+  position: absolute;
+  right: 0px;
+  bottom: 140px;
+  z-index: 5;
+}
+
+.listen-slide-mobile-ask-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 28px;
+  gap: 4px;
+  border: none;
+  border-radius: 24px 0 0 24px;
+  background: var(--primary);
+  color: var(--base-primary-foreground, #fff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  img{
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
 .slide-ask-overlay {
   --slide-player-action-size: 32px;
   --slide-player-toggle-size: 40px;
