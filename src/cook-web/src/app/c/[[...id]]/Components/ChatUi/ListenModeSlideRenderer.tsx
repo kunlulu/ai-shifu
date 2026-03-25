@@ -534,31 +534,49 @@ const ListenModeSlideRenderer = ({
           </button>
         ) : null}
         {isCustomAskOpen && !shouldRenderEmptyPpt ? (
-          <div
-            className={cn(
-              'slide-ask-overlay',
-              isPlayerVisible
-                ? 'slide-ask-overlay--with-player'
-                : 'slide-ask-overlay--standalone',
-            )}
-            ref={customAskOverlayRef}
-          >
-            <div className='slide-player__ask-card'>
-              <div className='slide-player__ask-body'>
-                <AskBlock
-                  askList={currentAskList}
-                  className='listen-slide-ask-block'
-                  element_bid={resolvedAskElementBid}
-                  isExpanded={true}
-                  onToggleAskExpanded={handleCustomAskClose}
-                  outline_bid={lessonId}
-                  preview_mode={previewMode}
-                  shifu_bid={shifuBid}
-                />
-              </div>
-              <div className='slide-player__ask-arrow' />
+          mobileStyle ? (
+            <div
+              className='listen-slide-mobile-ask-panel'
+              ref={customAskOverlayRef}
+            >
+              <AskBlock
+                askList={currentAskList}
+                className='listen-slide-ask-block'
+                element_bid={resolvedAskElementBid}
+                isExpanded={true}
+                onToggleAskExpanded={handleCustomAskClose}
+                outline_bid={lessonId}
+                preview_mode={previewMode}
+                shifu_bid={shifuBid}
+              />
             </div>
-          </div>
+          ) : (
+            <div
+              className={cn(
+                'slide-ask-overlay',
+                isPlayerVisible
+                  ? 'slide-ask-overlay--with-player'
+                  : 'slide-ask-overlay--standalone',
+              )}
+              ref={customAskOverlayRef}
+            >
+              <div className='slide-player__ask-card'>
+                <div className='slide-player__ask-body'>
+                  <AskBlock
+                    askList={currentAskList}
+                    className='listen-slide-ask-block'
+                    element_bid={resolvedAskElementBid}
+                    isExpanded={true}
+                    onToggleAskExpanded={handleCustomAskClose}
+                    outline_bid={lessonId}
+                    preview_mode={previewMode}
+                    shifu_bid={shifuBid}
+                  />
+                </div>
+                <div className='slide-player__ask-arrow' />
+              </div>
+            </div>
+          )
         ) : null}
         <Slide
           playerAlwaysVisible={true}

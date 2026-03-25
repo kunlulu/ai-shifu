@@ -79,6 +79,10 @@ export default function AskBlock({
   const inputWrapperRef = useRef<HTMLDivElement | null>(null);
   const isSlideAskBlock = className?.includes('listen-slide-ask-block');
   const expanded = isExpanded ?? (!mobileStyle && askList.length > 0);
+  const shouldForceSlideMobileDialog =
+    Boolean(isSlideAskBlock) && mobileStyle && expanded;
+  const shouldShowMobileDialog =
+    showMobileDialog || shouldForceSlideMobileDialog;
   const showOutputInProgressToast = useCallback(() => {
     toast({
       title: t('module.chat.outputInProgress'),
@@ -249,6 +253,7 @@ export default function AskBlock({
 
   // Decide which messages to display
   const messagesToShow = expanded ? displayList : displayList.slice(0, 1);
+  const hasAskAnswerMessages = messagesToShow.length > 0;
 
   useEffect(() => {
     if (!expanded) {
@@ -286,7 +291,7 @@ export default function AskBlock({
   }, [mobileStyle, expanded]);
 
   useEffect(() => {
-    if (!mobileStyle || !showMobileDialog || !expanded) {
+    if (!mobileStyle || !shouldShowMobileDialog || !expanded) {
       return;
     }
 
@@ -302,7 +307,7 @@ export default function AskBlock({
     return () => {
       cancelAnimationFrame(rafId);
     };
-  }, [mobileStyle, showMobileDialog, expanded, messagesToShow.length]);
+  }, [mobileStyle, shouldShowMobileDialog, expanded, messagesToShow.length]);
 
   const handleClose = useCallback(() => {
     setIsFullscreen(false);
@@ -446,7 +451,11 @@ export default function AskBlock({
     );
   };
 
-  if (mobileStyle && showMobileDialog && messagesToShow.length > 0) {
+  if (
+    mobileStyle &&
+    shouldShowMobileDialog &&
+    (messagesToShow.length > 0 || shouldForceSlideMobileDialog)
+  ) {
     return (
       <div className={cn(styles.askBlock, className, styles.mobile)}>
         {!expanded && renderMessages()}
@@ -495,7 +504,10 @@ export default function AskBlock({
                 </div>
               </div>
               <div
-                className={styles.mobileContent}
+                className={cn(
+                  styles.mobileContent,
+                  !hasAskAnswerMessages && styles.mobileContentHidden,
+                )}
                 ref={mobileContentRef}
               >
                 {renderMessages({
