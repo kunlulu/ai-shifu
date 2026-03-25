@@ -14,12 +14,13 @@ import {
 } from '@/c-api/studyV2';
 import {
   type OnSendContentParams,
-  MarkdownFlowInput,
   Slide,
   type Element as SlideElement,
 } from 'markdown-flow-ui/renderer';
 import { ChatContentItemType, type ChatContentItem } from './useChatLogicHook';
 import { normalizeAudioTracks } from './listenModeUtils';
+import AskBlock from './AskBlock';
+import type { AskMessage } from './AskBlock';
 import './ListenModeRenderer.scss';
 import { useListenContentData } from './useListenMode';
 
@@ -35,6 +36,8 @@ interface ListenModeSlideRendererProps {
   isLoading?: boolean;
   sectionTitle?: string;
   lessonId?: string;
+  shifuBid?: string;
+  previewMode?: boolean;
   lessonStatus?: string;
   onSend?: (content: OnSendContentParams, blockBid: string) => void;
   onPlayerVisibilityChange?: (visible: boolean) => void;
@@ -211,6 +214,9 @@ const ListenModeSlideRenderer = ({
   isLoading = false,
   sectionTitle,
   onSend,
+  shifuBid = '',
+  previewMode = false,
+  lessonId = '',
   onPlayerVisibilityChange,
 }: ListenModeSlideRendererProps) => {
   const { t } = useTranslation();
@@ -220,11 +226,11 @@ const ListenModeSlideRenderer = ({
   >({});
   const [isCustomAskOpen, setIsCustomAskOpen] = useState(false);
   const [isPlayerVisible, setIsPlayerVisible] = useState(true);
-  const [customAskValue, setCustomAskValue] = useState('');
+  const [currentStepBlockBid, setCurrentStepBlockBid] = useState('');
   const customAskActionRef = useRef<HTMLButtonElement | null>(null);
   const customAskOverlayRef = useRef<HTMLDivElement | null>(null);
   const slideShellRef = useRef<HTMLDivElement | null>(null);
-  const { lastInteractionBid, lastItemIsInteraction } =
+  const { lastInteractionBid, lastItemIsInteraction, firstContentItem } =
     useListenContentData(items);
 
   const elementList = useMemo(() => {
@@ -316,6 +322,28 @@ const ListenModeSlideRenderer = ({
     elementList.length === 1 &&
     elementList[0]?.blockBid === 'empty-ppt';
 
+  const askListByParentElementBid = useMemo(() => {
+    const askMapping = new Map<string, ChatContentItem['ask_list']>();
+    items.forEach(item => {
+      if (item.type !== ChatContentItemType.ASK || !item.parent_element_bid) {
+        return;
+      }
+      askMapping.set(item.parent_element_bid, item.ask_list ?? []);
+    });
+    return askMapping;
+  }, [items]);
+
+  const fallbackAskElementBid = firstContentItem?.element_bid ?? '';
+
+  const resolvedAskElementBid = currentStepBlockBid || fallbackAskElementBid;
+  const currentAskList = useMemo<AskMessage[]>(
+    () =>
+      (resolvedAskElementBid
+        ? askListByParentElementBid.get(resolvedAskElementBid) ?? []
+        : []) as AskMessage[],
+    [askListByParentElementBid, resolvedAskElementBid],
+  );
+
   const handleInteractionSend = useCallback(
     (content: OnSendContentParams, element?: SlideElement) => {
       const blockBid = (element as ListenSlideElement | undefined)?.blockBid;
@@ -375,21 +403,6 @@ const ListenModeSlideRenderer = ({
     setIsCustomAskOpen(false);
   }, []);
 
-  const handleCustomAskInputChange = useCallback(
-    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setCustomAskValue(event.target.value);
-    },
-    [],
-  );
-
-  const handleCustomAskSend = useCallback(() => {
-    if (!customAskValue.trim()) {
-      return;
-    }
-    setCustomAskValue('');
-    handleCustomAskClose();
-  }, [customAskValue, handleCustomAskClose]);
-
   const handleSlidePlayerVisibilityChange = useCallback(
     (visible: boolean) => {
       setIsPlayerVisible(visible);
@@ -397,6 +410,14 @@ const ListenModeSlideRenderer = ({
     },
     [onPlayerVisibilityChange],
   );
+
+  const handleSlideStepChange = useCallback((element?: SlideElement) => {
+    const blockBid = (element as ListenSlideElement | undefined)?.blockBid;
+    if (!blockBid || blockBid === 'empty-ppt') {
+      return;
+    }
+    setCurrentStepBlockBid(blockBid);
+  }, []);
 
   useEffect(() => {
     if (!isCustomAskOpen) {
@@ -498,12 +519,15 @@ const ListenModeSlideRenderer = ({
           >
             <div className='slide-player__ask-card'>
               <div className='slide-player__ask-body'>
-                <MarkdownFlowInput
-                  className='w-full'
-                  onChange={handleCustomAskInputChange}
-                  onSend={handleCustomAskSend}
-                  placeholder={t('module.chat.askContent')}
-                  value={customAskValue}
+                <AskBlock
+                  askList={currentAskList}
+                  className='listen-slide-ask-block'
+                  element_bid={resolvedAskElementBid}
+                  isExpanded={true}
+                  onToggleAskExpanded={handleCustomAskClose}
+                  outline_bid={lessonId}
+                  preview_mode={previewMode}
+                  shifu_bid={shifuBid}
                 />
               </div>
               <div className='slide-player__ask-arrow' />
@@ -526,6 +550,7 @@ const ListenModeSlideRenderer = ({
             lessonFeedbackInteractionDefaultValueOptions
           }
           onSend={handleInteractionSend}
+          onStepChange={handleSlideStepChange}
           playerClassName={mobileStyle ? 'listen-slide-player-mobile' : ''}
           playerCustomActions={playerCustomActions}
           showPlayer={!shouldRenderEmptyPpt}

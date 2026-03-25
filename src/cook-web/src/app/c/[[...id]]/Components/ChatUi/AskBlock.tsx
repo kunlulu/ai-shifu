@@ -77,6 +77,7 @@ export default function AskBlock({
   const [showMobileDialog, setShowMobileDialog] = useState(askList.length > 0);
   const mobileContentRef = useRef<HTMLDivElement | null>(null);
   const inputWrapperRef = useRef<HTMLDivElement | null>(null);
+  const isSlideAskBlock = className?.includes('listen-slide-ask-block');
   const expanded = isExpanded ?? (!mobileStyle && askList.length > 0);
   const showOutputInProgressToast = useCallback(() => {
     toast({
@@ -516,10 +517,14 @@ export default function AskBlock({
         className,
         mobileStyle ? styles.mobile : '',
       )}
-      style={{
-        marginTop: expanded || messagesToShow.length > 0 ? '8px' : '0',
-        padding: expanded || messagesToShow.length > 0 ? '16px' : '0',
-      }}
+      style={
+        isSlideAskBlock
+          ? undefined
+          : {
+              marginTop: expanded || messagesToShow.length > 0 ? '8px' : '0',
+              padding: expanded || messagesToShow.length > 0 ? '16px' : '0',
+            }
+      }
     >
       {renderMessages()}
       {renderInput()}
