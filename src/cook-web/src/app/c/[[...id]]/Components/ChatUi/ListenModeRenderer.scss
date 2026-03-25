@@ -124,6 +124,10 @@
   background: var(--color-slide-desktop-bg);
 }
 
+.listen-slide-custom-player-action:hover {
+  color: var(--primary) !important;
+}
+
 .listen-reveal-wrapper.mobile {
   .listen-slide-shell {
     display: flex;

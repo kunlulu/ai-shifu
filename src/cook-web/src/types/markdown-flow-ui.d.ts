@@ -1,4 +1,5 @@
 import 'markdown-flow-ui/renderer';
+import type { ReactNode } from 'react';
 import type { InteractionDefaultValueOptions } from 'markdown-flow-ui/renderer';
 
 export {};
@@ -15,5 +16,6 @@ declare module 'markdown-flow-ui/renderer' {
 
   interface SlideProps {
     interactionDefaultValueOptions?: InteractionDefaultValueOptions;
+    playerCustomActions?: ReactNode;
   }
 }

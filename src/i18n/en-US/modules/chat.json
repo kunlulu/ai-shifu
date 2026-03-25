@@ -13,6 +13,7 @@
   "lessonFeedbackSubmitted": "Thanks for your feedback!",
   "like": "Like",
   "listenInteractionHint": "Submit the following to continue learning",
+  "customPlayerAction": "Custom player action",
   "listenModeTtsDisabled": "Text-to-Speech is not enabled for this course, so listen mode is unavailable.",
   "markdownFlow": "MarkdownFlow",
   "noMoreLessons": "You've completed all available sections.",
