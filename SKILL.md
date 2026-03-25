@@ -45,6 +45,7 @@
 - 当移动端追问弹层尚无任何 `ask/answer` 消息时，`mobileContent` 区域应先隐藏（`display: none`），仅保留输入区，避免出现空白消息面板占位。
 - 当同一套 Slide 样式变量需要只在 PC 生效时，使用 `.listen-reveal-wrapper:not(.mobile)` 作用域覆盖（如 `--slide-player-notes-arrow-offset`、`--slide-player-custom-action-offset`），不要直接改公共变量影响移动端。
 - 当追问浮层箭头在 PC 端需要固定像素定位时，可直接在 `.listen-reveal-wrapper:not(.mobile) .slide-player__ask-arrow` 上设置 `left`（如 `430px`）；若不再走变量链路，及时清理未使用的 `--slide-player-custom-action-offset` 等变量定义。
+- 当移动端追问按钮与 Slide 浮层发生层级冲突时，确保按钮 `z-index` 低于浮层（如按钮 `z-index: 3`，浮层 `z-index: 4+`），让按钮始终在浮层后面展示。
 - 当听课模式依赖 `LIKE_STATUS` 作为内容块“流结束”的信号时，不要直接把它等同于“可发起 TTS”；还要再校验对应内容块是否 `is_speakable`，或是否已经带有可播放音频。
 - 当后端 AV 分段会把纯视觉 block 识别为“无可朗读文本”时，前端的 `ttsReadyElementBids` 之类请求门禁必须和这条规则对齐，避免 slide 切换时对纯视觉内容重复打 `generated-blocks/:id/tts` 并触发 500。
 - 当产品要求“仅点击播放按钮才发起 TTS”时，听课模式必须移除 `onStepChange`、序列切换等自动补拉请求逻辑，`generated-blocks/:id/tts` 只能由 `AudioPlayer` 的 `onRequestAudio` 点击行为触发。
