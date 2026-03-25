@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { lessonFeedbackInteractionDefaultValueOptions } from '@/c-utils/lesson-feedback-interaction-defaults';
@@ -14,6 +14,7 @@ import {
 } from '@/c-api/studyV2';
 import {
   type OnSendContentParams,
+  MarkdownFlowInput,
   Slide,
   type Element as SlideElement,
 } from 'markdown-flow-ui/renderer';
@@ -217,6 +218,11 @@ const ListenModeSlideRenderer = ({
   const [interactionInputMap, setInteractionInputMap] = useState<
     Record<string, string>
   >({});
+  const [isCustomAskOpen, setIsCustomAskOpen] = useState(false);
+  const [isPlayerVisible, setIsPlayerVisible] = useState(true);
+  const [customAskValue, setCustomAskValue] = useState('');
+  const customAskActionRef = useRef<HTMLButtonElement | null>(null);
+  const customAskOverlayRef = useRef<HTMLDivElement | null>(null);
   const { lastInteractionBid, lastItemIsInteraction } =
     useListenContentData(items);
 
@@ -329,11 +335,77 @@ const ListenModeSlideRenderer = ({
     [onSend],
   );
 
+  const handleCustomAskToggle = useCallback(() => {
+    setIsCustomAskOpen(prev => !prev);
+  }, []);
+
+  const handleCustomAskClose = useCallback(() => {
+    setIsCustomAskOpen(false);
+  }, []);
+
+  const handleCustomAskInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setCustomAskValue(event.target.value);
+    },
+    [],
+  );
+
+  const handleCustomAskSend = useCallback(() => {
+    if (!customAskValue.trim()) {
+      return;
+    }
+    setCustomAskValue('');
+    handleCustomAskClose();
+  }, [customAskValue, handleCustomAskClose]);
+
+  const handleSlidePlayerVisibilityChange = useCallback(
+    (visible: boolean) => {
+      setIsPlayerVisible(visible);
+      onPlayerVisibilityChange?.(visible);
+    },
+    [onPlayerVisibilityChange],
+  );
+
+  useEffect(() => {
+    if (!isCustomAskOpen) {
+      return;
+    }
+
+    const handleWindowPointerDown = (event: PointerEvent) => {
+      const eventTarget = event.target as Node | null;
+
+      if (!eventTarget) {
+        return;
+      }
+
+      if (customAskActionRef.current?.contains(eventTarget)) {
+        return;
+      }
+
+      if (customAskOverlayRef.current?.contains(eventTarget)) {
+        return;
+      }
+
+      setIsCustomAskOpen(false);
+    };
+
+    window.addEventListener('pointerdown', handleWindowPointerDown);
+
+    return () => {
+      window.removeEventListener('pointerdown', handleWindowPointerDown);
+    };
+  }, [isCustomAskOpen]);
+
   const playerCustomActions = useMemo(
     () => (
       <button
         aria-label={t('module.chat.customPlayerAction')}
-        className='slide-player__action listen-slide-custom-player-action'
+        className={cn(
+          'slide-player__action listen-slide-custom-player-action',
+          isCustomAskOpen && 'slide-player__action--active'
+        )}
+        onClick={handleCustomAskToggle}
+        ref={customAskActionRef}
         type='button'
       >
         <svg
@@ -365,7 +437,7 @@ const ListenModeSlideRenderer = ({
         </svg>
       </button>
     ),
-    [t],
+    [handleCustomAskToggle, isCustomAskOpen, t],
   );
 
   console.log('elementList', items, elementList);
@@ -379,6 +451,30 @@ const ListenModeSlideRenderer = ({
       ref={chatRef}
     >
       <div className='listen-slide-shell'>
+        {isCustomAskOpen && !shouldRenderEmptyPpt ? (
+          <div
+            className={cn(
+              'slide-ask-overlay',
+              isPlayerVisible
+                ? 'slide-ask-overlay--with-player'
+                : 'slide-ask-overlay--standalone',
+            )}
+            ref={customAskOverlayRef}
+          >
+            <div className='slide-player__ask-card'>
+              <div className='slide-player__ask-body'>
+                <MarkdownFlowInput
+                  className='w-full'
+                  onChange={handleCustomAskInputChange}
+                  onSend={handleCustomAskSend}
+                  placeholder={t('module.chat.askContent')}
+                  value={customAskValue}
+                />
+              </div>
+              <div className='slide-player__ask-arrow' />
+            </div>
+          </div>
+        ) : null}
         <Slide
           // playerAlwaysVisible={true}
           className='h-full w-full listen-slide-root'
@@ -390,7 +486,7 @@ const ListenModeSlideRenderer = ({
             copiedButtonText: t('module.renderUi.core.copied'),
           }}
           bufferingText={t('module.chat.slideAudioBuffering')}
-          onPlayerVisibilityChange={onPlayerVisibilityChange}
+          onPlayerVisibilityChange={handleSlidePlayerVisibilityChange}
           interactionDefaultValueOptions={
             lessonFeedbackInteractionDefaultValueOptions
           }

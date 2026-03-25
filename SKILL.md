@@ -32,6 +32,11 @@
 - When a Slide playback regression is hard to reproduce from a final `elementList`, replay the raw ai-shifu `run` fixture in Storybook so each `data:` payload applies as a live SSE-style update.
 - When wiring new Slide UI copy from ai-shifu into markdown-flow-ui props, add a dedicated `module.chat` translation key and pass the localized text from the renderer instead of hardcoding fallback strings.
 - 当 ai-shifu 需要扩展 Slide 播放器右侧按钮时，优先通过 `playerCustomActions` 从业务渲染层外部注入按钮节点，不要直接修改业务侧的内置播放器结构。
+- 当 `playerCustomActions` 需要触发追问类浮层时，采用“点击切换激活态”而非 hover 触发；图标激活色通过 `slide-player__action--active` 对齐播放器主题色，并在业务侧复制一份与 Slide 交互浮层一致的卡片与箭头样式。
+- 当听课模式在 Slide 浮层接入“追问输入框”时，优先复用阅读模式已有的 `MarkdownFlowInput` 和 `module.chat.askContent`，不要再新增一套追问输入框 i18n 或独立样式。
+- 当追问按钮图标需要保持既有视觉规范时，SVG 的 `strokeWidth` 固定为 `2`，非激活态 hover 不切主题色，只有点击激活后再通过 `slide-player__action--active` 使用主题色。
+- 当追问浮层与互动浮层视觉一致但语义不同步时，class 命名用 `ask` 系列（如 `slide-ask-overlay`、`slide-player__ask-*`），不要直接复用 `interaction` 命名。
+- 当业务侧自定义追问浮层需要跟随 Slide player 的显隐上下移动时，可在业务渲染层消费 `Slide` 的 `onPlayerVisibilityChange` 并切换 `with-player/standalone` class，无需改 `markdown-flow-ui`。
 - 当听课模式依赖 `LIKE_STATUS` 作为内容块“流结束”的信号时，不要直接把它等同于“可发起 TTS”；还要再校验对应内容块是否 `is_speakable`，或是否已经带有可播放音频。
 - 当后端 AV 分段会把纯视觉 block 识别为“无可朗读文本”时，前端的 `ttsReadyElementBids` 之类请求门禁必须和这条规则对齐，避免 slide 切换时对纯视觉内容重复打 `generated-blocks/:id/tts` 并触发 500。
 - 当产品要求“仅点击播放按钮才发起 TTS”时，听课模式必须移除 `onStepChange`、序列切换等自动补拉请求逻辑，`generated-blocks/:id/tts` 只能由 `AudioPlayer` 的 `onRequestAudio` 点击行为触发。
