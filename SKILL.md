@@ -39,6 +39,7 @@
 - 当业务侧自定义追问浮层需要跟随 Slide player 的显隐上下移动时，可在业务渲染层消费 `Slide` 的 `onPlayerVisibilityChange` 并切换 `with-player/standalone` class，无需改 `markdown-flow-ui`。
 - 当追问与交互两个播放器浮层需要互斥时，在追问按钮切换前先检测 `Notes` 按钮是否为 active 并触发关闭，再打开追问浮层，保证同一时刻只高亮一个按钮、只显示一个浮层。
 - 当听课模式的追问浮层需要和阅读模式一致的 `ask/answer` 体验时，直接复用 `AskBlock` 组件，并通过 `Slide.onStepChange` 维护当前 `element_bid` 作为 `AskBlock` 的 `reload` 目标。
+- 当听课模式在移动端的追问入口不在 player 区域时，`ListenModeSlideRenderer` 需要将 `Slide.playerCustomActions` 置空（`undefined`），并关闭/不渲染 player 内追问浮层。
 - 当听课模式依赖 `LIKE_STATUS` 作为内容块“流结束”的信号时，不要直接把它等同于“可发起 TTS”；还要再校验对应内容块是否 `is_speakable`，或是否已经带有可播放音频。
 - 当后端 AV 分段会把纯视觉 block 识别为“无可朗读文本”时，前端的 `ttsReadyElementBids` 之类请求门禁必须和这条规则对齐，避免 slide 切换时对纯视觉内容重复打 `generated-blocks/:id/tts` 并触发 500。
 - 当产品要求“仅点击播放按钮才发起 TTS”时，听课模式必须移除 `onStepChange`、序列切换等自动补拉请求逻辑，`generated-blocks/:id/tts` 只能由 `AudioPlayer` 的 `onRequestAudio` 点击行为触发。

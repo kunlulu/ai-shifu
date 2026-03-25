@@ -420,6 +420,13 @@ const ListenModeSlideRenderer = ({
   }, []);
 
   useEffect(() => {
+    if (!mobileStyle) {
+      return;
+    }
+    setIsCustomAskOpen(false);
+  }, [mobileStyle]);
+
+  useEffect(() => {
     if (!isCustomAskOpen) {
       return;
     }
@@ -507,7 +514,7 @@ const ListenModeSlideRenderer = ({
         className='listen-slide-shell'
         ref={slideShellRef}
       >
-        {isCustomAskOpen && !shouldRenderEmptyPpt ? (
+        {isCustomAskOpen && !mobileStyle && !shouldRenderEmptyPpt ? (
           <div
             className={cn(
               'slide-ask-overlay',
@@ -552,7 +559,7 @@ const ListenModeSlideRenderer = ({
           onSend={handleInteractionSend}
           onStepChange={handleSlideStepChange}
           playerClassName={mobileStyle ? 'listen-slide-player-mobile' : ''}
-          playerCustomActions={playerCustomActions}
+          playerCustomActions={mobileStyle ? undefined : playerCustomActions}
           showPlayer={!shouldRenderEmptyPpt}
         />
       </div>
