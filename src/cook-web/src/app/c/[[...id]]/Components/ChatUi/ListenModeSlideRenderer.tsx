@@ -223,6 +223,7 @@ const ListenModeSlideRenderer = ({
   const [customAskValue, setCustomAskValue] = useState('');
   const customAskActionRef = useRef<HTMLButtonElement | null>(null);
   const customAskOverlayRef = useRef<HTMLDivElement | null>(null);
+  const slideShellRef = useRef<HTMLDivElement | null>(null);
   const { lastInteractionBid, lastItemIsInteraction } =
     useListenContentData(items);
 
@@ -335,9 +336,40 @@ const ListenModeSlideRenderer = ({
     [onSend],
   );
 
-  const handleCustomAskToggle = useCallback(() => {
-    setIsCustomAskOpen(prev => !prev);
+  const closeInteractionOverlayIfOpen = useCallback(() => {
+    const shellElement = slideShellRef.current;
+    if (!shellElement) {
+      return;
+    }
+
+    const notesToggleButton =
+      shellElement.querySelector<HTMLButtonElement>(
+        'button[aria-label="Notes"].slide-player__action'
+      ) ??
+      shellElement.querySelector<HTMLButtonElement>(
+        '.slide-player__controls .slide-player__group:last-of-type > .slide-player__action:last-of-type'
+      );
+
+    if (
+      !notesToggleButton ||
+      !notesToggleButton.classList.contains('slide-player__action--active')
+    ) {
+      return;
+    }
+
+    // Trigger the same toggle path as user click to close interaction overlay first.
+    notesToggleButton.click();
   }, []);
+
+  const handleCustomAskToggle = useCallback(() => {
+    setIsCustomAskOpen(prevOpen => {
+      const nextOpen = !prevOpen;
+      if (nextOpen) {
+        closeInteractionOverlayIfOpen();
+      }
+      return nextOpen;
+    });
+  }, [closeInteractionOverlayIfOpen]);
 
   const handleCustomAskClose = useCallback(() => {
     setIsCustomAskOpen(false);
@@ -450,7 +482,10 @@ const ListenModeSlideRenderer = ({
       )}
       ref={chatRef}
     >
-      <div className='listen-slide-shell'>
+      <div
+        className='listen-slide-shell'
+        ref={slideShellRef}
+      >
         {isCustomAskOpen && !shouldRenderEmptyPpt ? (
           <div
             className={cn(
@@ -476,7 +511,7 @@ const ListenModeSlideRenderer = ({
           </div>
         ) : null}
         <Slide
-          // playerAlwaysVisible={true}
+          playerAlwaysVisible={true}
           className='h-full w-full listen-slide-root'
           elementList={elementList}
           interactionTexts={{
