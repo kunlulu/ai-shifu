@@ -242,6 +242,7 @@ const LessonPreview: React.FC<LessonPreviewProps> = ({
                       onToggleAskExpanded={noop}
                       disableAskButton
                       disableInteractionButtons
+                      showGenerateBtn={showGenerateBtn}
                       extraActions={
                         onRequestAudioForBlock && shouldRenderAudioAction ? (
                           <AudioPlayer

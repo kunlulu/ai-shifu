@@ -373,6 +373,29 @@ const isPreviewActionableItem = (
   );
 };
 
+const resolvePreviewBlockIndex = (
+  items: ChatContentItem[],
+  blockBid: string,
+): number => {
+  if (!blockBid) {
+    return -1;
+  }
+
+  const actionableBids: string[] = [];
+  items.forEach(item => {
+    if (!isPreviewActionableItem(item)) {
+      return;
+    }
+    const resolvedBid = resolvePreviewItemBid(item);
+    if (!resolvedBid || actionableBids.includes(resolvedBid)) {
+      return;
+    }
+    actionableBids.push(resolvedBid);
+  });
+
+  return actionableBids.findIndex(itemBid => itemBid === blockBid);
+};
+
 const resolveLatestPreviewActionableItem = (
   items: ChatContentItem[],
 ): ChatContentItem | undefined => {
@@ -1513,7 +1536,7 @@ export function usePreviewChat() {
   );
 
   const onRefresh = useCallback(
-    async (generatedBlockBid: string) => {
+    async (blockBid: string) => {
       if (isStreamingRef.current) {
         showOutputInProgressToast();
         return;
@@ -1522,16 +1545,32 @@ export function usePreviewChat() {
       const originalList = [...contentListRef.current];
       const newList = [...originalList];
       const needChangeItemIndex = newList.findIndex(
-        item => item.generated_block_bid === generatedBlockBid,
+        item => resolvePreviewItemBid(item) === blockBid,
       );
       if (needChangeItemIndex === -1) {
         return;
       }
 
-      const parsedBlockIndex = Number.parseInt(generatedBlockBid, 10);
-      const nextBlockIndex = Number.isNaN(parsedBlockIndex)
-        ? needChangeItemIndex
-        : parsedBlockIndex;
+      const targetItemBid = resolvePreviewItemBid(newList[needChangeItemIndex]);
+      const resolvedBlockIndex = resolvePreviewBlockIndex(
+        originalList,
+        targetItemBid || blockBid,
+      );
+      const parsedBlockIndex = Number.parseInt(targetItemBid || blockBid, 10);
+      const nextBlockIndex =
+        resolvedBlockIndex > -1
+          ? resolvedBlockIndex
+          : Number.isNaN(parsedBlockIndex)
+            ? needChangeItemIndex
+            : parsedBlockIndex;
+      const currentMaxBlockCount =
+        typeof sseParams.current.max_block_count === 'number'
+          ? sseParams.current.max_block_count
+          : undefined;
+      const nextMaxBlockCount =
+        typeof currentMaxBlockCount === 'number'
+          ? Math.max(currentMaxBlockCount, nextBlockIndex + 1)
+          : undefined;
 
       const removedBlockIds = originalList
         .slice(needChangeItemIndex)
@@ -1544,13 +1583,24 @@ export function usePreviewChat() {
       newList.length = needChangeItemIndex;
       setTrackedContentList(newList);
       const latestMdflow = resolveLatestMdflow();
+      console.log('[preview regenerate] restart stream from block', {
+        requestedBlockBid: blockBid,
+        targetItemBid,
+        nextBlockIndex,
+        nextMaxBlockCount,
+      });
       startPreview({
         ...sseParams.current,
         mdflow: latestMdflow,
         block_index: nextBlockIndex,
+        ...(typeof nextMaxBlockCount === 'number'
+          ? { max_block_count: nextMaxBlockCount }
+          : {}),
       });
     },
     [
+      resolvePreviewBlockIndex,
+      resolvePreviewItemBid,
       resolveLatestMdflow,
       removeAutoSubmittedBlocks,
       setTrackedContentList,
