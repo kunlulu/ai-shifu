@@ -136,15 +136,25 @@ export const shouldShowMobileAskButtonForReadContent = <
 >({
   item,
   previousActionableItem,
+  currentStreamingElementBid,
 }: {
   item: T;
   previousActionableItem?: T;
+  currentStreamingElementBid?: string | null;
 }): boolean => {
   if (item.type !== 'content') {
     return false;
   }
 
   if (!item.element_bid || item.element_bid === 'loading') {
+    return false;
+  }
+
+  // If this element is currently streaming, don't show the ask button yet
+  if (
+    currentStreamingElementBid &&
+    item.element_bid === currentStreamingElementBid
+  ) {
     return false;
   }
 

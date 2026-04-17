@@ -82,11 +82,13 @@ const buildReadModeItemsWithAskState = ({
   askListByAnchorElementBid,
   mobileStyle,
   askButtonMarkup,
+  currentStreamingElementBid,
 }: {
   items: ChatContentItem[];
   askListByAnchorElementBid: Record<string, AskMessage[]>;
   mobileStyle: boolean;
   askButtonMarkup: string;
+  currentStreamingElementBid?: string | null;
 }) => {
   const existingAskAnchorSet = new Set<string>();
   const likeStatusAnchorSet = new Set<string>();
@@ -112,6 +114,7 @@ const buildReadModeItemsWithAskState = ({
     const shouldShowMobileAskButton = shouldShowMobileAskButtonForReadContent({
       item,
       previousActionableItem,
+      currentStreamingElementBid,
     });
     const nextItem =
       mobileStyle && item.type === ChatContentItemType.CONTENT
@@ -522,8 +525,9 @@ export const NewChatComponents = ({
         askListByAnchorElementBid: scopedAskListByAnchorElementBid,
         mobileStyle,
         askButtonMarkup,
+        currentStreamingElementBid,
       }),
-    [askButtonMarkup, items, mobileStyle, scopedAskListByAnchorElementBid],
+    [askButtonMarkup, items, mobileStyle, scopedAskListByAnchorElementBid, currentStreamingElementBid],
   );
 
   useEffect(() => {
