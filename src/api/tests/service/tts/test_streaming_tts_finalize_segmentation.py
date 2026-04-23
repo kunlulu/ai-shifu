@@ -71,6 +71,34 @@ class TestFinalizeSegmentation:
 
     @patch("flaskr.service.tts.streaming_tts._tts_executor")
     @patch("flaskr.service.tts.streaming_tts.is_tts_configured")
+    def test_process_chunk_submits_after_comma_boundary(
+        self, mock_is_configured, mock_executor, mock_app
+    ):
+        """Test stream-time submission also treats commas as boundaries."""
+        mock_is_configured.return_value = True
+
+        processor = create_test_processor(mock_app)
+        submitted_texts = []
+
+        def mock_submit(*args, **kwargs):
+            if len(args) > 1:
+                segment = args[1]
+                if hasattr(segment, "text"):
+                    submitted_texts.append(segment.text)
+            future = MagicMock()
+            future.result.return_value = None
+            return future
+
+        mock_executor.submit.side_effect = mock_submit
+
+        list(processor.process_chunk("Hello"))
+        assert submitted_texts == []
+
+        list(processor.process_chunk(", world"))
+        assert submitted_texts == ["Hello,"]
+
+    @patch("flaskr.service.tts.streaming_tts._tts_executor")
+    @patch("flaskr.service.tts.streaming_tts.is_tts_configured")
     def test_submit_remaining_text_in_segments_splits_at_sentence_boundaries(
         self, mock_is_configured, mock_executor, mock_app
     ):
@@ -109,7 +137,9 @@ class TestFinalizeSegmentation:
         assert len(submitted_texts) > 0
         # Each segment should end at a sentence boundary (except possibly the last)
         for i, text in enumerate(submitted_texts[:-1]):
-            assert text.rstrip().endswith((".", "!", "?", "。", "！", "？"))
+            assert text.rstrip().endswith(
+                (",", ".", "!", "?", "，", "。", "！", "？", "；", ";")
+            )
 
     @patch("flaskr.service.tts.streaming_tts._tts_executor")
     @patch("flaskr.service.tts.streaming_tts.is_tts_configured")
