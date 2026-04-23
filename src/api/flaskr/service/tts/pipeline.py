@@ -64,6 +64,7 @@ from flaskr.service.tts.patterns import (
     FIXED_MARKER_TAIL,
     TAG_NAME_EXTRACT,
 )
+from flaskr.service.tts.sentence_boundaries import iter_sentence_boundary_positions
 
 from flaskr.util.uuid import generate_id
 
@@ -72,8 +73,6 @@ _AV_LATEX_BLOCK = AV_LATEX_BLOCK
 
 logger = AppLoggerProxy(logging.getLogger(__name__))
 
-
-_DEFAULT_SENTENCE_ENDINGS = set(",.!?，。！？；;")
 
 _AV_SPEAKABLE_SANDBOX_ROOT_TAGS = {"div", "section", "article", "main", "template"}
 
@@ -545,13 +544,11 @@ def _split_by_sentence_and_newline(text: str) -> list[str]:
             continue
 
         start = 0
-        for idx, ch in enumerate(line):
-            if ch in _DEFAULT_SENTENCE_ENDINGS:
-                end = idx + 1
-                piece = line[start:end].strip()
-                if piece:
-                    units.append(piece)
-                start = end
+        for end in iter_sentence_boundary_positions(line):
+            piece = line[start:end].strip()
+            if piece:
+                units.append(piece)
+            start = end
 
         tail = line[start:].strip()
         if tail:

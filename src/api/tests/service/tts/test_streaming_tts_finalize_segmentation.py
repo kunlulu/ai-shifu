@@ -71,10 +71,10 @@ class TestFinalizeSegmentation:
 
     @patch("flaskr.service.tts.streaming_tts._tts_executor")
     @patch("flaskr.service.tts.streaming_tts.is_tts_configured")
-    def test_process_chunk_submits_after_comma_boundary(
+    def test_process_chunk_does_not_split_on_short_comma_clause(
         self, mock_is_configured, mock_executor, mock_app
     ):
-        """Test stream-time submission also treats commas as boundaries."""
+        """Short comma clauses should stay buffered to avoid tiny TTS segments."""
         mock_is_configured.return_value = True
 
         processor = create_test_processor(mock_app)
@@ -95,7 +95,38 @@ class TestFinalizeSegmentation:
         assert submitted_texts == []
 
         list(processor.process_chunk(", world"))
-        assert submitted_texts == ["Hello,"]
+        assert submitted_texts == []
+
+        list(processor.process_chunk("."))
+        assert submitted_texts == ["Hello, world."]
+
+    @patch("flaskr.service.tts.streaming_tts._tts_executor")
+    @patch("flaskr.service.tts.streaming_tts.is_tts_configured")
+    def test_process_chunk_splits_on_long_comma_clause(
+        self, mock_is_configured, mock_executor, mock_app
+    ):
+        """Long comma clauses should still split to keep subtitles readable."""
+        mock_is_configured.return_value = True
+
+        processor = create_test_processor(mock_app)
+        submitted_texts = []
+
+        def mock_submit(*args, **kwargs):
+            if len(args) > 1:
+                segment = args[1]
+                if hasattr(segment, "text"):
+                    submitted_texts.append(segment.text)
+            future = MagicMock()
+            future.result.return_value = None
+            return future
+
+        mock_executor.submit.side_effect = mock_submit
+
+        list(processor.process_chunk("This clause is definitely long enough"))
+        assert submitted_texts == []
+
+        list(processor.process_chunk(", and should split"))
+        assert submitted_texts == ["This clause is definitely long enough,"]
 
     @patch("flaskr.service.tts.streaming_tts._tts_executor")
     @patch("flaskr.service.tts.streaming_tts.is_tts_configured")
@@ -140,6 +171,32 @@ class TestFinalizeSegmentation:
             assert text.rstrip().endswith(
                 (",", ".", "!", "?", "，", "。", "！", "？", "；", ";")
             )
+
+    @patch("flaskr.service.tts.streaming_tts._tts_executor")
+    @patch("flaskr.service.tts.streaming_tts.is_tts_configured")
+    def test_submit_remaining_text_keeps_short_comma_clause_merged(
+        self, mock_is_configured, mock_executor, mock_app
+    ):
+        """Finalize should not fragment very short clauses on commas."""
+        mock_is_configured.return_value = True
+
+        processor = create_test_processor(mock_app)
+        submitted_texts = []
+
+        def mock_submit(*args, **kwargs):
+            if len(args) > 1:
+                segment = args[1]
+                if hasattr(segment, "text"):
+                    submitted_texts.append(segment.text)
+            future = MagicMock()
+            future.result.return_value = None
+            return future
+
+        mock_executor.submit.side_effect = mock_submit
+
+        processor._submit_remaining_text_in_segments("Hello, world")
+
+        assert submitted_texts == ["Hello, world"]
 
     @patch("flaskr.service.tts.streaming_tts._tts_executor")
     @patch("flaskr.service.tts.streaming_tts.is_tts_configured")

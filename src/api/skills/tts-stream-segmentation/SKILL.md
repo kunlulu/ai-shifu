@@ -7,8 +7,10 @@
 
 ## 核心规则
 
-- `run` 听课模式里的流式字幕分段，优先检查 `src/api/flaskr/service/tts/patterns.py` 中的 `SENTENCE_ENDINGS`。
-- 如果修改了流式 TTS 的标点边界，同时更新 `src/api/flaskr/service/tts/pipeline.py` 里的 `_DEFAULT_SENTENCE_ENDINGS`，保持流式与非流式拆分口径一致。
+- `run` 听课模式里的流式字幕分段，优先检查 `src/api/flaskr/service/tts/sentence_boundaries.py` 的共享边界规则，再核对 `src/api/flaskr/service/tts/patterns.py` 的标点集合定义。
+- 流式 TTS 的逗号属于弱边界，只有当前子句足够长时才应该切分；否则会显著增加 `audio_segment` 数量、heartbeat 和整体尾延迟。
+- 如果修改了流式 TTS 的标点边界，同时更新 `src/api/flaskr/service/tts/pipeline.py` 使用的共享句边界 helper，保持流式与非流式拆分口径一致。
+- 当同一条规则需要在流式与非流式链路复用时，优先抽到 `src/api/flaskr/service/tts/` 下的共享 helper，避免两处手写逻辑再次漂移。
 - 当前标点切分规则如果扩展到新符号，优先补 `src/api/tests/service/tts/test_streaming_tts_finalize_segmentation.py` 的回归测试。
 - 涉及视觉边界、图片、SVG、表格、iframe 等跳过逻辑时，不要只看标点；还要同步核对 `streaming_tts.py` 与 `pipeline.py` 的 AV boundary 行为。
 

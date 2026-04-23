@@ -53,8 +53,9 @@ from flaskr.service.learn.learn_dtos import (
 )
 from flaskr.service.learn.listen_slide_builder import build_visual_segments_for_block
 from flaskr.service.tts.boundary_strategies import find_boundary_end
-from flaskr.service.tts.patterns import (
-    SENTENCE_ENDINGS,
+from flaskr.service.tts.sentence_boundaries import (
+    DEFAULT_WEAK_BOUNDARY_MIN_CHARS,
+    iter_sentence_boundary_positions,
 )
 from flaskr.service.tts.pipeline import (
     build_av_segmentation_contract,
@@ -104,6 +105,7 @@ _VISUAL_SKIP_KINDS = frozenset(
 # like `<div`, `<svg`, `![` or fenced code openers can span across chunks
 # without delaying speakable text submission more than necessary.
 _STREAM_BOUNDARY_GUARD_TAIL_CHARS = 12
+_STREAM_WEAK_BOUNDARY_MIN_CHARS = DEFAULT_WEAK_BOUNDARY_MIN_CHARS
 
 
 @dataclass
@@ -271,19 +273,24 @@ class StreamingTTSProcessor:
 
         # Only consume text up to the last complete sentence ending in the
         # currently processable stream window.
-        sentence_matches = list(SENTENCE_ENDINGS.finditer(processable_text))
-        if not sentence_matches:
+        boundary_positions = list(
+            iter_sentence_boundary_positions(
+                processable_text,
+                weak_boundary_min_chars=_STREAM_WEAK_BOUNDARY_MIN_CHARS,
+            )
+        )
+        if not boundary_positions:
             return
 
-        last_match = sentence_matches[-1]
-        completed_text = processable_text[: last_match.end()]
+        last_boundary_end = boundary_positions[-1]
+        completed_text = processable_text[:last_boundary_end]
 
         # Advance the raw offset.  We need to find how far into the raw
         # remaining text the last sentence ending corresponds.  Because
         # preprocessing can change text length, we search for the sentence-
         # ending character in the raw text scanning forward.
         self._raw_offset += self._find_raw_consume_len(
-            raw_remaining, last_match.end(), processable_text
+            raw_remaining, last_boundary_end, processable_text
         )
 
         self._submit_remaining_text_in_segments(
@@ -382,8 +389,10 @@ class StreamingTTSProcessor:
         )
 
         cursor = 0
-        for match in SENTENCE_ENDINGS.finditer(remaining_text):
-            split_pos = match.end()
+        for split_pos in iter_sentence_boundary_positions(
+            remaining_text,
+            weak_boundary_min_chars=_STREAM_WEAK_BOUNDARY_MIN_CHARS,
+        ):
             segment_text = remaining_text[cursor:split_pos].strip()
             if segment_text and len(segment_text) >= 2:
                 self._submit_tts_task(segment_text)
