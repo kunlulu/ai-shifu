@@ -1,3 +1,12 @@
+.mobileHeaderStack {
+  width: 100%;
+  background: var(--base-background, #fff);
+}
+
+.previewBanner {
+  margin: 0;
+}
+
 .ChatMobileHeader {
   display: flex;
   flex-flow: row nowrap;

@@ -1,5 +1,6 @@
 {
   "__namespace__": "module.preview",
   "llmError": "LLM Invocation Error",
-  "previewAll": "Preview Course"
+  "previewAll": "Preview Course",
+  "previewLinkNotice": "This is a preview link. Only the course publisher can view it"
 }

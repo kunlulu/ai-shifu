@@ -2,13 +2,24 @@
   position: relative;
   flex: 1;
   min-width: 0;
+  --course-header-height: 64px;
+  --course-preview-banner-height: 40px;
 
-  .header {
+  .headerStack {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 64px;
+    z-index: 10;
+  }
+
+  .previewBanner {
+    margin: 0;
+  }
+
+  .header {
+    position: relative;
+    height: var(--course-header-height);
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -198,7 +209,7 @@
     flex: 1 1 auto;
     justify-content: center;
     overflow-y: auto;
-    padding-top: 64px;
+    padding-top: var(--course-header-height);
     box-sizing: border-box;
   }
 
@@ -212,7 +223,21 @@
     width: 100%;
     height: 100%;
     z-index: 2;
-    margin-top: 64px;
+    margin-top: var(--course-header-height);
+  }
+}
+
+.withPreviewBanner {
+  .chatComponents {
+    padding-top: calc(
+      var(--course-header-height) + var(--course-preview-banner-height)
+    );
+  }
+
+  .UserSettings {
+    margin-top: calc(
+      var(--course-header-height) + var(--course-preview-banner-height)
+    );
   }
 }
 
